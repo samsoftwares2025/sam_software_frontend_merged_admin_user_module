@@ -1,0 +1,93 @@
+/* ------------------------------
+   GLOBAL RESET + BASE STYLES
+--------------------------------*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: #111827; /* Gray-900 */
+  background-color: #f3f4f6; /* Gray-100 */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ------------------------------
+   BODY + ROOT
+--------------------------------*/
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+}
+
+/* ------------------------------
+   GLOBAL ANCHOR STYLES
+--------------------------------*/
+a {
+  font-weight: 500;
+  color: #2563eb; /* Blue-600 */
+  text-decoration: none;
+}
+
+a:hover {
+  color: #1d4ed8; /* Blue-700 */
+}
+
+/* ------------------------------
+   BUTTONS (BASE)
+   Your admin.css will override button classes
+--------------------------------*/
+button {
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: none;
+}
+
+/* ------------------------------
+   SCROLLBAR STYLING
+--------------------------------*/
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #e5e7eb; /* gray-200 */
+}
+::-webkit-scrollbar-thumb {
+  background: #9ca3af; /* gray-400 */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280; /* gray-500 */
+}
+
+/* ------------------------------
+   FIX DARK MODE CONFLICTS
+--------------------------------*/
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #111827;
+    background-color: #f3f4f6;
+  }
+}
+
+

@@ -1,0 +1,406 @@
+:root {
+  --bg-muted: linear-gradient(to bottom, #b4dceb, #eef6fa);
+  --card-bg: #ffffff;
+  --text: #2c3e50;
+  --text-light: #464d52;
+  --primary-1: #2d78b5;
+  --primary-2: #42a5f5;
+  --accent: #1976d2;
+  --danger: #dc3545;
+  --muted-border: #e9ecef;
+  --shadow: 0 20px 50px rgba(15, 23, 42, 0.22);
+}
+
+.page-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-muted);
+  padding: 20px;
+}
+
+/* Container */
+.login-container {
+  background: var(--card-bg);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  animation: slideUp 0.6s ease-out;
+  border: 1px solid var(--muted-border);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Left panel */
+.login-left {
+  flex: 1;
+  background: linear-gradient(180deg, #99a6a6 0%, #f8fafc 100%);
+  padding: 60px 40px;
+  color: #0b0606;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-left::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  top: -100px;
+  right: -100px;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.65; }
+  50% { transform: scale(1.1); opacity: 0.35; }
+}
+
+.login-left h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  z-index: 1;
+  line-height: 1.3;
+}
+
+.login-left p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  z-index: 1;
+}
+
+.features { z-index: 1; }
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  animation: fadeInLeft 0.6s ease-out backwards;
+}
+
+.feature-item:nth-child(1) { animation-delay: 0.2s; }
+.feature-item:nth-child(2) { animation-delay: 0.3s; }
+.feature-item:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.feature-item svg {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+/* Right panel */
+.login-right {
+  flex: 1.4;
+  padding: 50px 40px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #f9fbff;
+}
+
+.login-header { text-align: center; margin-bottom: 30px; }
+.login-header h2 { color: var(--primary-1); font-size: 28px; margin-bottom: 10px; }
+.login-header p { color: var(--text-light); font-size: 14px; }
+
+/* Form */
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin: 20px 0 10px;
+}
+
+form { font-size: 14px; }
+
+.input-group {
+  margin-bottom: 18px;
+  animation: fadeIn 0.6s ease-out backwards;
+}
+
+.input-group label {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  cursor: pointer; /* Make label clickable */
+}
+
+/* Make sure all labels are clickable */
+.input-group label[for="logo"] {
+  cursor: pointer;
+}
+
+/* Wrapper */
+.input-wrapper { 
+  position: relative;
+  width: 100%;
+}
+
+.input-wrapper svg {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--primary-2);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-wrapper input,
+.input-wrapper select,
+.input-wrapper textarea {
+  width: 100%;
+  padding: 12px 14px 12px 45px;
+  border: 1px solid var(--muted-border);
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.25s ease;
+  background: #ffffff;
+  font-family: "Times New Roman", Times, serif;
+  box-sizing: border-box;
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus,
+.input-wrapper textarea:focus {
+  border-color: var(--primary-2);
+  box-shadow: 0 0 0 3px rgba(66,165,245,0.18);
+  outline: none;
+}
+
+/* -------------------------------- */
+/* LOGO FILE INPUT - VISIBLE FIELD */
+/* -------------------------------- */
+.file-input-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 44px;
+}
+
+/* Custom file input button */
+.file-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--muted-border);
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.file-input-container:hover {
+  border-color: var(--primary-2);
+  background: #f8fafc;
+}
+
+/* Style the file input to look like a button */
+.file-input-container input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Visible file input area */
+.file-input-display {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 15px 0 45px;
+  position: relative;
+  z-index: 1;
+}
+
+.file-input-display svg {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--primary-2);
+}
+
+.file-input-text {
+  font-size: 14px;
+  color: var(--text-light);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* When file is selected */
+.file-input-container.has-file .file-input-text {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Browse button styling */
+.file-browse-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--primary-2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.file-input-container:hover .file-browse-btn {
+  background: var(--primary-1);
+}
+
+/* Error states */
+.input-error .file-input-container {
+  border-color: var(--danger) !important;
+}
+
+/* Phone Input Field */
+.phone-input { 
+  width: 100%; 
+}
+
+.phone-input .PhoneInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--muted-border);
+  border-radius: 10px;
+  background: #ffffff;
+  height: 44px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* Layout */
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .input-group { 
+  flex: 1; 
+  min-width: 0; /* Prevents overflow */
+}
+
+/* Buttons */
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--primary-2), var(--primary-1));
+  border-radius: 10px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+  transition: all 0.25s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(66,165,245,0.3);
+}
+
+/* Errors */
+.input-error { 
+  border-color: var(--danger) !important; 
+}
+
+.error-text { 
+  color: var(--danger); 
+  font-size: 12px; 
+  margin-top: 3px; 
+  display: block;
+  min-height: 15px;
+}
+
+/* Validating text */
+.validating-text {
+  color: var(--primary-2);
+  font-size: 12px;
+  margin-top: 3px;
+  display: block;
+  min-height: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-container { 
+    flex-direction: column; 
+    max-height: 95vh;
+  }
+  
+  .login-right {
+    max-height: 70vh;
+    padding: 30px 20px;
+  }
+  
+  .form-row { 
+    flex-direction: column; 
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-left { 
+    padding: 40px 20px; 
+  }
+  
+  .login-left h1 { 
+    font-size: 26px; 
+  }
+  
+  .login-header h2 { 
+    font-size: 24px; 
+  }
+  
+  .login-right {
+    padding: 25px 15px;
+  }
+  
+  .file-browse-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
