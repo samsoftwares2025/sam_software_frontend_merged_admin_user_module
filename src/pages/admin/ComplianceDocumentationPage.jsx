@@ -5,9 +5,8 @@ import "../../assets/styles/admin.css";
 
 import {
   getSupportTickets,
-  filterSupportTickets,
+  filterSupportTickets,getEmployeesList_filter
 } from "../../api/admin/support_tickets";
-import { getEmployeesList_employee_mgmnt } from "../../api/admin/employees";
 
 import Select from "react-select";
 
@@ -73,7 +72,7 @@ function ComplianceDocumentationPage() {
   /* ================= FETCH EMPLOYEES ================= */
   const fetchEmployees = async () => {
     try {
-      const list = await getEmployeesList_employee_mgmnt();
+      const list = await getEmployeesList_filter();
       setEmployees(list);
     } catch (err) {
       console.error("Employee list error:", err);

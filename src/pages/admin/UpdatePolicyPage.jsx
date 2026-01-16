@@ -1,9 +1,14 @@
+// src/pages/admin/UpdatePolicyPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
-import "../../assets/styles/admin.css";
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
 
+import "../../assets/styles/admin.css";
 import {
   getPolicies as apiGetPolicies,
   updatePolicy,
@@ -15,34 +20,40 @@ function UpdatePolicyPage() {
   const policyId = params.get("id");
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true); // loading existing policy
+  const [processing, setProcessing] = useState(false); // saving update
 
+  // Error & success modals
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // form fields
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
-  const [originalPolicy, setOriginalPolicy] = useState(null);
 
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [existingFileUrl, setExistingFileUrl] = useState(null);
 
   /* ===============================
-     LOAD POLICY
+        LOAD POLICY
   ================================ */
   useEffect(() => {
     if (!policyId) {
-      setError("No policy id provided.");
+      setErrorMessage("No policy ID provided.");
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
 
     let mounted = true;
     setLoading(true);
-    setError(null);
 
     apiGetPolicies()
       .then((resp) => {
@@ -58,7 +69,8 @@ function UpdatePolicyPage() {
         const found = list.find((p) => String(p.id) === String(policyId));
 
         if (!found) {
-          setError("Policy not found.");
+          setErrorMessage("Policy not found.");
+          setShowErrorModal(true);
           return;
         }
 
@@ -66,45 +78,40 @@ function UpdatePolicyPage() {
         setShortDescription(found.short_description || "");
         setDescription(found.description || "");
         setExistingFileUrl(found.image || null);
-        setOriginalPolicy(found);
       })
-      .catch((err) => {
-        console.error("Failed to load policy:", err);
-        setError("Failed to load policy.");
+      .catch(() => {
+        setErrorMessage("Failed to load policy.");
+        setShowErrorModal(true);
       })
-      .finally(() => mounted && setLoading(false));
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, [policyId]);
 
   /* ===============================
-     FILE HANDLER
+        FILE HANDLER
   ================================ */
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    setPreviewUrl(null);
-
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    }
+    const selected = e.target.files[0];
+    setFile(selected);
+    setPreviewUrl(selected ? URL.createObjectURL(selected) : null);
   };
 
   /* ===============================
-     SUBMIT
+        SUBMIT HANDLER
   ================================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
 
     if (!title.trim()) {
-      setError("Policy title is required.");
+      setErrorMessage("Policy title is required.");
+      setShowErrorModal(true);
       return;
     }
 
-    setSaving(true);
+    setProcessing(true);
 
     try {
       const formData = new FormData();
@@ -115,38 +122,53 @@ function UpdatePolicyPage() {
 
       const resp = await updatePolicy(policyId, formData);
 
-      // 🔥 HANDLE DUPLICATE TITLE OR ANY BACKEND VALIDATION
+      // backend validation failed
       if (resp?.success === false) {
-        setError(resp.message || "Failed to update policy.");
-        setSaving(false);
+        setErrorMessage(resp.message || "Failed to update policy.");
+        setShowErrorModal(true);
+        setProcessing(false);
         return;
       }
 
-      // SUCCESS → redirect
-      navigate("/admin/policies", { replace: true });
+      setSuccessMessage(resp.message || "Policy updated successfully.");
+      setShowSuccessModal(true);
     } catch (err) {
-      console.error("Update failed:", err);
-
-      const respData = err?.response?.data;
-
-      // 🔥 EXACT BACKEND MESSAGE (ex: “Policy title already exists”)
-      if (respData?.message) {
-        setError(respData.message);
-        setSaving(false);
-        return;
-      }
-
-      setError("Failed to update policy.");
+      const backendMsg = err?.response?.data?.message;
+      setErrorMessage(backendMsg || "Failed to update policy.");
+      setShowErrorModal(true);
     } finally {
-      setSaving(false);
+      setProcessing(false);
     }
   };
 
   /* ===============================
-     UI
+        UI
   ================================ */
   return (
     <div className="container">
+
+      {/* Loader Overlay */}
+      {processing && <LoaderOverlay />}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessModal(false);
+            navigate("/admin/policies");
+          }}
+        />
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <Sidebar
         isMobileOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -168,10 +190,6 @@ function UpdatePolicyPage() {
             <div>Loading policy...</div>
           ) : (
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              {error && (
-                <div style={{ color: "red", marginBottom: 12 }}>{error}</div>
-              )}
-
               {/* TITLE */}
               <div className="designation-page-form-row">
                 <label>Policy Title</label>
@@ -180,7 +198,7 @@ function UpdatePolicyPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  disabled={saving}
+                  disabled={processing}
                 />
               </div>
 
@@ -192,7 +210,7 @@ function UpdatePolicyPage() {
                   rows={3}
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  disabled={saving}
+                  disabled={processing}
                 />
               </div>
 
@@ -204,7 +222,7 @@ function UpdatePolicyPage() {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  disabled={saving}
+                  disabled={processing}
                 />
               </div>
 
@@ -232,14 +250,14 @@ function UpdatePolicyPage() {
                 </div>
               )}
 
-              {/* REPLACE FILE */}
+              {/* NEW FILE */}
               <div className="designation-page-form-row">
                 <label>Replace File (optional)</label>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
                   onChange={handleFileChange}
-                  disabled={saving}
+                  disabled={processing}
                 />
 
                 {previewUrl && (
@@ -259,19 +277,15 @@ function UpdatePolicyPage() {
 
               {/* ACTION BUTTONS */}
               <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
+                <button type="submit" className="btn btn-primary" disabled={processing}>
+                  {processing ? "Saving..." : "Save Changes"}
                 </button>
 
                 <button
                   type="button"
                   className="btn btn-ghost"
                   onClick={() => navigate("/admin/policies")}
-                  disabled={saving}
+                  disabled={processing}
                 >
                   Cancel
                 </button>

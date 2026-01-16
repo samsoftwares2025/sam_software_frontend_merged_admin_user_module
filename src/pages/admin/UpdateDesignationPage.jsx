@@ -1,44 +1,33 @@
+// src/pages/admin/UpdateDesignationPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
 
 import {
   getDesignations as apiGetDesignations,
   updateDesignation,
 } from "../../api/admin/designations";
+
 import { getDepartments } from "../../api/admin/departments";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Designation Updated</h2>
-      <p>The designation has been updated successfully.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
-
-/**
- * Safely extract designation name
- */
+/* =============================================================== */
+/* SAFELY EXTRACT NAME                                             */
+/* =============================================================== */
 const extractDesignationName = (value) => {
   if (!value) return "";
-
-  if (typeof value === "string" && !value.trim().startsWith("{")) {
-    return value;
-  }
+  if (typeof value === "string" && !value.trim().startsWith("{")) return value;
 
   try {
-    const fixedJson = value.replace(/'/g, '"');
-    const parsed = JSON.parse(fixedJson);
+    const fixed = value.replace(/'/g, '"');
+    const parsed = JSON.parse(fixed);
     return parsed?.name || "";
   } catch {
     return value;
@@ -50,9 +39,15 @@ function UpdateDesignationPage() {
   const params = new URLSearchParams(window.location.search);
   const desgId = params.get("id");
 
+  /* ============================= */
+  /* Layout */
+  /* ============================= */
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
+  /* ============================= */
+  /* Form State */
+  /* ============================= */
   const [name, setName] = useState("");
   const [originalName, setOriginalName] = useState("");
   const [departmentId, setDepartmentId] = useState("");
@@ -62,49 +57,51 @@ function UpdateDesignationPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
 
+  /* ============================= */
+  /* Modals */
+  /* ============================= */
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  /* ===============================
-     LOAD DEPARTMENTS
-  ================================ */
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  /* =============================================================== */
+  /* LOAD DEPARTMENTS                                                */
+  /* =============================================================== */
   useEffect(() => {
-    const fetchDepartments = async () => {
+    const loadDepts = async () => {
       try {
         const res = await getDepartments();
-        const list = Array.isArray(res)
-          ? res
-          : res?.departments || [];
+        const list = Array.isArray(res) ? res : res?.departments || [];
         setDepartments(list);
       } catch (err) {
-        console.error("Failed to load departments", err);
-        setError("Failed to load departments.");
+        setErrorMessage("Failed to load departments.");
+        setShowErrorModal(true);
       } finally {
         setLoadingDepts(false);
       }
     };
 
-    fetchDepartments();
+    loadDepts();
   }, []);
 
-  /* ===============================
-     LOAD DESIGNATION
-  ================================ */
+  /* =============================================================== */
+  /* LOAD DESIGNATION                                                */
+  /* =============================================================== */
   useEffect(() => {
     if (!desgId) {
-      setError("No designation id provided.");
+      setErrorMessage("No designation ID provided.");
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
 
     let mounted = true;
-    setLoading(true);
-    setError(null);
 
-    apiGetDesignations()
-      .then((resp) => {
-        if (!mounted) return;
+    const loadDesignation = async () => {
+      try {
+        const resp = await apiGetDesignations();
 
         let list = [];
         if (Array.isArray(resp)) list = resp;
@@ -115,44 +112,50 @@ function UpdateDesignationPage() {
         const found = list.find((d) => String(d.id) === String(desgId));
 
         if (!found) {
-          setError("Designation not found.");
-        } else {
-          const cleanName = extractDesignationName(found.name);
-
-          setName(cleanName);
-          setOriginalName(cleanName);
-          setDepartmentId(found.department_id || "");
+          setErrorMessage("Designation not found.");
+          setShowErrorModal(true);
+          return;
         }
-      })
-      .catch((err) => {
-        console.error("Failed to load designation:", err);
-        setError("Failed to load designation details.");
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
 
-    return () => {
-      mounted = false;
+        const extractedName = extractDesignationName(found.name);
+        setName(extractedName);
+        setOriginalName(extractedName);
+        setDepartmentId(found.department_id || "");
+      } catch (err) {
+        setErrorMessage("Failed to load designation details.");
+        setShowErrorModal(true);
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
+
+    loadDesignation();
+    return () => (mounted = false);
   }, [desgId]);
 
-  /* ===============================
-     SUBMIT HANDLER
-  ================================ */
+  /* =============================================================== */
+  /* SUBMIT HANDLER                                                  */
+  /* =============================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
 
     const trimmed = name.trim();
 
     if (!trimmed) {
-      setError("Designation name is required.");
+      setErrorMessage("Designation name is required.");
+      setShowErrorModal(true);
       return;
     }
 
     if (!departmentId) {
-      setError("Please select a department.");
+      setErrorMessage("Please select a department.");
+      setShowErrorModal(true);
+      return;
+    }
+
+    // If unchanged, simply navigate away
+    if (trimmed === originalName.trim()) {
+      navigate("/admin/designations", { replace: true });
       return;
     }
 
@@ -161,9 +164,9 @@ function UpdateDesignationPage() {
     try {
       const resp = await updateDesignation(desgId, trimmed, departmentId);
 
-      // Backend validation (duplicate)
       if (resp?.success === false) {
-        setError(resp.message || "Failed to update designation.");
+        setErrorMessage(resp.message || "Failed to update designation.");
+        setShowErrorModal(true);
         setSaving(false);
         return;
       }
@@ -171,26 +174,41 @@ function UpdateDesignationPage() {
       // SUCCESS
       setShowSuccessModal(true);
     } catch (err) {
-      console.error("Update failed:", err);
+      const backendMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        "Failed to update designation.";
 
-      const respData = err?.response?.data;
-
-      // backend message (example: "Designation already exists")
-      if (respData?.message) {
-        setError(respData.message);
-      } else {
-        setError("Failed to update designation.");
-      }
+      setErrorMessage(backendMsg);
+      setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
   };
 
-  /* ===============================
-     RENDER
-  ================================ */
+  /* =============================================================== */
+  /* RENDER                                                          */
+  /* =============================================================== */
   return (
     <>
+      {saving && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message="Designation updated successfully."
+          onClose={() => navigate("/admin/designations")}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -215,10 +233,6 @@ function UpdateDesignationPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-                {error && (
-                  <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
-                )}
-
                 {/* Department */}
                 <div className="designation-page-form-row">
                   <label>Department</label>
@@ -254,7 +268,14 @@ function UpdateDesignationPage() {
                   />
                 </div>
 
-                <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem" }}>
+                {/* Actions */}
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    display: "flex",
+                    gap: "0.75rem",
+                  }}
+                >
                   <button className="btn btn-primary" type="submit" disabled={saving}>
                     {saving ? "Saving..." : "Save Changes"}
                   </button>
@@ -277,11 +298,6 @@ function UpdateDesignationPage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       </div>
-
-      {/* SUCCESS MODAL */}
-      {showSuccessModal && (
-        <SuccessModal onOk={() => navigate("/admin/designations")} />
-      )}
     </>
   );
 }

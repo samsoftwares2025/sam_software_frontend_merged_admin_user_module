@@ -1,44 +1,45 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
+
 import { createPolicy } from "../../api/admin/policies";
 import { useAuth } from "../../context/AuthContext";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Policy Added Successfully</h2>
-      <p>The policy has been added to the system.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
-
 function AddPolicyPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
+
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  // Modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
   const { logout } = useAuth();
 
+  /* ======================================
+      FILE HANDLER
+  ====================================== */
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
@@ -49,16 +50,20 @@ function AddPolicyPage() {
     }
   };
 
+  /* ======================================
+      FORM SUBMIT
+  ====================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
-      setError("Please enter a policy title.");
+      setErrorMessage("Please enter a policy title.");
+      setShowErrorModal(true);
       return;
     }
 
     setSaving(true);
-    setError(null);
+    setProcessing(true);
 
     try {
       const formData = new FormData();
@@ -67,38 +72,64 @@ function AddPolicyPage() {
       formData.append("description", description.trim());
       if (file) formData.append("image", file);
 
-      await createPolicy(formData);
+      const resp = await createPolicy(formData);
 
-      // ✅ SHOW SUCCESS MODAL
+      setSuccessMessage(resp?.message || "Policy added successfully.");
       setShowSuccessModal(true);
+
     } catch (err) {
       console.error("CREATE POLICY FAILED:", err);
 
       const status = err?.response?.status;
       const respData = err?.response?.data;
 
+      // Auth fail → Logout
       if (status === 401 || status === 403) {
-        setError(
-          respData?.detail || "Session expired. Please sign in again."
-        );
+        setErrorMessage(respData?.detail || "Session expired. Please sign in again.");
+        setShowErrorModal(true);
         logout();
         navigate("/", { replace: true });
         return;
       }
 
-      setError(
+      setErrorMessage(
         respData?.message ||
           respData?.detail ||
           respData?.error ||
           "Failed to add policy. Please try again."
       );
+      setShowErrorModal(true);
+
     } finally {
       setSaving(false);
+      setProcessing(false);
     }
   };
 
+  /* ======================================
+      UI
+  ====================================== */
   return (
     <>
+      {/* Loading Overlay */}
+      {processing && <LoaderOverlay />}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => navigate("/admin/policies")}
+        />
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -118,13 +149,8 @@ function AddPolicyPage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              {error && (
-                <div style={{ color: "red", marginBottom: 10 }}>
-                  {error}
-                </div>
-              )}
 
-              {/* Title */}
+              {/* TITLE */}
               <div className="designation-page-form-row">
                 <label>Policy Title</label>
                 <input
@@ -137,7 +163,7 @@ function AddPolicyPage() {
                 />
               </div>
 
-              {/* Short Description */}
+              {/* SHORT DESCRIPTION */}
               <div className="designation-page-form-row">
                 <label>Short Description</label>
                 <textarea
@@ -150,7 +176,7 @@ function AddPolicyPage() {
                 />
               </div>
 
-              {/* Description */}
+              {/* DESCRIPTION */}
               <div className="designation-page-form-row">
                 <label>Description</label>
                 <textarea
@@ -163,7 +189,7 @@ function AddPolicyPage() {
                 />
               </div>
 
-              {/* File Upload */}
+              {/* FILE UPLOAD */}
               <div className="designation-page-form-row">
                 <label>Policy Document / Image</label>
                 <input
@@ -196,19 +222,9 @@ function AddPolicyPage() {
                 )}
               </div>
 
-              {/* Actions */}
-              <div
-                style={{
-                  marginTop: "1rem",
-                  display: "flex",
-                  gap: "0.75rem",
-                }}
-              >
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={saving}
-                >
+              {/* BUTTONS */}
+              <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem" }}>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? "Saving..." : "Add Policy"}
                 </button>
 
@@ -230,11 +246,6 @@ function AddPolicyPage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       </div>
-
-      {/* ✅ SUCCESS MODAL */}
-      {showSuccessModal && (
-        <SuccessModal onOk={() => navigate("/admin/policies")} />
-      )}
     </>
   );
 }

@@ -4,9 +4,18 @@ import Sidebar from "../../components/common/Sidebar";
 import "../../assets/styles/admin.css";
 import { Link } from "react-router-dom";
 
-import { listUserRoles, deleteUserRole } from "../../api/admin/roles";
+import {
+  listUserRoles,
+  deleteUserRole
+} from "../../api/admin/roles";
+
 import ProtectedAction from "../../components/admin/ProtectedAction";
 
+// NEW COMPONENTS
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
 
 const RolesPermissions = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,10 +28,17 @@ const RolesPermissions = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
+  // DELETE MODAL STATE
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
+
+  // SUCCESS & ERROR MODALS
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   /* ================= FETCH ROLES ================= */
   const fetchRoles = async () => {
@@ -39,7 +55,6 @@ const RolesPermissions = () => {
         setError(res?.message || "Failed to load roles");
       }
     } catch (err) {
-      console.error("GET ROLES FAILED:", err);
       setError("Failed to load roles");
     } finally {
       setLoading(false);
@@ -67,15 +82,14 @@ const RolesPermissions = () => {
   /* ================= DELETE HANDLING ================= */
   const openDeleteModal = (role) => {
     setRoleToDelete(role);
-    setDeleteError(null);
     setShowDeleteModal(true);
   };
 
   const closeDeleteModal = () => {
+    if (deleting) return;
     setShowDeleteModal(false);
     setRoleToDelete(null);
     setDeleting(false);
-    setDeleteError(null);
   };
 
   const confirmDelete = async () => {
@@ -91,9 +105,13 @@ const RolesPermissions = () => {
       );
 
       closeDeleteModal();
+
+      setSuccessMessage("Role deleted successfully.");
+      setShowSuccessModal(true);
     } catch (err) {
-      console.error("DELETE ROLE FAILED:", err);
-      setDeleteError(err?.response?.data?.message || "Failed to delete role");
+      const backendMsg = err?.response?.data?.message;
+      setErrorMessage(backendMsg || "Failed to delete role.");
+      setShowErrorModal(true);
       setDeleting(false);
     }
   };
@@ -109,214 +127,182 @@ const RolesPermissions = () => {
     );
   };
 
- const renderPermissionSummary = (permissions) => {
-  if (!permissions || permissions.length === 0) return "—";
+  const renderPermissionSummary = (permissions) => {
+    if (!permissions || permissions.length === 0) return "—";
+
+    return (
+      <div style={{ whiteSpace: "pre-line" }}>
+        {permissions
+          .map((p) => {
+            const perms = [];
+            if (p.view) perms.push("View");
+            if (p.add) perms.push("Add");
+            if (p.update) perms.push("Update");
+            if (p.delete) perms.push("Delete");
+
+            return perms.length > 0 ? perms.join(", ") : "—";
+          })
+          .join("\n")}
+      </div>
+    );
+  };
 
   return (
-    <div style={{ whiteSpace: "pre-line" }}>
-      {permissions
-        .map((p) => {
-          const perms = [];
-          if (p.view) perms.push("View");
-          if (p.add) perms.push("Add");
-          if (p.update) perms.push("Update");
-          if (p.delete) perms.push("Delete");
+    <>
+      {/* GLOBAL DELETING LOADER */}
+      {deleting && <LoaderOverlay />}
 
-          return perms.length > 0 ? perms.join(", ") : "—";
-        })
-        .join("\n")}
-    </div>
-  );
-};
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
 
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
 
-  return (
-    <div className="container">
-      <Sidebar
-        isMobileOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        openSection={openSection}
-        setOpenSection={setOpenSection}
-      />
+      <div className="container">
+        <Sidebar
+          isMobileOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          openSection={openSection}
+          setOpenSection={setOpenSection}
+        />
 
-      <main className="main">
-        <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
+        <main className="main">
+          <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-        <div className="header">
-          <div className="page-title">
-            <h1>Roles and Permissions</h1>
-            <p className="subtitle">Manage user roles dynamically.</p>
+          <div className="header">
+            <div className="page-title">
+              <h1>Roles and Permissions</h1>
+              <p className="subtitle">Manage user roles dynamically.</p>
+            </div>
           </div>
-        </div>
 
-        <div className="filters-container">
-          <div className="filters-left">
-            <div className="search-input">
-              <i className="fa-solid fa-magnifying-glass" />
-              <input
-                type="text"
-                placeholder="Search by Role..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="filters-container">
+            <div className="filters-left">
+              <div className="search-input">
+                <i className="fa-solid fa-magnifying-glass" />
+                <input
+                  type="text"
+                  placeholder="Search by Role..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {loading && <div style={{ marginLeft: 12 }}>Loading...</div>}
+              {error && <div style={{ marginLeft: 12, color: "orange" }}>{error}</div>}
             </div>
 
-            {loading && <div style={{ marginLeft: 12 }}>Loading...</div>}
-            {error && (
-              <div style={{ marginLeft: 12, color: "orange" }}>{error}</div>
-            )}
+            <div className="filters-right">
+              <button className="btn" onClick={fetchRoles}>
+                <i className="fa-solid fa-rotate" /> Refresh
+              </button>
+
+              <ProtectedAction
+                module="roles & permissions"
+                action="add"
+                to="/admin/add-role"
+                className="btn btn-primary"
+              >
+                <i className="fa-solid fa-plus" /> Create New Role
+              </ProtectedAction>
+            </div>
           </div>
 
-          <div className="filters-right">
-            <button className="btn" onClick={fetchRoles}>
-              <i className="fa-solid fa-rotate" /> Refresh
-            </button>
-
-            <ProtectedAction
-  module="roles & permissions"
-  action="add"
-  to="/admin/add-role"
-  className="btn btn-primary"
->
-  <i className="fa-solid fa-plus" /> Create New Role
-</ProtectedAction>
-
-          </div>
-        </div>
-
-        {/* ================= TABLE ================= */}
-        <section className="table-container">
-          {loading && <div style={{ padding: "1.5rem" }}>Loading roles...</div>}
-
-          {!loading && error && (
-            <div style={{ padding: "1.5rem", color: "red" }}>{error}</div>
-          )}
-
-          {!loading && !error && (
-            <div className="data-table-wrapper">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: "5%" }}>#</th>
-                    <th>Role Name</th>
-                    <th>Modules</th>
-                    <th>Permissions</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {filteredRoles.length === 0 && (
+          {/* ================= TABLE ================= */}
+          <section className="table-container">
+            {loading ? (
+              <div style={{ padding: "1.5rem" }}>Loading roles...</div>
+            ) : error ? (
+              <div style={{ padding: "1.5rem", color: "red" }}>{error}</div>
+            ) : (
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <td colSpan="5" className="empty-state">
-                        No roles match your search
-                      </td>
+                      <th>#</th>
+                      <th>Role Name</th>
+                      <th>Modules</th>
+                      <th>Permissions</th>
+                      <th>Actions</th>
                     </tr>
-                  )}
+                  </thead>
 
-                  {filteredRoles.map((role, index) => (
-                    <tr key={role.id}>
-                      <td style={{ textAlign: "center" }}>{index + 1}</td>
-                      <td>{role.role}</td>
+                  <tbody>
+                    {filteredRoles.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="empty-state">
+                          No roles match your search
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRoles.map((role, index) => (
+                        <tr key={role.id}>
+                          <td style={{ textAlign: "center" }}>{index + 1}</td>
+                          <td>{role.role}</td>
 
-                      {/* MULTILINE MODULES */}
-                      <td>{renderModules(role.permissions_list)}</td>
+                          <td>{renderModules(role.permissions_list)}</td>
 
-                      {/* MULTILINE PERMISSIONS */}
-                      <td>{renderPermissionSummary(role.permissions_list)}</td>
+                          <td>{renderPermissionSummary(role.permissions_list)}</td>
 
-                      <td>
-                        <div className="table-actions">
-                      
+                          <td>
+                            <div className="table-actions">
+                              <ProtectedAction
+                                module="roles & permissions"
+                                action="update"
+                                to={`/admin/update-role/${role.id}`}
+                                className="icon-btn edit"
+                              >
+                                <i className="fa-solid fa-pen" />
+                              </ProtectedAction>
 
-                         <ProtectedAction
-  module="roles & permissions"
-  action="update"
-  to={`/admin/update-role/${role.id}`}
-  className="icon-btn edit"
->
-  <i className="fa-solid fa-pen" />
-</ProtectedAction>
-
-
-                        <ProtectedAction
-  module="roles & permissions"
-  action="delete"
-  onAllowed={() => openDeleteModal(role)}
-  className="icon-btn delete"
->
-  <i className="fa-solid fa-trash" />
-</ProtectedAction>
-
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </main>
-
-      {/* DELETE MODAL */}
-      {showDeleteModal && (
-        <div className="modal-backdrop" style={backdropStyle}>
-          <div className="modal" style={modalStyle}>
-            <h3>Confirm delete</h3>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong>{roleToDelete?.role}</strong>?
-            </p>
-
-            {deleteError && (
-              <div style={{ color: "orange", marginBottom: 8 }}>
-                {deleteError}
+                              <ProtectedAction
+                                module="roles & permissions"
+                                action="delete"
+                                onAllowed={() => openDeleteModal(role)}
+                                className="icon-btn delete"
+                              >
+                                <i className="fa-solid fa-trash" />
+                              </ProtectedAction>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
+          </section>
+        </main>
+      </div>
 
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button className="btn" onClick={closeDeleteModal}>
-                Cancel
-              </button>
-
-              <button
-                className="btn btn-danger"
-                onClick={confirmDelete}
-                disabled={deleting}
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* DELETE CONFIRM MODAL */}
+      {showDeleteModal && (
+        <DeleteConfirmModal
+          title="Delete Role"
+          message={`Are you sure you want to delete "${roleToDelete?.role}"?`}
+          loading={deleting}
+          onConfirm={confirmDelete}
+          onClose={closeDeleteModal}
+        />
       )}
 
       <div
         className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
         onClick={() => setIsSidebarOpen(false)}
       />
-    </div>
+    </>
   );
-};
-
-/* ================= MODAL STYLES ================= */
-const backdropStyle = {
-  position: "fixed",
-  inset: 0,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 2000,
-};
-
-const modalStyle = {
-  width: 420,
-  background: "#fff",
-  padding: "1.25rem",
-  borderRadius: 8,
-  boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
 };
 
 export default RolesPermissions;

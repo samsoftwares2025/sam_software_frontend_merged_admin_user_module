@@ -1,27 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Header from "../../components/common/Header";
-import "../../assets/styles/admin.css";
-import { createCompanyRule } from "../../api/admin/company_rules";
 import Sidebar from "../../components/common/Sidebar";
 
-import { useAuth } from "../../context/AuthContext";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+import LoaderOverlay from "../../components/common/LoaderOverlay";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Company Rule Added Successfully</h2>
-      <p>The company rule has been added to the system.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
+import "../../assets/styles/admin.css";
+
+import { createCompanyRule } from "../../api/admin/company_rules";
+import { useAuth } from "../../context/AuthContext";
 
 function AddCompanyRulePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,31 +20,34 @@ function AddCompanyRulePage() {
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
+
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  /* ======================================================
+  /* ==========================================================
         SECURE FILE VALIDATION
-  ====================================================== */
-
+  =========================================================== */
   const allowedExtensions = ["pdf", "doc", "docx", "jpg", "jpeg", "png", "webp"];
-
   const allowedMimes = [
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "image/jpeg",
     "image/png",
-    "image/webp"
+    "image/webp",
   ];
-
   const magicSignatures = {
     pdf: ["25504446"],
     jpg: ["FFD8FF"],
@@ -62,9 +55,8 @@ function AddCompanyRulePage() {
     png: ["89504E47"],
     webp: ["52494646"],
     docx: ["504B0304"],
-    doc: ["D0CF11E0A1B11AE1"]
+    doc: ["D0CF11E0A1B11AE1"],
   };
-
   const MAX_SIZE_MB = 10;
 
   const readMagicBytes = (file, length = 8) => {
@@ -73,51 +65,46 @@ function AddCompanyRulePage() {
       const blob = file.slice(0, length);
       reader.onloadend = () => {
         const arr = new Uint8Array(reader.result);
-        resolve(
-          [...arr].map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase()
-        );
+        resolve([...arr].map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase());
       };
       reader.readAsArrayBuffer(blob);
     });
   };
 
   const validateFile = async (file) => {
-    setError("");
-    setPreviewUrl(null);
+    setErrorMessage("");
 
     if (!file) return false;
 
     const ext = file.name.split(".").pop().toLowerCase();
 
-    // EXTENSION CHECK
     if (!allowedExtensions.includes(ext)) {
-      setError("Invalid file type.");
+      setErrorMessage("Invalid file type.");
+      setShowErrorModal(true);
       return false;
     }
 
-    // MIME CHECK
     if (!allowedMimes.includes(file.type)) {
-      setError("Invalid file format.");
+      setErrorMessage("Invalid file format.");
+      setShowErrorModal(true);
       return false;
     }
 
-    // SIZE CHECK
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setError(`File must be under ${MAX_SIZE_MB}MB.`);
+      setErrorMessage(`File must be under ${MAX_SIZE_MB}MB.`);
+      setShowErrorModal(true);
       return false;
     }
 
-    // MAGIC BYTE CHECK
-    const magic = await readMagicBytes(file, 8);
+    const magic = await readMagicBytes(file);
     const validMagicList = magicSignatures[ext] || [];
-    const validMagic = validMagicList.some(sig => magic.startsWith(sig));
 
-    if (!validMagic) {
-      setError("File signature does not match its type.");
+    if (!validMagicList.some(sig => magic.startsWith(sig))) {
+      setErrorMessage("File signature does not match its type.");
+      setShowErrorModal(true);
       return false;
     }
 
-    // SAFE PREVIEW
     if (file.type.startsWith("image")) {
       setPreviewUrl(URL.createObjectURL(file));
     }
@@ -125,13 +112,8 @@ function AddCompanyRulePage() {
     return true;
   };
 
-  /* ======================================================
-        FILE INPUT HANDLER
-  ====================================================== */
-
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
-
     const valid = await validateFile(selectedFile);
 
     if (!valid) {
@@ -143,20 +125,20 @@ function AddCompanyRulePage() {
     setFile(selectedFile);
   };
 
-  /* ======================================================
+  /* ==========================================================
         SUBMIT HANDLER
-  ====================================================== */
-
+  =========================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
-      setError("Please enter a rule title.");
+      setErrorMessage("Please enter a rule title.");
+      setShowErrorModal(true);
       return;
     }
 
     setSaving(true);
-    setError(null);
+    setProcessing(true);
 
     try {
       const formData = new FormData();
@@ -165,8 +147,9 @@ function AddCompanyRulePage() {
       formData.append("description", description.trim());
       if (file) formData.append("image", file);
 
-      await createCompanyRule(formData);
+      const resp = await createCompanyRule(formData);
 
+      setSuccessMessage(resp?.message || "Company rule added successfully");
       setShowSuccessModal(true);
 
     } catch (err) {
@@ -176,30 +159,48 @@ function AddCompanyRulePage() {
       const respData = err?.response?.data;
 
       if (status === 401 || status === 403) {
-        setError(respData?.detail || "Session expired. Please sign in again.");
+        setErrorMessage(respData?.detail || "Session expired. Please sign in again.");
+        setShowErrorModal(true);
         logout();
         navigate("/", { replace: true });
         return;
       }
 
-      setError(
+      setErrorMessage(
         respData?.message ||
         respData?.detail ||
         respData?.error ||
         "Failed to add company rule."
       );
+      setShowErrorModal(true);
 
     } finally {
       setSaving(false);
+      setProcessing(false);
     }
   };
 
-  /* ======================================================
+  /* ==========================================================
         RENDER
-  ====================================================== */
-
+  =========================================================== */
   return (
     <>
+      {processing && <LoaderOverlay />}
+
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => navigate("/admin/company-rules")}
+        />
+      )}
+
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -210,6 +211,7 @@ function AddCompanyRulePage() {
 
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
+
           <div className="the_line" />
 
           <div className="page-title">
@@ -219,12 +221,8 @@ function AddCompanyRulePage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              {error && (
-                <div style={{ color: "red", marginBottom: 10 }}>
-                  {error}
-                </div>
-              )}
-
+              
+              {/* TITLE */}
               <div className="designation-page-form-row">
                 <label>Rule Title</label>
                 <input
@@ -236,6 +234,7 @@ function AddCompanyRulePage() {
                 />
               </div>
 
+              {/* SHORT DESCRIPTION */}
               <div className="designation-page-form-row">
                 <label>Short Description</label>
                 <textarea
@@ -243,11 +242,11 @@ function AddCompanyRulePage() {
                   rows={3}
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="Brief summary of the rule..."
                   disabled={saving}
                 />
               </div>
 
+              {/* DESCRIPTION */}
               <div className="designation-page-form-row">
                 <label>Description</label>
                 <textarea
@@ -259,6 +258,7 @@ function AddCompanyRulePage() {
                 />
               </div>
 
+              {/* FILE UPLOAD */}
               <div className="designation-page-form-row">
                 <label>Document / Image</label>
                 <input
@@ -290,12 +290,9 @@ function AddCompanyRulePage() {
                 )}
               </div>
 
+              {/* ACTION BUTTONS */}
               <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={saving}
-                >
+                <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? "Saving..." : "Add Rule"}
                 </button>
 
@@ -308,6 +305,7 @@ function AddCompanyRulePage() {
                   Cancel
                 </button>
               </div>
+
             </form>
           </div>
         </main>
@@ -317,10 +315,6 @@ function AddCompanyRulePage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       </div>
-
-      {showSuccessModal && (
-        <SuccessModal onOk={() => navigate("/admin/company-rules")} />
-      )}
     </>
   );
 }

@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import UpdateEmployeeForm from "../../components/admin/employee/UpdateEmployeeForm";
+import LoaderOverlay from "../../components/common/LoaderOverlay";
 
 import "../../assets/styles/admin.css";
 import { getEmployeeById, updateEmployee } from "../../api/admin/employees";
@@ -27,6 +28,7 @@ const SuccessModal = ({ onClose }) => (
 
 function UpdateEmployeePage() {
   const [failureMessage, setFailureMessage] = useState("Failed to update employee.");
+  const [processing, setProcessing] = useState(false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailureModal, setShowFailureModal] = useState(false);
@@ -102,6 +104,7 @@ function UpdateEmployeePage() {
           user_role_id: emp.user_role_id ? String(emp.user_role_id) : "",
 
           work_location: emp.work_location ?? "",
+          confirmation_date: emp.confirmation_date ?? "",
           is_active: emp.is_active,
           is_department_head: emp.is_department_head,
 
@@ -135,6 +138,8 @@ function UpdateEmployeePage() {
   /* SUBMIT HANDLER */
   const handleFormSubmit = async (formData) => {
   try {
+        setProcessing(true); // <-- start loader
+
     const userId = localStorage.getItem("user_id");
 
     if (!userId) {
@@ -149,6 +154,7 @@ function UpdateEmployeePage() {
     const response = await updateEmployee(formData);
 
     if (!response?.success) {
+       setProcessing(false); // stop loader
       setFailureMessage(response?.message || "Failed to update employee.");
       setShowFailureModal(true);
       return;
@@ -156,6 +162,7 @@ function UpdateEmployeePage() {
 
     setShowSuccessModal(true);
   } catch (err) {
+      setProcessing(false);
     console.error("❌ Failed to update employee:", err);
 
     const backendMsg = err?.response?.data?.message || "Failed to update employee.";
@@ -167,6 +174,8 @@ function UpdateEmployeePage() {
 
   return (
     <div className="container">
+      {processing && <LoaderOverlay />}
+
       <Sidebar
         isMobileOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

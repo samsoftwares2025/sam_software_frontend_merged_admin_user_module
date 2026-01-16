@@ -117,3 +117,20 @@ export const updateSupportTicket = async (payload) => {
 
   return data;
 };
+
+
+
+
+
+export const getEmployeesList_filter = async () => {
+  const token = localStorage.getItem("accessToken");
+  const userId = localStorage.getItem("user_id");
+
+  const { data } = await http.post("/hr/list-user-support-ticket-filter/", {
+    user_id: userId,
+    page: 1,
+    page_size: 500, // enough for dropdown
+  });
+
+  return data.users_data || [];
+};

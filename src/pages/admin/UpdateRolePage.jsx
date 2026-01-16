@@ -3,27 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
 
 import { getUserRoleById, updateRole } from "../../api/admin/roles";
 import { list_Permission_modules } from "../../api/admin/permission";
 import { useAuth } from "../../context/AuthContext";
-
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Role Updated</h2>
-      <p>The user role has been updated successfully.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
 
 function UpdateRolePage() {
   const { roleId } = useParams();
@@ -31,19 +19,21 @@ function UpdateRolePage() {
   const { logout } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [roleName, setRoleName] = useState("");
 
+  const [roleName, setRoleName] = useState("");
   const [modules, setModules] = useState([]);
   const [permissions, setPermissions] = useState({});
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const permissionTypes = ["view", "add", "update", "delete"];
 
-  /* ================= FETCH MODULE LIST FIRST ================= */
+  /* ================= LOAD PERMISSION MODULES ================= */
   useEffect(() => {
     const fetchModules = async () => {
       try {
@@ -51,14 +41,15 @@ function UpdateRolePage() {
         const names = (res.module_list || []).map((m) => m.name);
         setModules(names);
       } catch (err) {
-        console.error("Module Load Failed", err);
+        setErrorMessage("Failed to load permission modules.");
+        setShowErrorModal(true);
       }
     };
 
     fetchModules();
   }, []);
 
-  /* ================= FETCH ROLE DATA AFTER MODULES READY ================= */
+  /* ================= LOAD ROLE DATA AFTER MODULES ================= */
   useEffect(() => {
     if (modules.length === 0) return;
 
@@ -67,7 +58,8 @@ function UpdateRolePage() {
         const res = await getUserRoleById(roleId);
 
         if (!res.success) {
-          setError("Failed to load role.");
+          setErrorMessage("Failed to load role.");
+          setShowErrorModal(true);
           setLoading(false);
           return;
         }
@@ -75,16 +67,14 @@ function UpdateRolePage() {
         const role = res.user_role;
         setRoleName(role.role);
 
-        const emptyPermissions = modules.reduce((acc, m) => {
+        const initialPermissions = modules.reduce((acc, m) => {
           acc[m] = { view: false, add: false, update: false, delete: false };
           return acc;
         }, {});
 
-        const formatted = { ...emptyPermissions };
-
         if (Array.isArray(role.permissions)) {
           role.permissions.forEach((p) => {
-            formatted[p.module_name] = {
+            initialPermissions[p.module_name] = {
               view: p.view,
               add: p.add,
               update: p.update,
@@ -93,10 +83,10 @@ function UpdateRolePage() {
           });
         }
 
-        setPermissions(formatted);
+        setPermissions(initialPermissions);
       } catch (err) {
-        console.error("LOAD ROLE FAILED:", err);
-        setError("Failed to load role.");
+        setErrorMessage("Failed to load role.");
+        setShowErrorModal(true);
       } finally {
         setLoading(false);
       }
@@ -105,46 +95,37 @@ function UpdateRolePage() {
     loadRole();
   }, [modules, roleId]);
 
-  /* ================= PERMISSION CHANGE ================= */
+  /* ================= PERMISSION CHANGE LOGIC ================= */
   const handlePermissionChange = (module, action) => {
     const current = permissions[module];
-    let updated = { ...current };
+    const updated = { ...current };
     const isSupport = module === "Supporting Tickets";
 
-    if (action === "view") updated.view = !updated.view;
+    updated[action] = !current[action];
 
-    if (action === "add") {
-      const v = !current.add;
-      updated.add = v;
-      if (!isSupport && v) {
+    if (!isSupport && updated[action]) {
+      if (action === "add") {
         updated.view = true;
         updated.update = true;
         updated.delete = true;
       }
-    }
-
-    if (action === "update") {
-      const v = !current.update;
-      updated.update = v;
-      if (!isSupport && v) updated.view = true;
-    }
-
-    if (action === "delete") {
-      const v = !current.delete;
-      updated.delete = v;
-      if (!isSupport && v) updated.view = true;
+      if (action === "update" || action === "delete") {
+        updated.view = true;
+      }
     }
 
     setPermissions((prev) => ({ ...prev, [module]: updated }));
   };
 
   /* ================= COLUMN TICK ALL ================= */
-  const toggleColumn = (action) => {
-    const allChecked = modules.every((m) => permissions[m][action] === true);
+  const isColumnChecked = (action) =>
+    modules.every((m) => permissions[m]?.[action]);
 
+  const toggleColumn = (action) => {
+    const allChecked = isColumnChecked(action);
     const updated = modules.reduce((acc, module) => {
       const isSupport = module === "Supporting Tickets";
-      let state = { ...permissions[module] };
+      const state = { ...permissions[module] };
 
       state[action] = !allChecked;
 
@@ -166,16 +147,23 @@ function UpdateRolePage() {
     setPermissions(updated);
   };
 
-  const isColumnChecked = (action) =>
-    modules.every((m) => permissions[m]?.[action]);
-
   /* ================= GLOBAL TICK ALL ================= */
+  const isAllChecked = modules.every(
+    (m) =>
+      permissions[m]?.view &&
+      permissions[m]?.add &&
+      permissions[m]?.update &&
+      permissions[m]?.delete
+  );
+
   const tickAllPermissions = () => {
     const updated = modules.reduce((acc, m) => {
       const isSupport = m === "Supporting Tickets";
+
       acc[m] = isSupport
         ? { view: false, add: false, update: false, delete: false }
         : { view: true, add: true, update: true, delete: true };
+
       return acc;
     }, {});
     setPermissions(updated);
@@ -189,44 +177,56 @@ function UpdateRolePage() {
     setPermissions(updated);
   };
 
-  const isAllChecked = modules.every(
-    (m) =>
-      permissions[m]?.view &&
-      permissions[m]?.add &&
-      permissions[m]?.update &&
-      permissions[m]?.delete
-  );
-
-  /* ================= SUBMIT ================= */
+  /* ================= SUBMIT FORM ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setProcessing(true);
 
     try {
-      setSaving(true);
-
       const resp = await updateRole(roleId, {
         roleName,
         permissions,
       });
 
       if (!resp.success) {
-        setError(resp.message || "Failed to update role.");
+        setErrorMessage(resp.message || "Failed to update role.");
+        setShowErrorModal(true);
+        setProcessing(false);
         return;
       }
 
       setShowSuccessModal(true);
     } catch (err) {
-      const backendMessage =
+      const backendMsg =
         err?.response?.data?.message || "Failed to update role.";
-      setError(backendMessage);
+      setErrorMessage(backendMsg);
+      setShowErrorModal(true);
     } finally {
-      setSaving(false);
+      setProcessing(false);
     }
   };
 
   /* ================= UI ================= */
   return (
     <>
+      {processing && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message="Role updated successfully."
+          onClose={() => navigate("/admin/roles-permissions")}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -248,10 +248,6 @@ function UpdateRolePage() {
               <div style={{ padding: "1.25rem" }}>Loading role...</div>
             ) : (
               <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-                {error && (
-                  <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
-                )}
-
                 {/* ROLE NAME */}
                 <div className="designation-page-form-row">
                   <label>Role Name</label>
@@ -264,25 +260,22 @@ function UpdateRolePage() {
                   />
                 </div>
 
-                {/* PERMISSIONS TITLE */}
                 <h4 style={{ marginTop: 20 }}>Permissions</h4>
 
-                {/* TICK ALL */}
-                <div style={{ marginBottom: 15 }}>
-                  <label style={{ fontWeight: "600" }}>
-                    <input
-                      type="checkbox"
-                      checked={isAllChecked}
-                      onChange={(e) =>
-                        e.target.checked
-                          ? tickAllPermissions()
-                          : unTickAllPermissions()
-                      }
-                      style={{ marginRight: 8 }}
-                    />
-                    Tick All Permissions
-                  </label>
-                </div>
+                {/* GLOBAL TICK ALL */}
+                <label style={{ fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={isAllChecked}
+                    onChange={(e) =>
+                      e.target.checked
+                        ? tickAllPermissions()
+                        : unTickAllPermissions()
+                    }
+                    style={{ marginRight: 8 }}
+                  />
+                  Tick All Permissions
+                </label>
 
                 {/* COLUMN TICK ALL */}
                 <div className="permission-grid permission-grid-header">
@@ -310,7 +303,9 @@ function UpdateRolePage() {
                         <input
                           type="checkbox"
                           checked={permissions[module]?.[action] || false}
-                          onChange={() => handlePermissionChange(module, action)}
+                          onChange={() =>
+                            handlePermissionChange(module, action)
+                          }
                         />
                         {action.charAt(0).toUpperCase() + action.slice(1)}
                       </label>
@@ -323,9 +318,9 @@ function UpdateRolePage() {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={saving}
+                    disabled={processing}
                   >
-                    {saving ? "Updating..." : "Update Role"}
+                    {processing ? "Updating..." : "Update Role"}
                   </button>
 
                   <button
@@ -341,10 +336,6 @@ function UpdateRolePage() {
           </div>
         </main>
       </div>
-
-      {showSuccessModal && (
-        <SuccessModal onOk={() => navigate("/admin/roles-permissions")} />
-      )}
     </>
   );
 }

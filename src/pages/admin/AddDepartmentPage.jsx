@@ -1,57 +1,53 @@
 // src/pages/admin/AddDepartmentPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import { createDepartment } from "../../api/admin/departments";
 import { useAuth } from "../../context/AuthContext";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Department Added Successfully</h2>
-      <p>The department has been added to the system.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
-
 function AddDepartmentPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
 
+  // Global error modal
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const navigate = useNavigate();
   const { logout } = useAuth();
 
+  /* ===========================
+     SUBMIT
+  ============================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Please enter a department name.");
+      setErrorMessage("Please enter a department name.");
+      setShowErrorModal(true);
       return;
     }
 
-    setError(null);
     setSaving(true);
 
     try {
       await createDepartment(trimmed);
 
-      // ✅ SHOW SUCCESS MODAL (NO NAVIGATION YET)
       setShowSuccessModal(true);
     } catch (err) {
       console.error("CREATE DEPARTMENT FAILED:", err);
@@ -59,11 +55,11 @@ function AddDepartmentPage() {
       const status = err?.response?.status;
       const respData = err?.response?.data;
 
-      // 🔐 Session expired / unauthorized
+      // Auth issue → logout
       if (status === 401 || status === 403) {
-        setError(
-          respData?.detail || "Session expired. Please sign in again."
-        );
+        setErrorMessage(respData?.detail || "Session expired. Please sign in again.");
+        setShowErrorModal(true);
+
         logout();
         navigate("/", { replace: true });
         return;
@@ -74,7 +70,8 @@ function AddDepartmentPage() {
         respData?.detail ||
         "Failed to add department. Please try again.";
 
-      setError(message);
+      setErrorMessage(message);
+      setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
@@ -82,6 +79,25 @@ function AddDepartmentPage() {
 
   return (
     <>
+      {/* Saving overlay */}
+      {saving && <LoaderOverlay />}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <SuccessModal
+          message="Department added successfully."
+          onClose={() => navigate("/admin/departments")}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -101,12 +117,6 @@ function AddDepartmentPage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              {error && (
-                <div style={{ color: "red", marginBottom: "10px" }}>
-                  {error}
-                </div>
-              )}
-
               <div className="designation-page-form-row">
                 <label>Department Name</label>
                 <input
@@ -152,13 +162,6 @@ function AddDepartmentPage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       </div>
-
-      {/* ✅ SUCCESS MODAL */}
-      {showSuccessModal && (
-        <SuccessModal
-          onOk={() => navigate("/admin/departments")}
-        />
-      )}
     </>
   );
 }

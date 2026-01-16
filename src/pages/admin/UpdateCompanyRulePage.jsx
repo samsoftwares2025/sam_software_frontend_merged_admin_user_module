@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+
 import "../../assets/styles/admin.css";
 
 import {
@@ -9,58 +15,43 @@ import {
   updateCompanyRule,
 } from "../../api/admin/company_rules";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Company Rule Updated</h2>
-      <p>The rule has been updated successfully.</p>
-
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
-
 function UpdateCompanyRulePage() {
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
   const ruleId = params.get("id");
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [processing, setProcessing] = useState(false); // Preloader when saving
 
+  const [successMessage, setSuccessMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
-  const [originalRule, setOriginalRule] = useState(null);
+  const [existingFileUrl, setExistingFileUrl] = useState(null);
 
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [existingFileUrl, setExistingFileUrl] = useState(null);
 
-  /* ===============================
-     LOAD RULE
-  ================================ */
+  /* ======================================================
+        LOAD RULE
+  ====================================================== */
   useEffect(() => {
     if (!ruleId) {
-      setError("No rule ID provided.");
+      setErrorMessage("No rule ID provided.");
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
 
     let mounted = true;
-    setError(null);
     setLoading(true);
 
     apiGetCompanyRules()
@@ -77,7 +68,8 @@ function UpdateCompanyRulePage() {
         const found = list.find((r) => String(r.id) === String(ruleId));
 
         if (!found) {
-          setError("Company rule not found.");
+          setErrorMessage("Company rule not found.");
+          setShowErrorModal(true);
           return;
         }
 
@@ -85,11 +77,11 @@ function UpdateCompanyRulePage() {
         setShortDescription(found.short_description || "");
         setDescription(found.description || "");
         setExistingFileUrl(found.image || null);
-        setOriginalRule(found);
       })
       .catch((err) => {
         console.error("LOAD FAILED:", err);
-        setError("Failed to load company rule.");
+        setErrorMessage("Failed to load company rule.");
+        setShowErrorModal(true);
       })
       .finally(() => mounted && setLoading(false));
 
@@ -98,32 +90,32 @@ function UpdateCompanyRulePage() {
     };
   }, [ruleId]);
 
-  /* ===============================
-     FILE HANDLER
-  ================================ */
+  /* ======================================================
+        FILE HANDLER
+  ====================================================== */
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
+    const selected = e.target.files[0];
+    setFile(selected);
     setPreviewUrl(null);
 
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
+    if (selected?.type?.startsWith("image/")) {
+      setPreviewUrl(URL.createObjectURL(selected));
     }
   };
 
-  /* ===============================
-     SUBMIT
-  ================================ */
+  /* ======================================================
+        SUBMIT HANDLER
+  ====================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
 
     if (!title.trim()) {
-      setError("Rule title is required.");
+      setErrorMessage("Rule title is required.");
+      setShowErrorModal(true);
       return;
     }
 
-    setSaving(true);
+    setProcessing(true);
 
     try {
       const formData = new FormData();
@@ -134,37 +126,52 @@ function UpdateCompanyRulePage() {
 
       const resp = await updateCompanyRule(ruleId, formData);
 
-      // 🔥 EXACT BACKEND DUPLICATION ERROR SUPPORT
       if (resp?.success === false) {
-        setError(resp.message || "Failed to update company rule.");
-        setSaving(false);
+        setErrorMessage(resp.message || "Failed to update company rule.");
+        setShowErrorModal(true);
         return;
       }
 
+      setSuccessMessage(resp?.message || "Company rule updated successfully.");
       setShowSuccessModal(true);
+
     } catch (err) {
       console.error("UPDATE FAILED:", err);
 
-      const respData = err?.response?.data;
+      const backendMsg = err?.response?.data?.message;
 
-      // 🔥 show backend validation / duplication message
-      if (respData?.message) {
-        setError(respData.message);
-        setSaving(false);
-        return;
-      }
+      setErrorMessage(backendMsg || "Failed to update company rule.");
+      setShowErrorModal(true);
 
-      setError("Failed to update company rule.");
     } finally {
-      setSaving(false);
+      setProcessing(false);
     }
   };
 
-  /* ===============================
-     UI
-  ================================ */
+  /* ======================================================
+        UI
+  ====================================================== */
   return (
     <>
+      {/* GLOBAL LOADER */}
+      {processing && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => navigate("/admin/company-rules")}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -188,11 +195,7 @@ function UpdateCompanyRulePage() {
               <div style={{ padding: "1.25rem" }}>Loading rule...</div>
             ) : (
               <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-                {error && (
-                  <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
-                )}
-
-                {/* Title */}
+                {/* TITLE */}
                 <div className="designation-page-form-row">
                   <label>Rule Title</label>
                   <input
@@ -200,11 +203,11 @@ function UpdateCompanyRulePage() {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    disabled={saving}
+                    disabled={processing}
                   />
                 </div>
 
-                {/* Short Description */}
+                {/* SHORT DESCRIPTION */}
                 <div className="designation-page-form-row">
                   <label>Short Description</label>
                   <textarea
@@ -212,11 +215,11 @@ function UpdateCompanyRulePage() {
                     rows={3}
                     value={shortDescription}
                     onChange={(e) => setShortDescription(e.target.value)}
-                    disabled={saving}
+                    disabled={processing}
                   />
                 </div>
 
-                {/* Description */}
+                {/* DESCRIPTION */}
                 <div className="designation-page-form-row">
                   <label>Description</label>
                   <textarea
@@ -224,11 +227,11 @@ function UpdateCompanyRulePage() {
                     rows={4}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    disabled={saving}
+                    disabled={processing}
                   />
                 </div>
 
-                {/* Current File */}
+                {/* EXISTING FILE */}
                 {existingFileUrl && !previewUrl && (
                   <div className="designation-page-form-row">
                     <label>Current File</label>
@@ -253,14 +256,14 @@ function UpdateCompanyRulePage() {
                   </div>
                 )}
 
-                {/* New File */}
+                {/* NEW FILE */}
                 <div className="designation-page-form-row">
                   <label>Replace File (optional)</label>
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
                     onChange={handleFileChange}
-                    disabled={saving}
+                    disabled={processing}
                   />
 
                   {previewUrl && (
@@ -279,16 +282,17 @@ function UpdateCompanyRulePage() {
                   )}
                 </div>
 
+                {/* ACTION BUTTONS */}
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
+                  <button type="submit" className="btn btn-primary" disabled={processing}>
+                    {processing ? "Saving..." : "Save Changes"}
                   </button>
 
                   <button
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => navigate("/admin/company-rules")}
-                    disabled={saving}
+                    disabled={processing}
                   >
                     Cancel
                   </button>
@@ -298,11 +302,6 @@ function UpdateCompanyRulePage() {
           </div>
         </main>
       </div>
-
-      {/* SUCCESS MODAL */}
-      {showSuccessModal && (
-        <SuccessModal onOk={() => navigate("/admin/company-rules")} />
-      )}
     </>
   );
 }

@@ -64,7 +64,6 @@ export default function EmploymentSection({
         const list = await getEmployeesList_employee_mgmnt();
         setEmployees(list);
 
-        // Prefill parent_id (edit mode)
         if (initialValues.parent_id) {
           setSelectedParentId(initialValues.parent_id);
         }
@@ -100,7 +99,6 @@ export default function EmploymentSection({
     fetchEmploymentTypes();
   }, []);
 
-  /* EMPLOYMENT TYPE HANDLER */
   const handleEmploymentTypeChange = (e) => {
     const val = e.target.value;
 
@@ -368,7 +366,21 @@ export default function EmploymentSection({
             required
           />
         </div>
-
+{/* =================== Confirmation Date =================== */}
+        <div className="form-group">
+          <label className="form-label required">Confirmation Date</label>
+          <input
+            type="date"
+            className="form-input"
+            name="confirmation_date"
+            defaultValue={
+              initialValues.confirmation_date
+                ? initialValues.confirmation_date.slice(0, 10)
+                : ""
+            }
+            required
+          />
+        </div>
         {/* Joining Date */}
         <div className="form-group">
           <label className="form-label required">Joining Date</label>
@@ -384,6 +396,20 @@ export default function EmploymentSection({
             required
           />
         </div>
+ 
+        {/* =================== Work Location =================== */}
+        <div className="form-group">
+          <label className="form-label required">Work Location</label>
+          <input
+            type="text"
+            className="form-input"
+            name="work_location"
+            defaultValue={initialValues.work_location || ""}
+            required
+          />
+        </div>
+
+       
 
         {/* =================== EMPLOYMENT TYPE =================== */}
         <div className="form-group">
@@ -570,21 +596,23 @@ export default function EmploymentSection({
             </div>
           )}
         </div>
-       <div className="form-group">
-         <label className="form-label required">Is Department Head</label>
-       
-         <select
-           className="form-select"
-           value={selectedIsDepartmentHead}
-           onChange={(e) => setSelectedIsDepartmentHead(e.target.value)}
-           required
-         >
-           <option value="">Select Option</option>
-           <option value="True">Yes</option>
-           <option value="False">No</option>
-         </select>
-       </div>
-       
+
+        {/* =================== Is Department Head =================== */}
+        <div className="form-group">
+          <label className="form-label required">Is Department Head</label>
+
+          <select
+            className="form-select"
+            value={selectedIsDepartmentHead}
+            onChange={(e) => setSelectedIsDepartmentHead(e.target.value)}
+            required
+          >
+            <option value="">Select Option</option>
+            <option value="True">Yes</option>
+            <option value="False">No</option>
+          </select>
+        </div>
+
         {/* =================== REPORTING MANAGER (parent_id) =================== */}
         <div className="form-group">
           <label className="form-label">Reporting Manager</label>
@@ -664,6 +692,7 @@ export default function EmploymentSection({
             </div>
           )}
         </div>
+
         {/* =================== STATUS (EDIT ONLY) =================== */}
         {mode === "edit" && (
           <div className="form-group">
@@ -682,10 +711,10 @@ export default function EmploymentSection({
           </div>
         )}
 
-      {/* =================== Last working Date (EDIT ONLY) =================== */}
+        {/* =================== Last Working Date (EDIT ONLY) =================== */}
         {mode === "edit" && (
           <div className="form-group">
-            <label className="form-label ">Last Working Date</label>
+            <label className="form-label">Last Working Date</label>
             <input
               type="date"
               className="form-input"
@@ -695,7 +724,6 @@ export default function EmploymentSection({
                   ? initialValues.last_working_date.slice(0, 10)
                   : ""
               }
-              
             />
           </div>
         )}

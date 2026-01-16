@@ -301,6 +301,8 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     formData.append("user_role_id", selectedRoleId || "");
     formData.append("is_active", selectedIsActive || "");
     formData.append("is_department_head", selectedIsDepartmentHead || "");
+    formData.append("work_location", formData.get("work_location") || "");
+    formData.append("confirmation_date", formData.get("confirmation_date") || "");
 
     /* ----- DOCS ----- */
     const mappedDocs = documents.map((doc, idx) => ({

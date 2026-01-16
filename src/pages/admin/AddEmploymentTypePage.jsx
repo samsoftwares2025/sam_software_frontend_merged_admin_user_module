@@ -1,73 +1,64 @@
+// src/pages/admin/AddEmploymentTypePage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
+
 import {
   createEmployementType as createEmploymentType,
 } from "../../api/admin/employement_type";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Employment Type Added Successfully</h2>
-      <p>The employment type has been added to the system.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
-
 function AddEmploymentTypePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
 
+  // Error modal
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const navigate = useNavigate();
 
+  /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Please enter an employment type name.");
+      setErrorMessage("Please enter an employment type name.");
+      setShowErrorModal(true);
       return;
     }
 
-    setError(null);
     setSaving(true);
 
     try {
       await createEmploymentType(trimmed);
 
-      // ✅ SHOW SUCCESS MODAL (NO NAVIGATION YET)
+      // Show success modal
       setShowSuccessModal(true);
     } catch (err) {
       console.error("CREATE EMPLOYMENT TYPE FAILED:", err);
 
-      const status = err?.response?.status;
-      const respData = err?.response?.data;
-
-      let message =
-        respData?.message ||
-        respData?.detail ||
+      const backendMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
         "Failed to add employment type. Please try again.";
 
-      if (status === 401 || status === 403) {
-        message = "Session expired. Please sign in again.";
-      }
-
-      setError(message);
+      setErrorMessage(backendMsg);
+      setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
@@ -75,6 +66,25 @@ function AddEmploymentTypePage() {
 
   return (
     <>
+      {/* GLOBAL LOADER */}
+      {saving && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message="Employment Type created successfully."
+          onClose={() => navigate("/admin/employment-type")}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -94,12 +104,6 @@ function AddEmploymentTypePage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              {error && (
-                <div style={{ color: "red", marginBottom: "10px" }}>
-                  {error}
-                </div>
-              )}
-
               <div className="designation-page-form-row">
                 <label>Employment Type Name</label>
                 <input
@@ -145,13 +149,6 @@ function AddEmploymentTypePage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       </div>
-
-      {/* ✅ SUCCESS MODAL */}
-      {showSuccessModal && (
-        <SuccessModal
-          onOk={() => navigate("/admin/employment-type")}
-        />
-      )}
     </>
   );
 }

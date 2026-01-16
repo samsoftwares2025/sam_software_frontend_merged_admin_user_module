@@ -12,22 +12,6 @@ import { getEmployementTypes } from "../../../api/admin/employement_type";
 import { getDepartments } from "../../../api/admin/departments";
 import { getDesignations } from "../../../api/admin/designations";
 
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onClose }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Employee Added Successfully</h2>
-      <p>The employee has been added to the system.</p>
-      <button className="btn btn-primary" onClick={onClose}>
-        OK
-      </button>
-    </div>
-  </div>
-);
-
 /* ================= ERROR MODAL ================= */
 const ErrorModal = ({ onClose }) => (
   <div className="modal-overlay">
@@ -59,9 +43,6 @@ export default function AddEmployeeForm({ onSubmit }) {
   };
 
   const [formErrors, setFormErrors] = useState(initialErrorState);
-
-  /* ================= MODALS ================= */
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
   /* ================= PERSONAL INFO ================= */
@@ -74,7 +55,8 @@ export default function AddEmployeeForm({ onSubmit }) {
   const [selectedDesignation, setSelectedDesignation] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [selectedParentId, setSelectedParentId] = useState("");
-  const [selectedIsDepartmentHead, setSelectedIsDepartmentHead] = useState("");
+  const [selectedIsDepartmentHead, setSelectedIsDepartmentHead] =
+    useState("");
 
   /* ================= DOCUMENTS ================= */
   const emptyDocument = {
@@ -123,7 +105,7 @@ export default function AddEmployeeForm({ onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check for duplicate field errors
+    // Check validation errors
     const hasErrors = Object.values(formErrors).some(
       (err) => err && err.length > 0
     );
@@ -142,6 +124,13 @@ export default function AddEmployeeForm({ onSubmit }) {
     formData.append("designation_id", selectedDesignation || "");
     formData.append("user_role_id", selectedRoleId || "");
     formData.append("is_department_head", selectedIsDepartmentHead || "");
+
+    /* NEW FIELDS */
+    formData.append("work_location", formData.get("work_location") || "");
+    formData.append(
+      "confirmation_date",
+      formData.get("confirmation_date") || ""
+    );
 
     /* DOCUMENTS */
     const mappedDocs = documents.map((doc, idx) => ({
@@ -183,19 +172,22 @@ export default function AddEmployeeForm({ onSubmit }) {
 
     formData.append(
       "experience",
-      JSON.stringify(cleanedExperience.length > 0 ? cleanedExperience : [])
+      JSON.stringify(
+        cleanedExperience.length > 0 ? cleanedExperience : []
+      )
     );
 
-    /* SUBMIT TO BACKEND */
+    /* SUBMIT */
     try {
       const res = await onSubmit(formData);
-      if (res?.success) setShowSuccessModal(true);
+      return res;
     } catch (err) {
       console.error(err);
+      return { success: false };
     }
   };
 
-  /* ================= RESET ================= */
+  /* ================= RESET FORM ================= */
   const handleReset = () => {
     formRef.current?.reset();
 
@@ -236,29 +228,22 @@ export default function AddEmployeeForm({ onSubmit }) {
           setFormErrors={setFormErrors}
         />
 
-        {/* Employment Info */}
+        {/* Employment */}
         <EmploymentSection
           mode="add"
           initialValues={{}}
-
           selectedEmploymentType={selectedEmploymentType}
           setSelectedEmploymentType={setSelectedEmploymentType}
-
           selectedDepartment={selectedDepartment}
           setSelectedDepartment={setSelectedDepartment}
-
           selectedDesignation={selectedDesignation}
           setSelectedDesignation={setSelectedDesignation}
-
           selectedRoleId={selectedRoleId}
           setSelectedRoleId={setSelectedRoleId}
-
           selectedParentId={selectedParentId}
           setSelectedParentId={setSelectedParentId}
-
           selectedIsDepartmentHead={selectedIsDepartmentHead}
           setSelectedIsDepartmentHead={setSelectedIsDepartmentHead}
-
           setFormErrors={setFormErrors}
         />
 
@@ -276,7 +261,9 @@ export default function AddEmployeeForm({ onSubmit }) {
             )
           }
           onRemove={(key) =>
-            setExperiences((prev) => prev.filter((exp) => exp._key !== key))
+            setExperiences((prev) =>
+              prev.filter((exp) => exp._key !== key)
+            )
           }
         />
 
@@ -314,7 +301,9 @@ export default function AddEmployeeForm({ onSubmit }) {
                   ? {
                       ...doc,
                       files: doc.files.filter((_, fi) => fi !== fileIdx),
-                      previews: doc.previews.filter((_, fi) => fi !== fileIdx),
+                      previews: doc.previews.filter(
+                        (_, fi) => fi !== fileIdx
+                      ),
                     }
                   : doc
               )
@@ -325,7 +314,7 @@ export default function AddEmployeeForm({ onSubmit }) {
           }
         />
 
-        {/* Salary Section */}
+        {/* Salary */}
         <CompensationSection
           setFormErrors={setFormErrors}
           formErrors={formErrors}
@@ -353,16 +342,6 @@ export default function AddEmployeeForm({ onSubmit }) {
           </button>
         </div>
       </form>
-
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => {
-            setShowSuccessModal(false);
-            handleReset();
-          }}
-        />
-      )}
 
       {/* Error Modal */}
       {showErrorModal && (

@@ -1,12 +1,21 @@
 // src/pages/admin/CompanyRulesPage.jsx
 import React, { useState, useMemo, useEffect } from "react";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
+
 import {
   getCompanyRules as apiGetCompanyRules,
   deleteCompanyRule as apiDeleteCompanyRule,
 } from "../../api/admin/company_rules";
+
 import ProtectedAction from "../../components/admin/ProtectedAction";
 
 function CompanyRulesPage() {
@@ -20,14 +29,21 @@ function CompanyRulesPage() {
 
   const [previewImage, setPreviewImage] = useState(null);
 
-  // delete modal state
+  // delete modal states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
+
+  // Success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Error modal
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   /* ===============================
-     DOWNLOAD HELPER
+      DOWNLOAD HELPER
   ================================ */
   const downloadFile = async (fileUrl, fileName = "company-rule") => {
     try {
@@ -41,24 +57,27 @@ function CompanyRulesPage() {
 
       document.body.appendChild(link);
       link.click();
+
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Download failed:", err);
-      alert("Unable to download file.");
+      setErrorMessage("Unable to download file.");
+      setShowErrorModal(true);
     }
   };
 
   /* ===============================
-     LOAD RULES
+      LOAD RULES
   ================================ */
   const fetchRules = async () => {
     setLoading(true);
     setError(null);
+
     try {
       const resp = await apiGetCompanyRules();
 
       let list = [];
+
       if (resp && Array.isArray(resp.rules)) list = resp.rules;
       else if (Array.isArray(resp)) list = resp;
       else if (Array.isArray(resp.results)) list = resp.results;
@@ -70,6 +89,7 @@ function CompanyRulesPage() {
     } catch (err) {
       const status = err?.response?.status;
       const respData = err?.response?.data;
+
       setError(
         respData?.message ||
           respData?.detail ||
@@ -84,11 +104,10 @@ function CompanyRulesPage() {
 
   useEffect(() => {
     fetchRules();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* ===============================
-     FRONTEND SEARCH
+      FILTER RULES
   ================================ */
   const filteredRules = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -100,248 +119,257 @@ function CompanyRulesPage() {
   const visibleCount = filteredRules.length;
 
   /* ===============================
-     DELETE
+      DELETE RULE
   ================================ */
   const openDeleteModal = (rule) => {
     setRuleToDelete(rule);
-    setDeleteError(null);
     setShowDeleteModal(true);
   };
 
   const closeDeleteModal = () => {
+    if (deleting) return;
     setShowDeleteModal(false);
     setRuleToDelete(null);
     setDeleting(false);
-    setDeleteError(null);
   };
 
   const confirmDelete = async () => {
     if (!ruleToDelete) return;
+
     setDeleting(true);
 
     try {
       await apiDeleteCompanyRule(ruleToDelete.id);
+
       setRules((prev) => prev.filter((r) => r.id !== ruleToDelete.id));
       closeDeleteModal();
+
+      // Show success modal
+      setSuccessMessage("Company rule deleted successfully.");
+      setShowSuccessModal(true);
     } catch (err) {
-      setDeleteError("Unable to delete company rule.");
       setDeleting(false);
+
+      const backendMsg = err?.response?.data?.message;
+      setErrorMessage(backendMsg || "Unable to delete company rule.");
+      setShowErrorModal(true);
     }
   };
 
   /* ===============================
-     RENDER
+      UI
   ================================ */
   return (
-    <div className="container">
-      <Sidebar
-        isMobileOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        openSection={openSection}
-        setOpenSection={setOpenSection}
-      />
+    <>
+      {/* DELETE LOADER */}
+      {deleting && <LoaderOverlay />}
 
-      <main className="main">
-        <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
 
-        <div className="the_line" />
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
 
-        <div className="page-title">
-          <h3>Company Rules</h3>
-          <p className="subtitle">Manage company rules easily.</p>
-        </div>
+      <div className="container">
+        <Sidebar
+          isMobileOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          openSection={openSection}
+          setOpenSection={setOpenSection}
+        />
 
-        <div className="filters-container">
-          <div className="filters-left">
-            <div className="search-input">
-              <i className="fa-solid fa-magnifying-glass" />
-              <input
-                type="text"
-                placeholder="Search by rule..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <main className="main">
+          <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
+          <div className="the_line" />
+
+          {/* TITLE */}
+          <div className="page-title">
+            <h3>Company Rules</h3>
+            <p className="subtitle">Manage company rules easily.</p>
+          </div>
+
+          {/* FILTERS */}
+          <div className="filters-container">
+            <div className="filters-left">
+              <div className="search-input">
+                <i className="fa-solid fa-magnifying-glass" />
+                <input
+                  type="text"
+                  placeholder="Search by rule..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {loading && <span style={{ marginLeft: 12 }}>Loading...</span>}
+              {error && (
+                <span style={{ marginLeft: 12, color: "orange" }}>{error}</span>
+              )}
             </div>
 
-            {loading && (
-              <div style={{ marginLeft: 12, fontSize: 13 }}>Loading...</div>
-            )}
-            {error && (
-              <div style={{ marginLeft: 12, fontSize: 13, color: "orange" }}>
-                {error}
-              </div>
-            )}
+            <div className="filters-right" style={{ display: "flex", gap: 8 }}>
+              <button className="btn" onClick={fetchRules} disabled={loading}>
+                <i className="fa-solid fa-rotate" /> Refresh
+              </button>
+
+              <ProtectedAction
+                module="company rules"
+                action="add"
+                to="/admin/add-company-rule"
+                className="btn btn-primary"
+              >
+                <i className="fa-solid fa-plus" /> Add Rule
+              </ProtectedAction>
+            </div>
           </div>
 
-          <div className="filters-right" style={{ display: "flex", gap: 8 }}>
-            <button className="btn" onClick={fetchRules} disabled={loading}>
-              <i className="fa-solid fa-rotate" /> Refresh
-            </button>
+          {/* TABLE */}
+          <div className="table-container">
+            <div className="table-header-bar">
+              <h4>
+                Company Rules{" "}
+                <span className="badge-pill">Total: {visibleCount}</span>
+              </h4>
+            </div>
 
-            <ProtectedAction
-              module="company rules"
-              action="add"
-              to="/admin/add-company-rule"
-              className="btn btn-primary"
-            >
-              <i className="fa-solid fa-plus" /> Add Rule
-            </ProtectedAction>
-          </div>
-        </div>
+            <div className="data-table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Title</th>
+                    <th>Short Description</th>
+                    <th>Description</th>
+                    <th>File</th>
+                    <th>Created</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
 
-        <div className="table-container">
-          <div className="table-header-bar">
-            <h4>
-              Company Rules{" "}
-              <span className="badge-pill">Total: {visibleCount}</span>
-            </h4>
-          </div>
+                <tbody>
+                  {filteredRules.map((row, index) => {
+                    const file = row.image;
+                    const isImage = file && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
 
-          <div className="data-table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th style={{ width: "5%" }}>Order No</th>
-                  <th style={{ width: "15%" }}>Title</th>
-                  <th style={{ width: "15%" }}>Short Description</th>
-                  <th style={{ width: "30%" }}>Description</th>
-                  <th style={{ width: "5%" }}>File</th>
-                  <th style={{ width: "10%" }}>Created</th>
-                  <th style={{ width: "10%" }}>Updated</th>
-                  <th style={{ width: "10%" }}>Actions</th>
-                </tr>
-              </thead>
+                    return (
+                      <tr key={row.id}>
+                        <td style={{ textAlign: "center" }}>{index + 1}</td>
+                        <td className="wrap">{row.title}</td>
+                        <td className="wrap">{row.short_description || "-"}</td>
+                        <td className="wrap">{row.description || "-"}</td>
 
-              <tbody>
-                {filteredRules.map((row, index) => {
-                  const file = row.image;
-                  const isImage =
-                    file && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+                        <td>
+                          {file ? (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                className="icon-btn"
+                                onClick={() =>
+                                  isImage
+                                    ? setPreviewImage(file)
+                                    : window.open(file, "_blank")
+                                }
+                              >
+                                <i className="fa-solid fa-eye" />
+                              </button>
 
-                  return (
-                    <tr key={row.id}>
-                      <td style={{ textAlign: "center" }}>{index + 1}</td>
-                      <td className="wrap">{row.title}</td>
-                      <td className="wrap">{row.short_description || "-"}</td>
-                      <td className="wrap">{row.description || "-"}</td>
+                              <button
+                                className="icon-btn"
+                                onClick={() =>
+                                  downloadFile(file, row.title || "company-rule")
+                                }
+                              >
+                                <i className="fa-solid fa-download" />
+                              </button>
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
 
-                      <td>
-                        {file ? (
-                          <div style={{ display: "flex", gap: 8 }}>
-                            {/* VIEW */}
-                            <button
-                              className="icon-btn"
-                              title="View"
-                              onClick={() =>
-                                isImage
-                                  ? setPreviewImage(file)
-                                  : window.open(file, "_blank")
-                              }
+                        <td>
+                          {row.created_at
+                            ? new Date(row.created_at).toLocaleDateString()
+                            : "-"}
+                        </td>
+
+                        <td>
+                          {row.updated_at
+                            ? new Date(row.updated_at).toLocaleDateString()
+                            : "-"}
+                        </td>
+
+                        <td>
+                          <div className="table-actions">
+                            <ProtectedAction
+                              module="company rules"
+                              action="update"
+                              to={`/admin/update-company-rule?id=${row.id}`}
+                              className="icon-btn edit"
                             >
-                              <i className="fa-solid fa-eye" />
-                            </button>
+                              <i className="fa-solid fa-pen" />
+                            </ProtectedAction>
 
-                            {/* DOWNLOAD */}
-                            <button
-                              className="icon-btn"
-                              title="Download"
-                              onClick={() =>
-                                downloadFile(file, row.title || "company-rule")
-                              }
+                            <ProtectedAction
+                              module="company rules"
+                              action="delete"
+                              onAllowed={() => openDeleteModal(row)}
+                              className="icon-btn delete"
                             >
-                              <i className="fa-solid fa-download" />
-                            </button>
+                              <i className="fa-solid fa-trash" />
+                            </ProtectedAction>
                           </div>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
+                        </td>
+                      </tr>
+                    );
+                  })}
 
-                      <td>
-                        {row.created_at
-                          ? new Date(row.created_at).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td>
-                        {row.updated_at
-                          ? new Date(row.updated_at).toLocaleDateString()
-                          : "-"}
-                      </td>
-
-                      <td>
-                        <div className="table-actions">
-                          <ProtectedAction
-                            module="company rules"
-                            action="update"
-                            to={`/admin/update-company-rule?id=${row.id}`}
-                            className="icon-btn edit"
-                            title="Edit Rule"
-                          >
-                            <i className="fa-solid fa-pen" />
-                          </ProtectedAction>
-
-                          <ProtectedAction
-                            module="company rules"
-                            action="delete"
-                            onAllowed={() => openDeleteModal(row)}
-                            className="icon-btn delete"
-                            title="Delete Rule"
-                          >
-                            <i className="fa-solid fa-trash" />
-                          </ProtectedAction>
-                        </div>
+                  {visibleCount === 0 && (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: "center", padding: 20 }}>
+                        {loading ? "Loading rules..." : "No rules found."}
                       </td>
                     </tr>
-                  );
-                })}
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-                {visibleCount === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      style={{ textAlign: "center", padding: "1.5rem" }}
-                    >
-                      {loading
-                        ? "Loading company rules..."
-                        : "No company rules found."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <div className="table-footer">
+              Showing {visibleCount} of {totalCount} rules
+            </div>
           </div>
-
-          <div className="table-footer">
-            Showing {visibleCount} of {totalCount} company rules
-          </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       {/* IMAGE PREVIEW MODAL */}
       {previewImage && (
-        <div className="modal-backdrop" style={backdropStyle}>
-          <div style={previewModalStyle}>
+        <div className="modal-overlay">
+          <div className="modal-card">
             <img
               src={previewImage}
-              alt="Rule preview"
+              alt="Preview"
               style={{
-                maxWidth: "100%",
-                maxHeight: "80vh",
+                width: "100%",
+                maxHeight: "70vh",
                 objectFit: "contain",
+                borderRadius: 8,
               }}
             />
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "flex-end",
-                marginTop: 12,
-              }}
-            >
+            <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
               <button
                 className="icon-btn"
-                title="Download"
                 onClick={() => downloadFile(previewImage, "company-rule")}
               >
                 <i className="fa-solid fa-download" />
@@ -357,69 +385,16 @@ function CompanyRulesPage() {
 
       {/* DELETE MODAL */}
       {showDeleteModal && (
-        <div className="modal-backdrop" style={backdropStyle}>
-          <div style={modalStyle}>
-            <h3>Confirm delete</h3>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong className="modal-title-wrap">
-                {ruleToDelete?.title}
-              </strong>
-              ?
-            </p>
-
-            {deleteError && (
-              <div style={{ color: "orange", marginBottom: 8 }}>
-                {deleteError}
-              </div>
-            )}
-
-            <div
-              style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
-            >
-              <button className="btn" onClick={closeDeleteModal}>
-                Cancel
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={confirmDelete}
-                disabled={deleting}
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteConfirmModal
+          title="Delete Company Rule"
+          message={`Are you sure you want to delete "${ruleToDelete?.title}"?`}
+          loading={deleting}
+          onConfirm={confirmDelete}
+          onClose={closeDeleteModal}
+        />
       )}
-    </div>
+    </>
   );
 }
-
-/* ===============================
-   STYLES
-================================ */
-const backdropStyle = {
-  position: "fixed",
-  inset: 0,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 2000,
-};
-
-const previewModalStyle = {
-  background: "#fff",
-  padding: 16,
-  borderRadius: 8,
-  maxWidth: "95%",
-};
-
-const modalStyle = {
-  background: "#fff",
-  padding: "1.25rem",
-  borderRadius: 8,
-  width: 420,
-};
 
 export default CompanyRulesPage;

@@ -1,35 +1,25 @@
 // src/pages/admin/AddDesignationPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
 
 import { createDesignation } from "../../api/admin/designations";
 import { getDepartments } from "../../api/admin/departments";
-
-/* ================= SUCCESS MODAL ================= */
-const SuccessModal = ({ onOk }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
-      </div>
-      <h2>Designation Added Successfully</h2>
-      <p>The designation has been added to the system.</p>
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
 
 function AddDesignationPage() {
   const navigate = useNavigate();
 
   /* ================= LAYOUT ================= */
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [openSection,setOpenSection] = useState("organization");
+  const [openSection, setOpenSection] = useState("organization");
 
   /* ================= FORM STATE ================= */
   const [name, setName] = useState("");
@@ -39,9 +29,12 @@ function AddDesignationPage() {
   const [loadingDepts, setLoadingDepts] = useState(true);
 
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
 
+  /* ================= MODALS ================= */
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   /* ================= FETCH DEPARTMENTS ================= */
   useEffect(() => {
@@ -51,10 +44,16 @@ function AddDesignationPage() {
         const deptArray = Array.isArray(res)
           ? res
           : res?.departments || [];
+
         setDepartments(deptArray);
       } catch (err) {
-        console.error("Failed to load departments", err);
-        setError("Failed to load departments.");
+        const backendError =
+          err?.response?.data?.message ||
+          err?.response?.data?.detail ||
+          "Failed to load departments.";
+
+        setErrorMessage(backendError);
+        setShowErrorModal(true);
       } finally {
         setLoadingDepts(false);
       }
@@ -70,16 +69,17 @@ function AddDesignationPage() {
     const trimmed = name.trim();
 
     if (!trimmed) {
-      setError("Please enter a designation name.");
+      setErrorMessage("Please enter a designation name.");
+      setShowErrorModal(true);
       return;
     }
 
     if (!departmentId) {
-      setError("Please select a department.");
+      setErrorMessage("Please select a department.");
+      setShowErrorModal(true);
       return;
     }
 
-    setError(null);
     setSaving(true);
 
     try {
@@ -88,24 +88,15 @@ function AddDesignationPage() {
         department_id: departmentId,
       });
 
-      // ✅ SHOW SUCCESS MODAL
       setShowSuccessModal(true);
     } catch (err) {
-      console.error("CREATE DESIGNATION FAILED:", err);
-
-      const status = err?.response?.status;
-      const respData = err?.response?.data;
-
-      let message =
-        respData?.message ||
-        respData?.detail ||
+      const backendMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
         "Failed to add designation. Please try again.";
 
-      if (status === 401 || status === 403) {
-        message = "Session expired. Please sign in again.";
-      }
-
-      setError(message);
+      setErrorMessage(backendMsg);
+      setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
@@ -114,6 +105,24 @@ function AddDesignationPage() {
   /* ================= RENDER ================= */
   return (
     <>
+      {saving && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message="Designation added successfully."
+          onClose={() => navigate("/admin/designations")}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <div className="container">
         <Sidebar
           isMobileOpen={isSidebarOpen}
@@ -133,12 +142,6 @@ function AddDesignationPage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              {error && (
-                <div style={{ color: "red", marginBottom: "10px" }}>
-                  {error}
-                </div>
-              )}
-
               {/* Department */}
               <div className="designation-page-form-row">
                 <label>Department</label>
@@ -166,7 +169,7 @@ function AddDesignationPage() {
                 </select>
               </div>
 
-              {/* Designation Name */}
+              {/* Name */}
               <div className="designation-page-form-row">
                 <label>Designation Name</label>
                 <input
@@ -179,6 +182,7 @@ function AddDesignationPage() {
                 />
               </div>
 
+              {/* Action Buttons */}
               <div
                 style={{
                   marginTop: "1rem",
@@ -212,13 +216,6 @@ function AddDesignationPage() {
           onClick={() => setIsSidebarOpen(false)}
         />
       </div>
-
-      {/* ✅ SUCCESS MODAL */}
-      {showSuccessModal && (
-        <SuccessModal
-          onOk={() => navigate("/admin/designations")}
-        />
-      )}
     </>
   );
 }

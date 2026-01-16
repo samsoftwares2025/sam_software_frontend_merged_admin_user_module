@@ -1,11 +1,15 @@
 // src/pages/admin/AddEmployeePage.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import AddEmployeeForm from "../../components/admin/employee/AddEmployeeForm";
 import "../../assets/styles/admin.css";
 import Select from "react-select";
+
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
 
 import {
   createEmploye,
@@ -30,7 +34,7 @@ function ImportModal({ onClose, onSuccess, onError }) {
       const res = await getEmployeesList();
       setEmployees(res || []);
     } catch (err) {
-      console.error("Failed to load managers", err);
+      onError("Failed to load managers.");
     }
   };
 
@@ -52,12 +56,16 @@ function ImportModal({ onClose, onSuccess, onError }) {
       formData.append("parent_id", selectedManager.value);
     }
 
-    const response = await importEmployees(formData);
+    try {
+      const response = await importEmployees(formData);
 
-    if (response?.success) {
-      onSuccess(response.message); // summary text
-    } else {
-      onError(response?.message || "Import failed. Please try again.");
+      if (response?.success) {
+        onSuccess(response.message);
+      } else {
+        onError(response?.message || "Import failed. Please try again.");
+      }
+    } catch (err) {
+      onError("Import failed. Please try again.");
     }
 
     onClose();
@@ -68,7 +76,6 @@ function ImportModal({ onClose, onSuccess, onError }) {
       <div className="modal-card import-modal-wide">
         <h2 className="modal-title">📥 Import Employees</h2>
 
-        {/* Manager dropdown */}
         <div className="modal-field">
           <label className="modal-label">(Optional) Select Reporting Manager</label>
           <Select
@@ -80,7 +87,6 @@ function ImportModal({ onClose, onSuccess, onError }) {
           />
         </div>
 
-        {/* File upload */}
         <div className="modal-field">
           <label className="modal-label">Choose Excel File</label>
 
@@ -110,92 +116,83 @@ function ImportModal({ onClose, onSuccess, onError }) {
 }
 
 /* ======================================================
-    SUCCESS MODAL (SUMMARY ONLY)
-====================================================== */
-function ImportSuccessModal({ message, onClose }) {
-  return (
-    <div className="modal-overlay">
-      <div className="modal-card success">
-        <h2>✅ Import Completed</h2>
-
-        <p style={{ marginTop: "10px" }}>{message}</p>
-
-        <button className="btn btn-primary" onClick={onClose}>OK</button>
-      </div>
-    </div>
-  );
-}
-
-/* ======================================================
-    ERROR MODAL FOR IMPORT FAILURE
-====================================================== */
-function ImportErrorModal({ message, onClose }) {
-  return (
-    <div className="modal-overlay">
-      <div className="modal-card error">
-        <h2>❌ Import Failed</h2>
-        <p>{message}</p>
-
-        <button className="btn btn-primary" onClick={onClose}>OK</button>
-      </div>
-    </div>
-  );
-}
-
-/* ======================================================
-    EMPLOYEE CREATE FAILURE MODAL
-====================================================== */
-function FailureModal({ onClose }) {
-  return (
-    <div className="modal-overlay">
-      <div className="modal-card error">
-        <h2>❌ Failed to Add Employee</h2>
-        <p>Something went wrong while creating the employee.</p>
-        <button className="btn btn-primary" onClick={onClose}>OK</button>
-      </div>
-    </div>
-  );
-}
-
-/* ======================================================
     MAIN PAGE
 ====================================================== */
 function AddEmployeePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("employees");
 
-  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Import summary states
+  // GLOBAL SUCCESS & ERROR MODALS
+  const [successMessage, setSuccessMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [importSummaryMessage, setImportSummaryMessage] = useState("");
 
-  const [showImportErrorModal, setShowImportErrorModal] = useState(false);
-  const [importErrorMessage, setImportErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const [showImportModal, setShowImportModal] = useState(false);
 
-  /* Handle employee form submission */
+  // 🔥 Reference to the child form (to trigger reset)
+  const formRef = useRef(null);
+
+  /* ======================================================
+      EMPLOYEE FORM SUBMIT
+  ======================================================= */
   const handleFormSubmit = async (formData) => {
     try {
+      setLoading(true);
+
       const userId = localStorage.getItem("userId");
       formData.append("user_id", userId);
 
       const response = await createEmploye(formData);
 
+      setLoading(false);
+
       if (!response?.success) {
-        setShowFailureModal(true);
+        setErrorMessage(response?.message || "Failed to create employee.");
+        setShowErrorModal(true);
+        return response;
       }
 
+      // ✅ CLEAR FORM ON SUCCESS
+      if (formRef.current?.handleReset) {
+        formRef.current.handleReset();
+      }
+
+      setSuccessMessage("Employee created successfully.");
+      setShowSuccessModal(true);
+
       return response;
-    } catch (error) {
-      setShowFailureModal(true);
+    } catch (err) {
+      setLoading(false);
+      setErrorMessage("Something went wrong while creating the employee.");
+      setShowErrorModal(true);
       return { success: false };
     }
   };
 
   return (
     <div className="container">
+      {loading && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showErrorModal && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
       <Sidebar
         isMobileOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -221,7 +218,8 @@ function AddEmployeePage() {
           </button>
         </div>
 
-        <AddEmployeeForm mode="create" onSubmit={handleFormSubmit} />
+        {/* Pass the ref to the form */}
+        <AddEmployeeForm ref={formRef} mode="create" onSubmit={handleFormSubmit} />
       </main>
 
       <div
@@ -230,38 +228,17 @@ function AddEmployeePage() {
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* Employee create failure */}
-      {showFailureModal && (
-        <FailureModal onClose={() => setShowFailureModal(false)} />
-      )}
-
-      {/* Import success (summary only) */}
-      {showSuccessModal && (
-        <ImportSuccessModal
-          message={importSummaryMessage}
-          onClose={() => setShowSuccessModal(false)}
-        />
-      )}
-
-      {/* Import global error */}
-      {showImportErrorModal && (
-        <ImportErrorModal
-          message={importErrorMessage}
-          onClose={() => setShowImportErrorModal(false)}
-        />
-      )}
-
-      {/* Import modal */}
+      {/* IMPORT MODAL */}
       {showImportModal && (
         <ImportModal
           onClose={() => setShowImportModal(false)}
           onSuccess={(summary) => {
-            setImportSummaryMessage(summary);
+            setSuccessMessage(summary);
             setShowSuccessModal(true);
           }}
           onError={(msg) => {
-            setImportErrorMessage(msg);
-            setShowImportErrorModal(true);
+            setErrorMessage(msg);
+            setShowErrorModal(true);
           }}
         />
       )}
