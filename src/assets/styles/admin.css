@@ -503,6 +503,23 @@ main.main {
     background: #e2e8f0;
 }
 
+/* Select + action button wrapper */
+.select-with-action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: stretch; /* 🔥 important */
+}
+
+/* Refresh button same height as react-select */
+.select-with-action .btn {
+  height: 44px;                 /* match react-select */
+  padding: 0 14px;              /* horizontal padding */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btn-primary {
     background: linear-gradient(135deg, var(--primary-2), var(--primary-1));
     color: #fff;
@@ -3304,4 +3321,94 @@ table.data-table th.wrap {
   white-space: normal;
 }
 
+
+
+/* Grid behaves like normal input layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Form group must allow shrinking */
+.form-group {
+  min-width: 0;
+}
+
+/* React Select container — behave like input */
+.rs__control {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;              /* match input height */
+}
+
+/* Selected value — ellipsis */
+.rs__single-value {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Input area inside select */
+.rs__value-container {
+  overflow: hidden;
+}
+
+/* Placeholder also truncated */
+.rs__placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dropdown menu width should follow control */
+.rs__menu {
+  width: 100%;
+}
+
+
+/* Select + button wrapper */
+.select-with-action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Ensure select fills grid column */
+.select-with-action .form-select {
+  width: 100%;
+}
+
+/* Icon-only button consistency */
+
+
+
+/* Icon-only refresh button (match Role style exactly) */
+.icon-btn {
+  padding: 0.5rem 0.75rem;        /* SAME as .btn */
+  min-width: auto;               /* remove forced width */
+  height: auto;                  /* remove forced height */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+
+
+/* admin.css */
+
+.select-ellipsis {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Optional: improve option readability */
+.select-ellipsis option {
+  max-width: 100%;
+}
 

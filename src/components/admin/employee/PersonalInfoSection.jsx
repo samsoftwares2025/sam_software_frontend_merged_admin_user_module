@@ -1,5 +1,6 @@
 import "../../../assets/styles/admin.css";
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
+import { selectStyles } from "../../../utils/selectStyles";
 import {
   getAllCountries,
   getStatesByCountry,
@@ -316,6 +317,7 @@ export default function PersonalInfoSection({
 
           {!manualCountry ? (
             <Select
+              styles={selectStyles}
               options={[
                 ...countryList,
                 { label: "➕ Enter manually", value: "__manual" },
@@ -369,6 +371,7 @@ export default function PersonalInfoSection({
 
           {!manualState ? (
             <Select
+              styles={selectStyles}
               options={
                 personalInfo.country
                   ? [
@@ -428,6 +431,7 @@ export default function PersonalInfoSection({
 
           {!manualCity ? (
             <Select
+              styles={selectStyles}
               options={
                 personalInfo.state
                   ? [

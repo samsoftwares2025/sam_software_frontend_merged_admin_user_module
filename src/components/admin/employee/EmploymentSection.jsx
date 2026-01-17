@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import "../../../assets/styles/admin.css";
 import Select from "react-select";
+import { selectStyles } from "../../../utils/selectStyles";
 
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
 
-import { listUserRoles_employee_mgmnt, createRole } from "../../../api/admin/roles";
+import {
+  listUserRoles_employee_mgmnt,
+  createRole,
+} from "../../../api/admin/roles";
 import {
   getDepartments_employee_mgmnt,
   createDepartment,
@@ -85,8 +89,8 @@ export default function EmploymentSection({
     const list = Array.isArray(resp?.employment_types)
       ? resp.employment_types
       : Array.isArray(resp)
-      ? resp
-      : [];
+        ? resp
+        : [];
 
     setEmploymentTypes(list);
 
@@ -303,12 +307,12 @@ export default function EmploymentSection({
                   const res = await checkUserFieldExists(
                     "employee_id",
                     empId,
-                    initialValues?.id || ""
+                    initialValues?.id || "",
                   );
 
                   updateErrorState(
                     "employee_id",
-                    res.success ? "" : "already exists!"
+                    res.success ? "" : "already exists!",
                   );
                 } catch (err) {
                   console.error("Employee ID duplicate check failed:", err);
@@ -349,12 +353,12 @@ export default function EmploymentSection({
                   const res = await checkUserFieldExists(
                     "official_email",
                     email,
-                    initialValues?.id || ""
+                    initialValues?.id || "",
                   );
 
                   updateErrorState(
                     "official_email",
-                    res.success ? "" : "already exists!"
+                    res.success ? "" : "already exists!",
                   );
                 } catch (err) {
                   console.error("Official email duplicate check failed:", err);
@@ -366,7 +370,7 @@ export default function EmploymentSection({
             required
           />
         </div>
-{/* =================== Confirmation Date =================== */}
+        {/* =================== Confirmation Date =================== */}
         <div className="form-group">
           <label className="form-label required">Confirmation Date</label>
           <input
@@ -396,7 +400,7 @@ export default function EmploymentSection({
             required
           />
         </div>
- 
+
         {/* =================== Work Location =================== */}
         <div className="form-group">
           <label className="form-label required">Work Location</label>
@@ -408,8 +412,6 @@ export default function EmploymentSection({
             required
           />
         </div>
-
-       
 
         {/* =================== EMPLOYMENT TYPE =================== */}
         <div className="form-group">
@@ -477,7 +479,7 @@ export default function EmploymentSection({
 
           <div style={{ display: "flex", gap: 8 }}>
             <select
-              className="form-select"
+              className="form-select select-ellipsis"
               value={selectedDepartment}
               onChange={handleDepartmentChange}
               required
@@ -495,7 +497,14 @@ export default function EmploymentSection({
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={fetchDepartments}
+              onClick={async () => {
+                // clear selections
+                setSelectedDepartment("");
+                setSelectedDesignation("");
+
+                // refetch data
+                await fetchDepartments();
+              }}
             >
               <i className="fa-solid fa-rotate-right" />
             </button>
@@ -535,7 +544,7 @@ export default function EmploymentSection({
 
           <div style={{ display: "flex", gap: 8 }}>
             <select
-              className="form-select"
+              className="form-select select-ellipsis"
               value={selectedDesignation}
               onChange={handleDesignationChange}
               disabled={!selectedDepartment}
@@ -562,7 +571,10 @@ export default function EmploymentSection({
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={fetchDesignations}
+              onClick={async () => {
+                setSelectedDesignation(""); // clear selected designation
+                await fetchDesignations(); // reload list
+              }}
               disabled={!selectedDepartment}
             >
               <i className="fa-solid fa-rotate-right" />
@@ -618,12 +630,13 @@ export default function EmploymentSection({
           <label className="form-label">Reporting Manager</label>
 
           <Select
+            styles={selectStyles}
             options={employeeOptions}
             isClearable
             placeholder="Search & select manager..."
             value={
               employeeOptions.find(
-                (opt) => opt.value === Number(selectedParentId)
+                (opt) => opt.value === Number(selectedParentId),
               ) || null
             }
             onChange={(option) =>
