@@ -66,7 +66,11 @@ import "./App.css";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
+    console.log("MODE:", import.meta.env.MODE);
+console.log("API:", import.meta.env.VITE_API_BASE_URL);
+
   return (
+  
     <AuthProvider>
       <BrowserRouter>
         <Routes>

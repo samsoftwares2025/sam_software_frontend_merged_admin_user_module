@@ -1,4 +1,4 @@
-// src/pages/admin/AddEmployeePage.jsx
+// src/pages/admin/AddEmployee.jsx
 
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "../../components/common/Sidebar";

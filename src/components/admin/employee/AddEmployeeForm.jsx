@@ -1,4 +1,10 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 
 import PersonalInfoSection from "./PersonalInfoSection";
 import EmploymentSection from "./EmploymentSection";
@@ -28,7 +34,7 @@ const ErrorModal = ({ onClose }) => (
   </div>
 );
 
-export default function AddEmployeeForm({ onSubmit }) {
+const AddEmployeeForm = forwardRef(({ onSubmit }, ref) => {
   const formRef = useRef(null);
 
   /* ================= ERROR HANDLING ================= */
@@ -74,7 +80,7 @@ export default function AddEmployeeForm({ onSubmit }) {
   const [documents, setDocuments] = useState([emptyDocument]);
 
   /* ================= EXPERIENCE ================= */
-  const emptyExperience = {
+  const createEmptyExperience = () => ({
     _key: crypto.randomUUID(),
     experience_id: null,
     company_name: "",
@@ -82,9 +88,9 @@ export default function AddEmployeeForm({ onSubmit }) {
     start_date: "",
     end_date: "",
     responsibilities: "",
-  };
+  });
 
-  const [experiences, setExperiences] = useState([emptyExperience]);
+  const [experiences, setExperiences] = useState([createEmptyExperience()]);
 
   /* ================= FETCH INITIAL DATA ================= */
   useEffect(() => {
@@ -105,7 +111,6 @@ export default function AddEmployeeForm({ onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check validation errors
     const hasErrors = Object.values(formErrors).some(
       (err) => err && err.length > 0
     );
@@ -117,7 +122,6 @@ export default function AddEmployeeForm({ onSubmit }) {
 
     const formData = new FormData(e.target);
 
-    /* EMPLOYMENT FIELDS */
     formData.append("parent_id", selectedParentId || "");
     formData.append("employment_type_id", selectedEmploymentType);
     formData.append("department_id", selectedDepartment || "");
@@ -125,14 +129,12 @@ export default function AddEmployeeForm({ onSubmit }) {
     formData.append("user_role_id", selectedRoleId || "");
     formData.append("is_department_head", selectedIsDepartmentHead || "");
 
-    /* NEW FIELDS */
     formData.append("work_location", formData.get("work_location") || "");
     formData.append(
       "confirmation_date",
       formData.get("confirmation_date") || ""
     );
 
-    /* DOCUMENTS */
     const mappedDocs = documents.map((doc, idx) => ({
       document_type: doc.type,
       document_number: doc.number,
@@ -152,7 +154,6 @@ export default function AddEmployeeForm({ onSubmit }) {
       });
     });
 
-    /* EXPERIENCE */
     const cleanedExperience = experiences
       .filter(
         (exp) =>
@@ -170,17 +171,10 @@ export default function AddEmployeeForm({ onSubmit }) {
         responsibilities: exp.responsibilities || "",
       }));
 
-    formData.append(
-      "experience",
-      JSON.stringify(
-        cleanedExperience.length > 0 ? cleanedExperience : []
-      )
-    );
+    formData.append("experience", JSON.stringify(cleanedExperience));
 
-    /* SUBMIT */
     try {
-      const res = await onSubmit(formData);
-      return res;
+      return await onSubmit(formData);
     } catch (err) {
       console.error(err);
       return { success: false };
@@ -202,15 +196,19 @@ export default function AddEmployeeForm({ onSubmit }) {
     setSelectedIsDepartmentHead("");
 
     setDocuments([emptyDocument]);
-    setExperiences([emptyExperience]);
+    setExperiences([createEmptyExperience()]);
 
     setFormErrors(initialErrorState);
   };
 
+  /* 🔥 EXPOSE RESET TO PARENT */
+  useImperativeHandle(ref, () => ({
+    handleReset,
+  }));
+
   return (
     <>
       <form className="form-container" ref={formRef} onSubmit={handleSubmit}>
-        {/* Personal Info */}
         <PersonalInfoSection
           personalInfo={personalInfo}
           setPersonalInfo={setPersonalInfo}
@@ -228,7 +226,6 @@ export default function AddEmployeeForm({ onSubmit }) {
           setFormErrors={setFormErrors}
         />
 
-        {/* Employment */}
         <EmploymentSection
           mode="add"
           initialValues={{}}
@@ -247,11 +244,10 @@ export default function AddEmployeeForm({ onSubmit }) {
           setFormErrors={setFormErrors}
         />
 
-        {/* Experience */}
         <PreviousExperienceSection
           experiences={experiences}
           onAdd={() =>
-            setExperiences((prev) => [...prev, { ...emptyExperience }])
+            setExperiences((prev) => [...prev, createEmptyExperience()])
           }
           onChange={(key, field, value) =>
             setExperiences((prev) =>
@@ -267,7 +263,6 @@ export default function AddEmployeeForm({ onSubmit }) {
           }
         />
 
-        {/* Documents */}
         <DocumentsSection
           documents={documents}
           onAdd={() => setDocuments((prev) => [...prev, { ...emptyDocument }])}
@@ -314,14 +309,12 @@ export default function AddEmployeeForm({ onSubmit }) {
           }
         />
 
-        {/* Salary */}
         <CompensationSection
           setFormErrors={setFormErrors}
           formErrors={formErrors}
           employeeId={null}
         />
 
-        {/* Emergency Contact */}
         <EmergencyContactSection
           setFormErrors={setFormErrors}
           formErrors={formErrors}
@@ -343,10 +336,11 @@ export default function AddEmployeeForm({ onSubmit }) {
         </div>
       </form>
 
-      {/* Error Modal */}
       {showErrorModal && (
         <ErrorModal onClose={() => setShowErrorModal(false)} />
       )}
     </>
   );
-}
+});
+
+export default AddEmployeeForm;

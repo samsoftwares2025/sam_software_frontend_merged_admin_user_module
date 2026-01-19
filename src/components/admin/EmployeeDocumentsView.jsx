@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Sidebar from "../../components/admin/Sidebar";
-import Header from "../../components/admin/Header";
+import Sidebar from "../../components/common/Sidebar";
+import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 
 import { getEmployeeById } from "../../api/admin/employees";
