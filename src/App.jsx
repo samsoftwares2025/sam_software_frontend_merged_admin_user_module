@@ -56,7 +56,7 @@ import UpdateTicketTypePage from "./pages/admin/UpdateTicketTypePage";
 // USER MODULE
 import Dashboard from "./pages/user/Dashboard";
 import Myprofile from "./pages/user/Myprofile";
-import MyDocuments from "./pages/user/MyDocument";
+import MyDocument from "./pages/user/MyDocument";
 import Myhistory from "./pages/user/Myhistory";
 import ResetPassword from "./pages/user/ResetPassword";
 import MyTickets from "./pages/user/Supportpage";
@@ -435,7 +435,7 @@ console.log("API:", import.meta.env.VITE_API_BASE_URL);
 
           <Route
             path="/profile/documents"
-            element={<MyDocuments />}
+            element={<MyDocument />}
           />
 
           <Route

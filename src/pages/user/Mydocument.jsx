@@ -16,7 +16,7 @@ const DOCUMENT_TYPES = [
   "Other",
 ];
 
-const MyDocuments = ({ sidebarOpen, onToggleSidebar }) => {
+const MyDocument = ({ sidebarOpen, onToggleSidebar }) => {
   const [documents, setDocuments] = useState([]);
   const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -266,4 +266,4 @@ const MyDocuments = ({ sidebarOpen, onToggleSidebar }) => {
   );
 };
 
-export default MyDocuments;
+export default MyDocument;
