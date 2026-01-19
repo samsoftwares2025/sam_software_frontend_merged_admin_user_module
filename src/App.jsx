@@ -53,7 +53,7 @@ import AddTicketTypePage from "./pages/admin/AddTicketTypePage";
 import TicketTypesPage from "./pages/admin/TicketTypesPage";
 import UpdateTicketTypePage from "./pages/admin/UpdateTicketTypePage";
 
-// USER MODULE
+// USER MODULES
 import Dashboard from "./pages/user/Dashboard";
 import Myprofile from "./pages/user/Myprofile";
 import MyDocument from "./pages/user/MyDocument";
