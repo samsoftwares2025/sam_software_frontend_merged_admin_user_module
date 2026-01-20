@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import NotFound from "./pages/auth/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 
@@ -75,6 +76,8 @@ console.log("API:", import.meta.env.VITE_API_BASE_URL);
       <BrowserRouter>
         <Routes>
           {/* PUBLIC ROUTES */}
+           {/* Catch ALL unknown routes */}
+        <Route path="*" element={<NotFound />} />
           <Route path="/" element={<LoginPage />} />
           <Route path="/company/registration" element={<CompanyRegistrationPage />} />
           <Route path="/admin/forget-password" element={<ForgotPasswordPage />} />
