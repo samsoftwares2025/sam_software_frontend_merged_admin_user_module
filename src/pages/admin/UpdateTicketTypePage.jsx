@@ -137,7 +137,6 @@ function UpdateTicketTypePage() {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-          <div className="the_line" />
 
           <div className="page-title">
             <h3>Update Ticket Type</h3>

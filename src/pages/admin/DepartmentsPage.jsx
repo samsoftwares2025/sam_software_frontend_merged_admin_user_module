@@ -160,7 +160,6 @@ function DepartmentsPage() {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((prev) => !prev)} />
 
-          <div className="the_line" />
 
           <div className="page-title">
             <h3>Departments</h3>

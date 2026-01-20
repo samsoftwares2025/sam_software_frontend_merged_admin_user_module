@@ -125,7 +125,6 @@ function TicketTypesPage() {
       <main className="main">
         <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-        <div className="the_line" />
 
         <div className="page-title">
           <h3>Ticket Types</h3>

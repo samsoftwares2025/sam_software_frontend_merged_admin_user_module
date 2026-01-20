@@ -140,7 +140,6 @@ function AddPolicyPage() {
 
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
-          <div className="the_line" />
 
           <div className="page-title">
             <h3>Add Policy</h3>

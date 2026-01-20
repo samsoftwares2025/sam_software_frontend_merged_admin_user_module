@@ -190,7 +190,6 @@ function CompanyRulesPage() {
 
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
-          <div className="the_line" />
 
           {/* TITLE */}
           <div className="page-title">

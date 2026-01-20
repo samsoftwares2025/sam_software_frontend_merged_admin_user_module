@@ -168,6 +168,7 @@ main.main {
 /* common style for the line */
 .the_line {
   border-bottom: 1px solid var(--muted-border);
+  margin-bottom: 5%;
 }
 
 /* adjust only the sidebar's line to match header’s vertical position */
