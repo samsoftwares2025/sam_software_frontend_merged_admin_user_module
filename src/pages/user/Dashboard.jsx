@@ -101,7 +101,6 @@ const Dashboard = () => {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-          <div className="the_line" />
 
           {/* ================= TOP CARDS ================= */}
           <section className="top-grid">
