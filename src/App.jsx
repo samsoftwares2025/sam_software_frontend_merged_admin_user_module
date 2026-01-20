@@ -1,12 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+/* CONTEXT */
+import { AuthProvider } from "./context/AuthContext";
+import { LoaderProvider, useLoader } from "./context/LoaderContext";
+import { registerLoader } from "./api/loaderRegistry";
+
+/* PUBLIC PAGES */
 import NotFound from "./pages/auth/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 
+/* PROTECTED ROUTE */
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
+/* ADMIN PAGES */
 import DashboardPage from "./pages/admin/DashboardPage";
 import DepartmentsPage from "./pages/admin/DepartmentsPage";
 import DesignationPage from "./pages/admin/DesignationPage";
@@ -17,9 +25,7 @@ import UpdateDepartmentPage from "./pages/admin/UpdateDepartmentPage";
 import EmploymentTypePage from "./pages/admin/EmploymentTypePage";
 import AddEmploymentTypePage from "./pages/admin/AddEmploymentTypePage";
 import UpdateEmploymentTypePage from "./pages/admin/UpdateEmploymentTypePage";
-
 import CompanyRegistrationPage from "./pages/admin/CompanyRegistrationPage";
-
 import AddEmployeePage from "./pages/admin/AddEmployee";
 import EmployeeMasterDataPage from "./pages/admin/EmployeeMasterDataPage";
 import EmploymentHistoryPage from "./pages/admin/EmploymentHistoryPage";
@@ -30,33 +36,27 @@ import MyProfile from "./pages/admin/MyProfile";
 import EmployeeProfile from "./pages/admin/EmployeeProfile";
 import UpdateEmployeePage from "./pages/admin/UpdateEmployeePage";
 import UpdateMyProfileDataPage from "./pages/admin/UpdateMyProfileDataPage";
-
 import PoliciesPage from "./pages/admin/PoliciesPage";
 import AddPolicyPage from "./pages/admin/AddPolicyPage";
 import UpdatePolicyPage from "./pages/admin/UpdatePolicyPage";
-
 import CompanyRulesPage from "./pages/admin/CompanyRulesPage";
 import AddCompanyRulePage from "./pages/admin/AddCompanyRulePage";
 import UpdateCompanyRulePage from "./pages/admin/UpdateCompanyRulePage";
-
 import RolesPermissions from "./pages/admin/RolesAndPermission";
 import AddRolePage from "./pages/admin/AddRolePage";
 import UpdateRolePage from "./pages/admin/UpdateRolePage";
 import AssignRole from "./pages/admin/AssignRole";
-
 import PersonalEmploymentHistoryPage from "./pages/admin/PersonalEmploymentHistoryPage";
-
 import ComplianceDocumentationPage from "./pages/admin/ComplianceDocumentationPage";
 import ComplianceTicketDetails from "./pages/admin/ComplianceTicketDetails";
 import UpdateComplianceTicketDetails from "./pages/admin/UpdateComplianceTicketDetails";
-
 import AddTicketTypePage from "./pages/admin/AddTicketTypePage";
 import TicketTypesPage from "./pages/admin/TicketTypesPage";
 import UpdateTicketTypePage from "./pages/admin/UpdateTicketTypePage";
 import AddTicketAdminPage from "./pages/admin/AddTicketAdminPage";
 import SupportAdminMyTicketsPage from "./pages/admin/SupportAdminMyTicketsPage";
 
-// USER MODULES 
+/* USER MODULE */
 import Dashboard from "./pages/user/Dashboard";
 import Myprofile from "./pages/user/Myprofile";
 import MyDocument from "./pages/user/MyDocument";
@@ -66,419 +66,409 @@ import MyTickets from "./pages/user/Supportpage";
 import AddTicket from "./pages/user/AddTicket";
 
 import "./App.css";
-import { AuthProvider } from "./context/AuthContext";
+
+/* 🔹 Loader Initializer (connects http.js ↔ Loader) */
+function LoaderInitializer({ children }) {
+  const { showLoader, hideLoader } = useLoader();
+
+  useEffect(() => {
+    registerLoader(showLoader, hideLoader);
+  }, [showLoader, hideLoader]);
+
+  return children;
+}
 
 function App() {
-    console.log("MODE:", import.meta.env.MODE);
-console.log("API:", import.meta.env.VITE_API_BASE_URL);
+  console.log("MODE:", import.meta.env.MODE);
+  console.log("API:", import.meta.env.VITE_API_BASE_URL);
 
   return (
-  
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* PUBLIC ROUTES */}
-           {/* Catch ALL unknown routes */}
-        <Route path="*" element={<NotFound />} />
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/company/registration" element={<CompanyRegistrationPage />} />
-          <Route path="/admin/forget-password" element={<ForgotPasswordPage />} />
+      <LoaderProvider>
+        <LoaderInitializer>
+          <BrowserRouter>
+            <Routes>
 
-          {/* ADMIN DASHBOARD */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute noPermissionCheck>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+              {/* PUBLIC ROUTES */}
+              <Route path="*" element={<NotFound />} />
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/company/registration" element={<CompanyRegistrationPage />} />
+              <Route path="/admin/forget-password" element={<ForgotPasswordPage />} />
 
-          {/* EMPLOYEE MODULE */}
-          <Route
-            path="/admin/add-employee"
-            element={
-              <ProtectedRoute module="employee" action="add">
-                <AddEmployeePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/employee-master"
-            element={
-              <ProtectedRoute module="employee">
-                <EmployeeMasterDataPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/employment-history"
-            element={
-              <ProtectedRoute module="employee">
-                <EmploymentHistoryPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/employee-documents"
-            element={
-              <ProtectedRoute module="employee">
-                <EmployeeDocumentsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-employee-documents/:id"
-            element={
-              <ProtectedRoute module="employee" action="update">
-                <UpdateEmployeDocumentPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/employee-documents-view/:userId"
-            element={
-              <ProtectedRoute module="employee">
-                <EmployeeDocumentsView />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/employee-profile/:id"
-            element={
-              <ProtectedRoute module="employee">
-                <EmployeeProfile />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-employee-profile/:id"
-            element={
-              <ProtectedRoute module="employee" action="update">
-                <UpdateEmployeePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-my-profile/:id"
-            element={
-              <ProtectedRoute noPermissionCheck module="employee" action="update">
-                <UpdateMyProfileDataPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* DEPARTMENT MODULE */}
-          <Route
-            path="/admin/departments"
-            element={
-              <ProtectedRoute module="department">
-                <DepartmentsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-department"
-            element={
-              <ProtectedRoute module="department" action="add">
-                <AddDepartmentPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-department"
-            element={
-              <ProtectedRoute module="department" action="update">
-                <UpdateDepartmentPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* DESIGNATION MODULE */}
-          <Route
-            path="/admin/designations"
-            element={
-              <ProtectedRoute module="designation">
-                <DesignationPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/my-profile"
-            element={
-              <ProtectedRoute noPermissionCheck>
-                <MyProfile />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/view-employment-history/:id"
-            element={
-              <ProtectedRoute noPermissionCheck>
-                <PersonalEmploymentHistoryPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-designation"
-            element={
-              <ProtectedRoute module="designation" action="add">
-                <AddDesignationPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-designation"
-            element={
-              <ProtectedRoute module="designation" action="update">
-                <UpdateDesignationPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* EMPLOYMENT TYPE MODULE */}
-          <Route
-            path="/admin/employment-type"
-            element={
-              <ProtectedRoute module="employment type">
-                <EmploymentTypePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-employment-type"
-            element={
-              <ProtectedRoute module="employment type" action="add">
-                <AddEmploymentTypePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-employment-type"
-            element={
-              <ProtectedRoute module="employment type" action="update">
-                <UpdateEmploymentTypePage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* POLICIES MODULE */}
-          <Route
-            path="/admin/policies"
-            element={
-              <ProtectedRoute module="policies">
-                <PoliciesPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-policy"
-            element={
-              <ProtectedRoute module="policies" action="add">
-                <AddPolicyPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-policy"
-            element={
-              <ProtectedRoute module="policies" action="update">
-                <UpdatePolicyPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* COMPANY RULES MODULE */}
-          <Route
-            path="/admin/company-rules"
-            element={
-              <ProtectedRoute module="company rules">
-                <CompanyRulesPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-company-rule"
-            element={
-              <ProtectedRoute module="company rules" action="add">
-                <AddCompanyRulePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-company-rule"
-            element={
-              <ProtectedRoute module="company rules" action="update">
-                <UpdateCompanyRulePage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ROLES & PERMISSIONS MODULE */}
-          <Route
-            path="/admin/roles-permissions"
-            element={
-              <ProtectedRoute module="roles & permissions">
-                <RolesPermissions />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-role"
-            element={
-              <ProtectedRoute module="roles & permissions" action="add">
-                <AddRolePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-role/:roleId"
-            element={
-              <ProtectedRoute module="roles & permissions" action="update">
-                <UpdateRolePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/assign-role/:roleId"
-            element={
-              <ProtectedRoute module="roles & permissions">
-                <AssignRole />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* SUPPORTING TICKETS MODULE */}
-          <Route
-            path="/admin/compliance-documentation"
-            element={
-              <ProtectedRoute module="supporting tickets">
-                <ComplianceDocumentationPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/compliance-ticket/:id"
-            element={
-              <ProtectedRoute module="supporting tickets">
-                <ComplianceTicketDetails />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update/compliance-ticket/:id"
-            element={
-              <ProtectedRoute module="supporting tickets" action="update">
-                <UpdateComplianceTicketDetails />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* TICKET TYPE MODULE */}
-          <Route
-            path="/admin/ticket-types"
-            element={
-              <ProtectedRoute module="ticket type">
-                <TicketTypesPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/add-ticket-type"
-            element={
-              <ProtectedRoute module="ticket type" action="add">
-                <AddTicketTypePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/update-ticket-type/:id"
-            element={
-              <ProtectedRoute module="ticket type" action="update">
-                <UpdateTicketTypePage />
-              </ProtectedRoute>
-            }
-          />
+              {/* ADMIN DASHBOARD */}
               <Route
-            path="/admin/add-support-ticket"
-            element={
-              <ProtectedRoute noPermissionCheck>
-                <AddTicketAdminPage />
-              </ProtectedRoute>
-            }
-          />
-         <Route
-            path="/admin/list-support-ticket"
-            element={
-              <ProtectedRoute noPermissionCheck>
-                <SupportAdminMyTicketsPage />
-              </ProtectedRoute>
-            }
-          />
-          {/* USER MODULE */}
-          <Route
-            path="/user/dashboard"
-            element={<Dashboard />}
-          />
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/user/myprofile"
-            element={<Myprofile />}
-          />
+              {/* EMPLOYEE MODULE */}
+              <Route
+                path="/admin/add-employee"
+                element={
+                  <ProtectedRoute module="employee" action="add">
+                    <AddEmployeePage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/profile/documents"
-            element={<MyDocument />}
-          />
+              <Route
+                path="/admin/employee-master"
+                element={
+                  <ProtectedRoute module="employee">
+                    <EmployeeMasterDataPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/profile/history"
-            element={<Myhistory />}
-          />
+              <Route
+                path="/admin/employment-history"
+                element={
+                  <ProtectedRoute module="employee">
+                    <EmploymentHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/profile/reset-password"
-            element={<ResetPassword />}
-          />
+              <Route
+                path="/admin/employee-documents"
+                element={
+                  <ProtectedRoute module="employee">
+                    <EmployeeDocumentsPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/user/support"
-            element={<MyTickets />}
-          />
+              <Route
+                path="/admin/update-employee-documents/:id"
+                element={
+                  <ProtectedRoute module="employee" action="update">
+                    <UpdateEmployeDocumentPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/user/support/add"
-            element={<AddTicket />}
-          />
-        </Routes>
-      </BrowserRouter>
+              <Route
+                path="/admin/employee-documents-view/:userId"
+                element={
+                  <ProtectedRoute module="employee">
+                    <EmployeeDocumentsView />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/employee-profile/:id"
+                element={
+                  <ProtectedRoute module="employee">
+                    <EmployeeProfile />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-employee-profile/:id"
+                element={
+                  <ProtectedRoute module="employee" action="update">
+                    <UpdateEmployeePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-my-profile/:id"
+                element={
+                  <ProtectedRoute noPermissionCheck module="employee" action="update">
+                    <UpdateMyProfileDataPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* DEPARTMENT MODULE */}
+              <Route
+                path="/admin/departments"
+                element={
+                  <ProtectedRoute module="department">
+                    <DepartmentsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-department"
+                element={
+                  <ProtectedRoute module="department" action="add">
+                    <AddDepartmentPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-department"
+                element={
+                  <ProtectedRoute module="department" action="update">
+                    <UpdateDepartmentPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* DESIGNATION MODULE */}
+              <Route
+                path="/admin/designations"
+                element={
+                  <ProtectedRoute module="designation">
+                    <DesignationPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/my-profile"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <MyProfile />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/view-employment-history/:id"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <PersonalEmploymentHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-designation"
+                element={
+                  <ProtectedRoute module="designation" action="add">
+                    <AddDesignationPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-designation"
+                element={
+                  <ProtectedRoute module="designation" action="update">
+                    <UpdateDesignationPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* EMPLOYMENT TYPE MODULE */}
+              <Route
+                path="/admin/employment-type"
+                element={
+                  <ProtectedRoute module="employment type">
+                    <EmploymentTypePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-employment-type"
+                element={
+                  <ProtectedRoute module="employment type" action="add">
+                    <AddEmploymentTypePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-employment-type"
+                element={
+                  <ProtectedRoute module="employment type" action="update">
+                    <UpdateEmploymentTypePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* POLICIES MODULE */}
+              <Route
+                path="/admin/policies"
+                element={
+                  <ProtectedRoute module="policies">
+                    <PoliciesPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-policy"
+                element={
+                  <ProtectedRoute module="policies" action="add">
+                    <AddPolicyPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-policy"
+                element={
+                  <ProtectedRoute module="policies" action="update">
+                    <UpdatePolicyPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* COMPANY RULES MODULE */}
+              <Route
+                path="/admin/company-rules"
+                element={
+                  <ProtectedRoute module="company rules">
+                    <CompanyRulesPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-company-rule"
+                element={
+                  <ProtectedRoute module="company rules" action="add">
+                    <AddCompanyRulePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-company-rule"
+                element={
+                  <ProtectedRoute module="company rules" action="update">
+                    <UpdateCompanyRulePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ROLES & PERMISSIONS MODULE */}
+              <Route
+                path="/admin/roles-permissions"
+                element={
+                  <ProtectedRoute module="roles & permissions">
+                    <RolesPermissions />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-role"
+                element={
+                  <ProtectedRoute module="roles & permissions" action="add">
+                    <AddRolePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-role/:roleId"
+                element={
+                  <ProtectedRoute module="roles & permissions" action="update">
+                    <UpdateRolePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/assign-role/:roleId"
+                element={
+                  <ProtectedRoute module="roles & permissions">
+                    <AssignRole />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* SUPPORTING TICKETS MODULE */}
+              <Route
+                path="/admin/compliance-documentation"
+                element={
+                  <ProtectedRoute module="supporting tickets">
+                    <ComplianceDocumentationPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/compliance-ticket/:id"
+                element={
+                  <ProtectedRoute module="supporting tickets">
+                    <ComplianceTicketDetails />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update/compliance-ticket/:id"
+                element={
+                  <ProtectedRoute module="supporting tickets" action="update">
+                    <UpdateComplianceTicketDetails />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* TICKET TYPE MODULE */}
+              <Route
+                path="/admin/ticket-types"
+                element={
+                  <ProtectedRoute module="ticket type">
+                    <TicketTypesPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-ticket-type"
+                element={
+                  <ProtectedRoute module="ticket type" action="add">
+                    <AddTicketTypePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/update-ticket-type/:id"
+                element={
+                  <ProtectedRoute module="ticket type" action="update">
+                    <UpdateTicketTypePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/add-support-ticket"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <AddTicketAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin/list-support-ticket"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <SupportAdminMyTicketsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* USER MODULE */}
+              <Route path="/user/dashboard" element={<Dashboard />} />
+              <Route path="/user/myprofile" element={<Myprofile />} />
+              <Route path="/profile/documents" element={<MyDocument />} />
+              <Route path="/profile/history" element={<Myhistory />} />
+              <Route path="/profile/reset-password" element={<ResetPassword />} />
+              <Route path="/user/support" element={<MyTickets />} />
+              <Route path="/user/support/add" element={<AddTicket />} />
+
+            </Routes>
+          </BrowserRouter>
+        </LoaderInitializer>
+      </LoaderProvider>
     </AuthProvider>
   );
 }

@@ -1,3 +1,5 @@
+// src/components/common/LoaderOverlay.jsx
+
 import React from "react";
 import "../../assets/styles/loader.css";
 

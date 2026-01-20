@@ -1,6 +1,6 @@
-// src/api/http.js
 import axios from "axios";
 import { API_BASE_URL } from "./config";
+import { triggerShow, triggerHide } from "./loaderRegistry";
 
 const isDev = import.meta.env.DEV;
 
@@ -13,7 +13,25 @@ const http = axios.create({
   },
 });
 
-// 🔐 Allow external modules to set/clear auth token (JWT only)
+/* 🔄 GLOBAL LOADER HOOK */
+http.interceptors.request.use((req) => {
+  triggerShow();
+  return req;
+});
+
+/* 🔄 GLOBAL LOADER HIDE */
+http.interceptors.response.use(
+  (res) => {
+    triggerHide();
+    return res;
+  },
+  (error) => {
+    triggerHide();
+    return Promise.reject(error);
+  }
+);
+
+/* 🔐 Allow external modules to set/clear auth token */
 export const setAuth = ({ token = null } = {}) => {
   if (token) {
     http.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -22,7 +40,7 @@ export const setAuth = ({ token = null } = {}) => {
   }
 };
 
-// 🔎 Request logging (DEV only)
+/* 🔎 DEV logging */
 http.interceptors.request.use((req) => {
   if (isDev) {
     req.metadata = { startTime: new Date() };
@@ -31,7 +49,6 @@ http.interceptors.request.use((req) => {
   return req;
 });
 
-// 🔁 Response & error handling
 http.interceptors.response.use(
   (res) => {
     if (isDev && res.config.metadata) {
@@ -47,23 +64,6 @@ http.interceptors.response.use(
     return res;
   },
   (error) => {
-    if (isDev) {
-      if (error.response) {
-        console.error("[HTTP] response error", {
-          status: error.response.status,
-          data: error.response.data,
-          url: error.config?.url,
-        });
-      } else if (error.request) {
-        console.error("[HTTP] no response from server", {
-          url: error.config?.url,
-          message: error.message,
-        });
-      } else {
-        console.error("[HTTP] setup error", error.message);
-      }
-    }
-
     return Promise.reject(error);
   }
 );
