@@ -4,10 +4,13 @@ import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 import ProtectedAction from "../../components/admin/ProtectedAction";
-
-import { getDepartments_employee_mgmnt } from "../../api/admin/departments";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import {
-  getEmployeeDocuments,
+  getDepartments_employee_mgmnt,
+  
+} from "../../api/admin/departments";
+import {
+  getEmployeeDocuments,deleteEmployeedata,
   filterEmployeeDocuments,
 } from "../../api/admin/employees";
 
@@ -15,6 +18,10 @@ function EmployeeDocumentsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("employees");
   const [isFilterActive, setIsFilterActive] = useState(false);
+  // delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [employees, setEmployees] = useState([]);
 
@@ -41,6 +48,38 @@ function EmployeeDocumentsPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
+  const confirmDelete = async () => {
+    console.log("CONFIRM DELETE FIRED");
+  if (!employeeToDelete) return;
+
+  try {
+    setDeleting(true);
+
+    await deleteEmployeedata({
+      user_id: employeeToDelete.user_id,
+      document_id: employeeToDelete.document_id,
+    });
+
+    setShowDeleteModal(false);
+    setEmployeeToDelete(null);
+
+    loadDocuments(page);
+  } catch (err) {
+    console.error(
+      "DELETE ERROR:",
+      err.response?.data || err.message
+    );
+    alert(err.response?.data?.message || "Failed to delete document.");
+  } finally {
+    setDeleting(false);
+  }
+};
+
+const closeDeleteModal = () => {
+  setShowDeleteModal(false);
+  setEmployeeToDelete(null);
+};
+
 
   /* ===============================
      LOAD MASTER DATA
@@ -279,14 +318,14 @@ function EmployeeDocumentsPage() {
                             <td>
                               {doc.issue_date
                                 ? new Date(doc.issue_date).toLocaleDateString(
-                                    "en-GB"
+                                    "en-GB",
                                   )
                                 : "-"}
                             </td>
                             <td>
                               {doc.expiry_date
                                 ? new Date(doc.expiry_date).toLocaleDateString(
-                                    "en-GB"
+                                    "en-GB",
                                   )
                                 : "-"}
                             </td>
@@ -324,7 +363,12 @@ function EmployeeDocumentsPage() {
                                     module="employee"
                                     action="delete"
                                     onAllowed={() => {
-                                      setEmployeeToDelete(emp);
+                                      setEmployeeToDelete({
+  user_id: emp.user_id,
+  document_id: doc.id,
+  document_type: doc.document_type,
+});
+
                                       setShowDeleteModal(true);
                                     }}
                                     className="icon-btn delete"
@@ -337,7 +381,7 @@ function EmployeeDocumentsPage() {
                             )}
                           </tr>
                         );
-                      })
+                      }),
                     )}
 
                     {employees.length === 0 && (
@@ -350,6 +394,15 @@ function EmployeeDocumentsPage() {
                   </tbody>
                 </table>
               </div>
+{showDeleteModal && (
+  <DeleteConfirmModal
+    title="Delete Employee"
+    message={`Are you sure you want to delete "${employeeToDelete?.name}"?`}
+    loading={deleting}
+    onConfirm={confirmDelete}
+    onClose={closeDeleteModal}
+  />
+)}
 
               <div className="table-footer">
                 <div id="tableInfo">
@@ -377,7 +430,7 @@ function EmployeeDocumentsPage() {
                       >
                         {p}
                       </button>
-                    )
+                    ),
                   )}
 
                   {/* Next */}

@@ -295,6 +295,22 @@ export const deleteEmployee = async (employeeId) => {
 
 
 
+export const deleteEmployeedata = async ({ user_id, document_id }) => {
+  const payload = {
+    user_id,
+    document_id,
+  };
+
+  const { data } = await http.post(
+    "/hr/delete-employee-data/",
+    payload
+  );
+
+  return data;
+};
+
+
+
 /* =========================
    GET PersonalEmploymentHistory  
 ========================= */
