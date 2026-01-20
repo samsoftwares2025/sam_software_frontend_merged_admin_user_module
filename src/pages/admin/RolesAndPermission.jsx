@@ -229,7 +229,7 @@ const RolesPermissions = () => {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>#</th>
+                      <th>Order No</th>
                       <th>Role Name</th>
                       <th>Modules</th>
                       <th>Permissions</th>

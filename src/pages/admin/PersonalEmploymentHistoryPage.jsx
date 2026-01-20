@@ -305,7 +305,7 @@ const PersonalEmploymentHistoryPage = () => {
                   <div className="history-content">
                     {/* Top Row: Order + Date */}
                     <div className="history-header">
-                      <span className="history-order">#{index + 1}</span>
+                      <span className="history-order">Order No{index + 1}</span>
                       <span className="history-date">
                         {date
                           ? new Date(date).toLocaleDateString("en-GB")

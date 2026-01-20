@@ -252,7 +252,7 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
             <table className="history-table">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>Order No</th>
                   <th>Tracking ID</th>
                   <th>Ticket Type</th>
                   <th>Date</th>

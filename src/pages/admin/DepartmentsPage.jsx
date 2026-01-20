@@ -212,7 +212,7 @@ function DepartmentsPage() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th style={{ width: "8%" }}>Order</th>
+                    <th style={{ width: "8%" }}>Order No</th>
                     <th style={{ width: "70%" }}>Department Name</th>
                     <th>Actions</th>
                   </tr>
