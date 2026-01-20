@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 import { addSupportTicket, getTicketTypes } from "../../api/user/supportTickets";
@@ -11,10 +12,8 @@ const SuccessModal = ({ title, message, onClose }) => (
       <div className="success-icon">
         <i className="fa-solid fa-circle-check" />
       </div>
-
       <h2>{title}</h2>
       <p>{message}</p>
-
       <button className="btn btn-primary" onClick={onClose}>
         Go to My Tickets
       </button>
@@ -22,7 +21,11 @@ const SuccessModal = ({ title, message, onClose }) => (
   </div>
 );
 
-const AddTicket = ({ sidebarOpen, onToggleSidebar }) => {
+const AddTicket = () => {
+  /* ===== SIDEBAR STATE (ADMIN STYLE) ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  /* ===== FORM STATE ===== */
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [attachment, setAttachment] = useState(null);
@@ -34,17 +37,14 @@ const AddTicket = ({ sidebarOpen, onToggleSidebar }) => {
 
   const navigate = useNavigate();
 
-  /* ================= LOAD TICKET TYPES ================= */
+  /* ===== LOAD TICKET TYPES ===== */
   useEffect(() => {
     getTicketTypes()
-      .then((res) => {
-        if (res.success) {
-          setTicketTypes(res.types);   // backend gives "types"
-        }
-      })
+      .then((res) => res.success && setTicketTypes(res.types))
       .catch(() => setMessage("Failed to load ticket types"));
   }, []);
 
+  /* ===== SUBMIT ===== */
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -54,54 +54,36 @@ const AddTicket = ({ sidebarOpen, onToggleSidebar }) => {
     formData.append("subject", subject);
     formData.append("content", content);
     formData.append("ticket_type_id", ticketTypeId);
-
-    if (attachment) {
-      formData.append("attachment", attachment);
-    }
+    if (attachment) formData.append("attachment", attachment);
 
     addSupportTicket(formData)
       .then((res) => {
         if (res.success) {
-          setSubject("");
-          setContent("");
-          setAttachment(null);
-          setTicketTypeId("");
           setShowSuccessModal(true);
-
-          setTimeout(() => {
-            setShowSuccessModal(false);
-            navigate("/user/support");
-          }, 1500);
+          setTimeout(() => navigate("/user/support"), 1500);
         } else {
           setMessage(res.message || "Failed to create ticket");
         }
       })
-      .catch((err) => setMessage(err?.message || "Something went wrong"))
+      .catch(() => setMessage("Something went wrong"))
       .finally(() => setLoading(false));
   };
 
   return (
-    <>
-      {/* ================= SUCCESS MODAL ================= */}
-      {showSuccessModal && (
-        <SuccessModal
-          title="Ticket Created Successfully"
-          message="Your support ticket has been submitted."
-          onClose={() => navigate("/user/support")}
-        />
-      )}
+    <div className="container">
+      {/* ===== SIDEBAR (ADMIN SIDEBAR) ===== */}
+     <Sidebar
+  sidebarOpen={isSidebarOpen}
+  onToggleSidebar={() => setIsSidebarOpen(false)}
+/>
 
-      {/* ================= SIDEBAR OVERLAY ================= */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={onToggleSidebar}
-          aria-hidden="true"
-        />
-      )}
 
-      <main className="main add-ticket-page" role="main">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} />
+      {/* ===== MAIN ===== */}
+      <main className="main add-ticket-page">
+<Header
+  sidebarOpen={isSidebarOpen}
+  onToggleSidebar={() => setIsSidebarOpen(p => !p)}
+/>
 
         <section className="card">
           <h3 className="info-title">Add Support Ticket</h3>
@@ -109,8 +91,6 @@ const AddTicket = ({ sidebarOpen, onToggleSidebar }) => {
           {message && <p className="small error-text">{message}</p>}
 
           <form onSubmit={handleSubmit} encType="multipart/form-data">
-            
-            {/* ================= TICKET TYPE DROPDOWN ================= */}
             <div className="form-group">
               <label>Ticket Type</label>
               <select
@@ -159,11 +139,7 @@ const AddTicket = ({ sidebarOpen, onToggleSidebar }) => {
             </div>
 
             <div className="form-actions">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
+              <button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? "Submitting..." : "Submit Ticket"}
               </button>
 
@@ -179,7 +155,24 @@ const AddTicket = ({ sidebarOpen, onToggleSidebar }) => {
           </form>
         </section>
       </main>
-    </>
+
+
+      {/* OVERLAY */}
+  {isSidebarOpen && (
+    <div
+      className="sidebar-overlay show"
+      onClick={() => setIsSidebarOpen(false)}
+    />
+  )}
+
+      {showSuccessModal && (
+        <SuccessModal
+          title="Ticket Created Successfully"
+          message="Your support ticket has been submitted."
+          onClose={() => navigate("/user/support")}
+        />
+      )}
+    </div>
   );
 };
 

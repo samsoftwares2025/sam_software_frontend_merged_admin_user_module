@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 import { getMyProfile, updateMyProfile } from "../../api/user/myprofile";
@@ -21,7 +22,10 @@ const SuccessModal = ({ title, message, onClose }) => (
   </div>
 );
 
-const Myprofile = ({ sidebarOpen, onToggleSidebar }) => {
+const Myprofile = () => {
+  /* ===== SIDEBAR STATE ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -85,8 +89,6 @@ const Myprofile = ({ sidebarOpen, onToggleSidebar }) => {
 
       setIsEditing(false);
       setProfileImage(null);
-
-      // SHOW SUCCESS MODAL
       setShowSuccessModal(true);
     } catch (err) {
       alert(err?.message || "Failed to update profile");
@@ -110,29 +112,34 @@ const Myprofile = ({ sidebarOpen, onToggleSidebar }) => {
   if (!profile) return <main className="main">No profile data found.</main>;
 
   return (
-    <>
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={onToggleSidebar}
-          aria-hidden="true"
-        />
-      )}
+    <div className="container">
+      {/* ===== SIDEBAR ===== */}
+      <Sidebar
+        sidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(false)}
+      />
 
+      {/* ===== MAIN ===== */}
       <main className="main">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} />
+        <Header
+          sidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
+        />
 
         {/* ACTION BUTTONS */}
         <div className="profile-actions">
           {!isEditing ? (
-            <button className="btn btn-edit btn-primary" onClick={() => setIsEditing(true)}>
-               <i className="fa-solid fa-pen-to-square" />
-      <span>Edit</span>
+            <button
+              className="btn btn-edit btn-primary"
+              onClick={() => setIsEditing(true)}
+            >
+              <i className="fa-solid fa-pen-to-square" />
+              <span>Edit</span>
             </button>
           ) : (
             <>
               <button
-                className="btn btn-cancel "
+                className="btn btn-cancel"
                 onClick={handleCancel}
                 disabled={saving}
               >
@@ -269,6 +276,14 @@ const Myprofile = ({ sidebarOpen, onToggleSidebar }) => {
         </section>
       </main>
 
+      {/* ===== OVERLAY ===== */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* ================= SUCCESS MODAL ================= */}
       {showSuccessModal && (
         <SuccessModal
@@ -277,7 +292,7 @@ const Myprofile = ({ sidebarOpen, onToggleSidebar }) => {
           onClose={() => setShowSuccessModal(false)}
         />
       )}
-    </>
+    </div>
   );
 };
 

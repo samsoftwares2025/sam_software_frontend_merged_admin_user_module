@@ -3412,3 +3412,32 @@ table.data-table th.wrap {
   max-width: 100%;
 }
 
+
+
+.excel-btn {
+  background-color: #217346;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.excel-btn:hover {
+  background-color: #1e6b3f;
+}
+
+.excel-btn:active {
+  background-color: #1a5d37;
+}
+
+.excel-btn:disabled {
+  background-color: #a7cbb8;
+  cursor: not-allowed;
+}

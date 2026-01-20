@@ -100,7 +100,7 @@ export const cancelTicket = async (ticketId) => {
   payload.append("status", "cancelled");
 
   const { data } = await http.post(
-    "/hr/assign-and-change-status-support-ticket/",
+    "/users/user-change-support-ticket-status/",
     payload,
     {
       headers: {
@@ -140,7 +140,7 @@ export const getTicketTypes = async () => {
   const payload = { user_id: userId };
 
   const { data } = await http.post(
-    "/hr/list-ticket-type/",   // <-- IMPORTANT: correct endpoint
+    "/users/user-list-ticket-type/",   // <-- IMPORTANT: correct endpoint
     payload,
     {
       headers: {
@@ -150,4 +150,198 @@ export const getTicketTypes = async () => {
   );
 
   return data;  // contains: { success: true, types: [...] }
+};
+
+
+
+
+// ==============================
+// FILTER / SEARCH MY SUPPORT TICKETS
+// ==============================
+export const filterMyTickets = async ({
+  page = 1,
+  pageSize = 10,
+  status = null,
+  search = null,
+  dateFrom = null,
+  dateTo = null,
+}) => {
+  const userId =
+    localStorage.getItem("user_id") ||
+    localStorage.getItem("id") ||
+    localStorage.getItem("userId");
+
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("access_token");
+
+  if (!userId || !token) {
+    throw new Error("Session expired. Please login again.");
+  }
+
+  const payload = {
+    user_id: userId,
+    page,
+    page_size: pageSize,
+  };
+
+  // attach filters only if provided
+  if (status && status !== "all") payload.status = status;
+  if (search) payload.search = search;
+  if (dateFrom) payload.date_from = dateFrom;
+  if (dateTo) payload.date_to = dateTo;
+
+  const { data } = await http.post(
+    "/users/user-filter-support-tickets/",
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return data;
+};
+
+
+
+
+
+
+
+
+// ==============================
+// LIST ASSIGNED SUPPORT TICKETS
+// ==============================
+export const getAssignedTickets = async (page = 1, pageSize = 10) => {
+  const userId =
+    localStorage.getItem("user_id") ||
+    localStorage.getItem("id") ||
+    localStorage.getItem("userId");
+
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("access_token");
+
+  if (!userId || !token) {
+    throw new Error("Session expired. Please login again.");
+  }
+
+  const payload = {
+    user_id: userId,
+    page,
+    page_size: pageSize,
+  };
+
+  const { data } = await http.post(
+    "/users/user-list-assigned-support-tickets/",
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return data;
+};
+
+
+
+
+
+
+// ==============================
+// UPDATE ASSIGNED TICKET STATUS (HR)
+// ==============================
+export const updateAssignedTicketStatus = async ({
+  ticketId,
+  status,
+}) => {
+  const userId =
+    localStorage.getItem("user_id") ||
+    localStorage.getItem("id") ||
+    localStorage.getItem("userId");
+
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("access_token");
+
+  if (!userId || !token) {
+    throw new Error("Session expired. Please login again.");
+  }
+
+  const payload = new FormData();
+  payload.append("user_id", userId);
+  payload.append("ticket_id", ticketId);
+  payload.append("status", status);
+
+  const { data } = await http.post(
+    "/hr/assign-and-change-status-support-ticket/",
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return data;
+};
+
+
+
+
+// ==============================
+// FILTER SUPPORT TICKETS (ADMIN / HR)
+// ==============================
+export const filterSupportTickets = async ({
+  page = 1,
+  pageSize = 10,
+  status = null,
+  search = null,
+  assigned_to = null,
+  submitted_by = null,
+  date_from = null,
+  date_to = null,
+}) => {
+  const userId =
+    localStorage.getItem("user_id") ||
+    localStorage.getItem("id") ||
+    localStorage.getItem("userId");
+
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("access_token");
+
+  if (!userId || !token) {
+    throw new Error("Session expired. Please login again.");
+  }
+
+  const payload = {
+    user_id: userId,
+    page,
+    page_size: pageSize,
+  };
+
+  if (status) payload.status = status;
+  if (search) payload.search = search;
+  if (assigned_to) payload.assigned_to = assigned_to;
+  if (submitted_by) payload.submitted_by = submitted_by;
+  if (date_from) payload.date_from = date_from;
+  if (date_to) payload.date_to = date_to;
+
+  const { data } = await http.post(
+    "/hr/filter-support-ticket/",
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return data;
 };

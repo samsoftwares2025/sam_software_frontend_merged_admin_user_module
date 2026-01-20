@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 import { resetPassword } from "../../api/user/myprofile";
@@ -22,7 +23,10 @@ const SuccessModal = ({ title, message, onClose }) => (
   </div>
 );
 
-const ResetPassword = ({ sidebarOpen, onToggleSidebar }) => {
+const ResetPassword = () => {
+  /* ===== SIDEBAR STATE ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -72,29 +76,18 @@ const ResetPassword = ({ sidebarOpen, onToggleSidebar }) => {
   };
 
   return (
-    <>
-      {/* ================= SUCCESS MODAL ================= */}
-      {showSuccessModal && (
-        <SuccessModal
-          title="Password Reset Successful"
-          message="Your password has been updated successfully."
-          onClose={() => navigate("/profile")}
-        />
-      )}
+    <div className="container">
+      {/* ===== SIDEBAR ===== */}
+      <Sidebar
+        sidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(false)}
+      />
 
-      {/* ================= SIDEBAR OVERLAY (SAME AS MY HISTORY) ================= */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={onToggleSidebar}
-          aria-hidden="true"
-        />
-      )}
-
+      {/* ===== MAIN ===== */}
       <main className="main add-ticket-page" role="main">
         <Header
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={onToggleSidebar}
+          sidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
         />
 
         <section className="card">
@@ -156,7 +149,24 @@ const ResetPassword = ({ sidebarOpen, onToggleSidebar }) => {
           </form>
         </section>
       </main>
-    </>
+
+      {/* ===== OVERLAY ===== */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* ===== SUCCESS MODAL ===== */}
+      {showSuccessModal && (
+        <SuccessModal
+          title="Password Reset Successful"
+          message="Your password has been updated successfully."
+          onClose={() => navigate("/profile")}
+        />
+      )}
+    </div>
   );
 };
 

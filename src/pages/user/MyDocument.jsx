@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 import { getMyDocuments } from "../../api/user/mydocument";
@@ -16,7 +18,10 @@ const DOCUMENT_TYPES = [
   "Other",
 ];
 
-const MyDocument = ({ sidebarOpen, onToggleSidebar }) => {
+const MyDocument = () => {
+  /* ===== SIDEBAR STATE ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [documents, setDocuments] = useState([]);
   const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -56,7 +61,6 @@ const MyDocument = ({ sidebarOpen, onToggleSidebar }) => {
 
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-
       const filename = url.split("/").pop() || "document";
 
       const link = document.createElement("a");
@@ -92,19 +96,18 @@ const MyDocument = ({ sidebarOpen, onToggleSidebar }) => {
   if (error) return <main className="main">{error}</main>;
 
   return (
-    <>
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={onToggleSidebar}
-          aria-hidden="true"
-        />
-      )}
+    <div className="container">
+      {/* ===== SIDEBAR ===== */}
+      <Sidebar
+        sidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(false)}
+      />
 
+      {/* ===== MAIN ===== */}
       <main className="main" role="main">
         <Header
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={onToggleSidebar}
+          sidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
         />
 
         {/* SUMMARY */}
@@ -184,10 +187,7 @@ const MyDocument = ({ sidebarOpen, onToggleSidebar }) => {
                 const fileUrl = doc?.images?.[0]?.url;
 
                 return (
-                  <div
-                    className="doc-row"
-                    key={doc.document_id || doc.id}
-                  >
+                  <div className="doc-row" key={doc.document_id || doc.id}>
                     <div className="doc-col name">
                       <span className="doc-name">
                         {doc.document_type || "-"}
@@ -262,7 +262,15 @@ const MyDocument = ({ sidebarOpen, onToggleSidebar }) => {
           )}
         </section>
       </main>
-    </>
+
+      {/* ===== OVERLAY ===== */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+    </div>
   );
 };
 

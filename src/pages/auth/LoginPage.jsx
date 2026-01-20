@@ -21,12 +21,10 @@ const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
-      console.log("SENDING LOGIN REQUEST:", { email, password });
 
       // 🔥 LOGIN API CALL
       const res = await loginUser(email, password);
 
-      console.log("LOGIN RESPONSE:", res);
 
       // ===============================
       // ✅ SAVE AUTH DATA (EXISTING)
@@ -58,14 +56,7 @@ const LoginPage = () => {
         localStorage.setItem("companyLogo", res.company_logo);
       }
 
-      console.log("AFTER LOGIN STORAGE:", {
-        token: localStorage.getItem("token"),
-        user_id: localStorage.getItem("user_id"),
-        userName: localStorage.getItem("userName"),
-        userImage: localStorage.getItem("userImage"),
-        companyName: localStorage.getItem("companyName"),
-        companyLogo: localStorage.getItem("companyLogo"),
-      });
+     
 
       // update auth context
       login();

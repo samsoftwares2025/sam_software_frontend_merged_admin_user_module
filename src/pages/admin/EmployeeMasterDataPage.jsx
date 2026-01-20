@@ -243,9 +243,10 @@ function EmployeeMasterDataPage() {
             </p>
           </div>
 
-          <button className="btn btn-success" onClick={handleExportExcel}>
-            <i className="fa-solid fa-file-excel"></i> Export Excel
-          </button>
+         <button className="excel-btn" onClick={handleExportExcel}>
+  <i className="fa-solid fa-file-excel"></i> Export Excel
+</button>
+
         </div>
 
         {/* FILTERS */}

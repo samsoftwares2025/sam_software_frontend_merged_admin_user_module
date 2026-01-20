@@ -26,7 +26,7 @@ export const getMyProfile = async () => {
   };
 
   const response = await http.post(
-    "/hr/get-employee/",
+    "/users/user-get-profile/",
     payload,
     {
       headers: {
@@ -76,10 +76,10 @@ export const updateMyProfile = async (payload, profile) => {
   return response.data;
 };
 
-
-
-
-export const getMyHistory = async ({ page = 1, page_size = 50 } = {}) => {
+// ==============================
+// LIST MY HISTORY (PAGINATED)
+// ==============================
+export const getMyHistory = async (page = 1, pageSize = 10) => {
   const userId =
     localStorage.getItem("user_id") ||
     localStorage.getItem("id") ||
@@ -90,20 +90,17 @@ export const getMyHistory = async ({ page = 1, page_size = 50 } = {}) => {
     localStorage.getItem("access_token");
 
   if (!userId || !token) {
-    return Promise.reject(
-      new Error("Session expired. Please login again.")
-    );
+    throw new Error("Session expired. Please login again.");
   }
 
   const payload = {
-    user_id: userId, // ✅ required by backend
-    id: userId,      // ✅ REQUIRED for history filter
+    user_id: userId,
     page,
-    page_size,
+    page_size: pageSize,
   };
 
-  const response = await http.post(
-    "/users/user-employee-history/",
+  const { data } = await http.post(
+    "/users/user-their-own-employee-history/",   // <-- replace with your actual history endpoint
     payload,
     {
       headers: {
@@ -112,7 +109,7 @@ export const getMyHistory = async ({ page = 1, page_size = 50 } = {}) => {
     }
   );
 
-  return response.data;
+  return data;
 };
 
 

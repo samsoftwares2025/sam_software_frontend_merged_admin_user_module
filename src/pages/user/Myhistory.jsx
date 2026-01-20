@@ -1,34 +1,42 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 
-import {
-  getMyProfile,
-  getMyHistory,
-} from "../../api/user/myprofile";
+import { getMyProfile, getMyHistory } from "../../api/user/myprofile";
 
-const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
+const MyHistory = () => {
+  /* ===== SIDEBAR STATE ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [employee, setEmployee] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /* ===== DATE FILTER STATE (ADDED) ===== */
+  /* ===== DATE FILTER STATE ===== */
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  const fetched = useRef(false);
+  /* ===== PAGINATION STATE ===== */
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    page_size: 10,
+    total_pages: 1,
+    total_records: 0,
+    has_next: false,
+    has_previous: false,
+  });
 
   /* =====================
      FETCH PROFILE + HISTORY
   ===================== */
   useEffect(() => {
-    if (fetched.current) return;
-    fetched.current = true;
-
     const loadData = async () => {
       try {
         setLoading(true);
+        setError("");
 
         /* ========= PROFILE ========= */
         const profileRes = await getMyProfile();
@@ -40,14 +48,24 @@ const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
         setEmployee(emp);
 
         /* ========= HISTORY ========= */
-        const historyRes = await getMyHistory({
-          page: 1,
-          page_size: 50,
-        });
-
+        const historyRes = await getMyHistory(page, pagination.page_size);
         if (!historyRes?.success) {
           throw new Error("Failed to load history");
         }
+
+        /* ✅ MAP BACKEND RESPONSE → FRONTEND PAGINATION */
+        const totalRecords = historyRes.total_count || 0;
+        const pageSize = historyRes.page_size || pagination.page_size;
+        const totalPages = historyRes.total_pages || 1;
+
+        setPagination({
+          current_page: historyRes.page || page,
+          page_size: pageSize,
+          total_pages: totalPages,
+          total_records: totalRecords,
+          has_previous: page > 1,
+          has_next: page < totalPages,
+        });
 
         const events = [];
 
@@ -95,21 +113,28 @@ const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
     };
 
     loadData();
-  }, []);
+  }, [page]);
 
   /* =====================
-     FILTERED HISTORY (ADDED)
+     FILTERED HISTORY
   ===================== */
   const filteredHistory = useMemo(() => {
     return history.filter((item) => {
       if (!item.date) return false;
 
-      const d = new Date(item.date);
-      const from = fromDate ? new Date(fromDate) : null;
-      const to = toDate ? new Date(toDate) : null;
+      const itemDate = new Date(item.date);
 
-      if (from && d < from) return false;
-      if (to && d > to) return false;
+      if (fromDate) {
+        const from = new Date(fromDate);
+        from.setHours(0, 0, 0, 0);
+        if (itemDate < from) return false;
+      }
+
+      if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        if (itemDate > to) return false;
+      }
 
       return true;
     });
@@ -118,10 +143,8 @@ const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
   /* =====================
      HELPERS
   ===================== */
-
   const buildHistoryDetails = (item) => {
     const parts = [];
-
     if (item.designation) parts.push(`Designation: ${item.designation}`);
     if (item.department) parts.push(`Department: ${item.department}`);
     if (item.employment_type) parts.push(`Type: ${item.employment_type}`);
@@ -170,25 +193,33 @@ const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
   };
 
   /* =====================
-     STATES
+     PAGINATION INFO
   ===================== */
+  const currentPage = pagination.current_page;
+  const pageSize = pagination.page_size;
+  const totalRecords = pagination.total_records;
+
+  const start =
+    totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalRecords);
+
   if (loading) return <main className="main">Loading history...</main>;
   if (error) return <main className="main">{error}</main>;
 
   return (
-    <>
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={onToggleSidebar}
-          aria-hidden="true"
-        />
-      )}
+    <div className="container">
+      <Sidebar
+        sidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(false)}
+      />
 
       <main className="main">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} />
+        <Header
+          sidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
+        />
 
-        {/* SUMMARY */}
+        {/* ===== TOP CARDS ===== */}
         <section className="top-grid">
           <div className="card">
             <h3>TENURE</h3>
@@ -201,7 +232,7 @@ const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
           </div>
         </section>
 
-        {/* ===== DATE FILTER (ADDED) ===== */}
+        {/* ===== DATE FILTER ===== */}
         <section className="filter-section">
           <div className="filter-group">
             <label>From Date</label>
@@ -228,39 +259,72 @@ const MyHistory = ({ sidebarOpen, onToggleSidebar }) => {
           </div>
         </section>
 
-        {/* HISTORY TABLE */}
+        {/* ===== HISTORY TABLE ===== */}
         <section className="card history-card">
           <h3>My History</h3>
 
           {filteredHistory.length === 0 ? (
             <p className="small">No history available.</p>
           ) : (
-            <div className="history-table-wrapper">
-              <table className="history-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredHistory.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        {item.date
-                          ? new Date(item.date).toLocaleDateString()
-                          : "—"}
-                      </td>
-                      <td>{item.details}</td>
+            <>
+              <div className="history-table-wrapper">
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Details</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredHistory.map((item, index) => (
+                      <tr key={index}>
+                        <td>
+                          {item.date
+                            ? new Date(item.date).toLocaleDateString()
+                            : "—"}
+                        </td>
+                        <td>{item.details}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="table-footer">
+                <div id="tableInfo">
+                  Showing {start} to {end} of {totalRecords} records
+                </div>
+
+                <div className="pagination">
+                  <button
+                    disabled={!pagination.has_previous}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    <i className="fa-solid fa-angle-left" />
+                  </button>
+
+                  <button className="active-page">{currentPage}</button>
+
+                  <button
+                    disabled={!pagination.has_next}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    <i className="fa-solid fa-angle-right" />
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </section>
       </main>
-    </>
+
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+    </div>
   );
 };
 
