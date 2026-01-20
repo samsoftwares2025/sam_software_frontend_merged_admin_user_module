@@ -170,13 +170,16 @@ function EmployeeProfile() {
             <p>
               <b>Designation:</b> {profile.designation || "-"}
             </p>
-            <p>
-              <b>User Role:</b> {profile.user_role || "-"}
-            </p>
+            {!profile.is_client_admin && (
+              <p>
+                <b>User Role:</b> {profile.user_role || "-"}
+              </p>
+            )}
+
             <p>
               <b>Employment Type:</b> {profile.employment_type || "-"}
             </p>
-         
+
             <p>
               <b>Work Location:</b> {profile.work_location || "-"}
             </p>
@@ -186,7 +189,7 @@ function EmployeeProfile() {
                 ? new Date(profile.joining_date).toLocaleDateString()
                 : "-"}
             </p>
-             <p>
+            <p>
               <b>Last Working Date:</b>{" "}
               {profile.last_working_date
                 ? new Date(profile.last_working_date).toLocaleDateString()

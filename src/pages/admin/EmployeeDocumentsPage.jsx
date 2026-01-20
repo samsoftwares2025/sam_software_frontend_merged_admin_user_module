@@ -5,12 +5,10 @@ import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 import ProtectedAction from "../../components/admin/ProtectedAction";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import { getDepartments_employee_mgmnt } from "../../api/admin/departments";
 import {
-  getDepartments_employee_mgmnt,
-  
-} from "../../api/admin/departments";
-import {
-  getEmployeeDocuments,deleteEmployeedata,
+  getEmployeeDocuments,
+  deleteEmployeedata,
   filterEmployeeDocuments,
 } from "../../api/admin/employees";
 
@@ -18,6 +16,32 @@ function EmployeeDocumentsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("employees");
   const [isFilterActive, setIsFilterActive] = useState(false);
+  const handlePageChange = (newPage) => {
+  if (newPage < 1 || newPage > totalPages) return;
+
+  setPage(newPage);
+
+  if (isFilterActive) {
+    setLoading(true);
+    filterEmployeeDocuments({
+      search: searchTerm,
+      status: filterStatus,
+      department_id: filterDepartment,
+      page: newPage,
+      page_size: pageSize,
+    })
+      .then((resp) => {
+        setEmployees(resp?.users_documents || []);
+        setTotalCount(resp?.total_count || 0);
+        setTotalPages(resp?.total_pages || 1);
+      })
+      .catch(() => setError("Unable to filter documents."))
+      .finally(() => setLoading(false));
+  } else {
+    loadDocuments(newPage);
+  }
+};
+
   // delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
@@ -50,36 +74,32 @@ function EmployeeDocumentsPage() {
   const navigate = useNavigate();
   const confirmDelete = async () => {
     console.log("CONFIRM DELETE FIRED");
-  if (!employeeToDelete) return;
+    if (!employeeToDelete) return;
 
-  try {
-    setDeleting(true);
+    try {
+      setDeleting(true);
 
-    await deleteEmployeedata({
-      user_id: employeeToDelete.user_id,
-      document_id: employeeToDelete.document_id,
-    });
+      await deleteEmployeedata({
+        user_id: employeeToDelete.user_id,
+        document_id: employeeToDelete.document_id,
+      });
 
+      setShowDeleteModal(false);
+      setEmployeeToDelete(null);
+
+      loadDocuments(page);
+    } catch (err) {
+      console.error("DELETE ERROR:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Failed to delete document.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
     setShowDeleteModal(false);
     setEmployeeToDelete(null);
-
-    loadDocuments(page);
-  } catch (err) {
-    console.error(
-      "DELETE ERROR:",
-      err.response?.data || err.message
-    );
-    alert(err.response?.data?.message || "Failed to delete document.");
-  } finally {
-    setDeleting(false);
-  }
-};
-
-const closeDeleteModal = () => {
-  setShowDeleteModal(false);
-  setEmployeeToDelete(null);
-};
-
+  };
 
   /* ===============================
      LOAD MASTER DATA
@@ -364,10 +384,11 @@ const closeDeleteModal = () => {
                                     action="delete"
                                     onAllowed={() => {
                                       setEmployeeToDelete({
-  user_id: emp.user_id,
-  document_id: doc.id,
-  document_type: doc.document_type,
-});
+                                        user_id: emp.user_id,
+                                        document_id: doc.id,
+                                        document_type: doc.document_type,
+                                        name: emp.name,
+                                      });
 
                                       setShowDeleteModal(true);
                                     }}
@@ -394,15 +415,7 @@ const closeDeleteModal = () => {
                   </tbody>
                 </table>
               </div>
-{showDeleteModal && (
-  <DeleteConfirmModal
-    title="Delete Employee"
-    message={`Are you sure you want to delete "${employeeToDelete?.name}"?`}
-    loading={deleting}
-    onConfirm={confirmDelete}
-    onClose={closeDeleteModal}
-  />
-)}
+            
 
               <div className="table-footer">
                 <div id="tableInfo">
@@ -446,6 +459,15 @@ const closeDeleteModal = () => {
             </>
           )}
         </div>
+          {showDeleteModal && (
+                <DeleteConfirmModal
+                  title="Delete Document"
+                  message={`Are you sure you want to delete "${employeeToDelete?.document_type}" for ${employeeToDelete?.name}?`}
+                  loading={deleting}
+                  onConfirm={confirmDelete}
+                  onClose={closeDeleteModal}
+                />
+              )}
       </main>
     </div>
   );

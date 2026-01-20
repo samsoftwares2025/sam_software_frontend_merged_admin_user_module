@@ -53,6 +53,8 @@ import UpdateComplianceTicketDetails from "./pages/admin/UpdateComplianceTicketD
 import AddTicketTypePage from "./pages/admin/AddTicketTypePage";
 import TicketTypesPage from "./pages/admin/TicketTypesPage";
 import UpdateTicketTypePage from "./pages/admin/UpdateTicketTypePage";
+import AddTicketAdminPage from "./pages/admin/AddTicketAdminPage";
+import SupportAdminMyTicketsPage from "./pages/admin/SupportAdminMyTicketsPage";
 
 // USER MODULES 
 import Dashboard from "./pages/user/Dashboard";
@@ -424,7 +426,22 @@ console.log("API:", import.meta.env.VITE_API_BASE_URL);
               </ProtectedRoute>
             }
           />
-
+              <Route
+            path="/admin/add-support-ticket"
+            element={
+              <ProtectedRoute noPermissionCheck>
+                <AddTicketAdminPage />
+              </ProtectedRoute>
+            }
+          />
+         <Route
+            path="/admin/list-support-ticket"
+            element={
+              <ProtectedRoute noPermissionCheck>
+                <SupportAdminMyTicketsPage />
+              </ProtectedRoute>
+            }
+          />
           {/* USER MODULE */}
           <Route
             path="/user/dashboard"

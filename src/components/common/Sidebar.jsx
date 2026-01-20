@@ -10,7 +10,9 @@ const NoPermissionModal = ({ onClose }) => (
     <div className="modal-card">
       <h3>No Permission</h3>
       <p>You do not have permission to access this module.</p>
-      <button className="btn btn-primary" onClick={onClose}>OK</button>
+      <button className="btn btn-primary" onClick={onClose}>
+        OK
+      </button>
     </div>
   </div>
 );
@@ -36,7 +38,11 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   const companyLogo = localStorage.getItem("companyLogo");
   const userRole = localStorage.getItem("user_role");
 
-  const initials = userName.split(" ").map((n) => n[0]).join("").toUpperCase();
+  const initials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 
   /* ================= HELPERS ================= */
   const isActive = (path) => location.pathname === path;
@@ -56,44 +62,44 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
 
   /* ================= PROTECTED LINK ================= */
   const ProtectedLink = ({ required, to, children }) => {
-  const cleanModule = required.trim().toLowerCase();
+    const cleanModule = required.trim().toLowerCase();
 
-  const handleClick = async (e) => {
-    e.preventDefault();       // ❗ STOP navigation
-    e.stopPropagation();      // ❗ STOP bubbling
+    const handleClick = async (e) => {
+      e.preventDefault(); // ❗ STOP navigation
+      e.stopPropagation(); // ❗ STOP bubbling
 
-    // client admin → always allowed
-    if (isClientAdmin) {
-      navigate(to);
-      handleLinkClick();
-      return;
-    }
+      // client admin → always allowed
+      if (isClientAdmin) {
+        navigate(to);
+        handleLinkClick();
+        return;
+      }
 
-    // Refresh permissions
-    const newPermissions = await refreshUserPermissions();
+      // Refresh permissions
+      const newPermissions = await refreshUserPermissions();
 
-    if (newPermissions) {
-      localStorage.setItem("permissions", JSON.stringify(newPermissions));
-      setLoginData();
-    }
+      if (newPermissions) {
+        localStorage.setItem("permissions", JSON.stringify(newPermissions));
+        setLoginData();
+      }
 
-    const hasAccess = newPermissions?.[cleanModule]?.view === true;
+      const hasAccess = newPermissions?.[cleanModule]?.view === true;
 
-    if (hasAccess) {
-      navigate(to);           // ✔ Now allow
-      handleLinkClick();
-    } else {
-      setShowNoPermission(true); // ❌ show modal
-      // IMPORTANT: DO NOT NAVIGATE
-    }
+      if (hasAccess) {
+        navigate(to); // ✔ Now allow
+        handleLinkClick();
+      } else {
+        setShowNoPermission(true); // ❌ show modal
+        // IMPORTANT: DO NOT NAVIGATE
+      }
+    };
+
+    return (
+      <a href={to} className="submenu-link" onClick={handleClick}>
+        {children}
+      </a>
+    );
   };
-
-  return (
-    <a href={to} className="submenu-link" onClick={handleClick}>
-      {children}
-    </a>
-  );
-};
 
   /* ================= FILTER MODULES ================= */
   const filterAllowed = (items) => {
@@ -102,47 +108,92 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   };
 
   const employeeModules = filterAllowed([
-    { permission: "employee", label: "Master Data", to: "/admin/employee-master" },
-    { permission: "employee", label: "History", to: "/admin/employment-history" },
-    { permission: "employee", label: "Documents", to: "/admin/employee-documents" },
+    {
+      permission: "employee",
+      label: "Master Data",
+      to: "/admin/employee-master",
+    },
+    {
+      permission: "employee",
+      label: "History",
+      to: "/admin/employment-history",
+    },
+    {
+      permission: "employee",
+      label: "Documents",
+      to: "/admin/employee-documents",
+    },
   ]);
 
   const organizationModules = filterAllowed([
-    { permission: "department", label: "Departments", to: "/admin/departments" },
-    { permission: "designation", label: "Designations", to: "/admin/designations" },
-    { permission: "employment type", label: "Employment Type", to: "/admin/employment-type" },
-    { permission: "roles & permissions", label: "Roles & Permissions", to: "/admin/roles-permissions" },
+    {
+      permission: "department",
+      label: "Departments",
+      to: "/admin/departments",
+    },
+    {
+      permission: "designation",
+      label: "Designations",
+      to: "/admin/designations",
+    },
+    {
+      permission: "employment type",
+      label: "Employment Type",
+      to: "/admin/employment-type",
+    },
+    {
+      permission: "roles & permissions",
+      label: "Roles & Permissions",
+      to: "/admin/roles-permissions",
+    },
     { permission: "policies", label: "Policies", to: "/admin/policies" },
-    { permission: "company rules", label: "Company Rules", to: "/admin/company-rules" },
+    {
+      permission: "company rules",
+      label: "Company Rules",
+      to: "/admin/company-rules",
+    },
   ]);
 
   const ticketModules = filterAllowed([
     { permission: "ticket type", label: "Types", to: "/admin/ticket-types" },
-    { permission: "supporting tickets", label: "Compliance Documentation", to: "/admin/compliance-documentation" },
+    {
+      permission: "supporting tickets",
+      label: "Compliance Documentation",
+      to: "/admin/compliance-documentation",
+    },
   ]);
 
   return (
-    <aside className={`sidebar ${isMobileOpen ? "mobile-open mobile-visible" : ""}`} id="sidebar">
-      
+    <aside
+      className={`sidebar ${isMobileOpen ? "mobile-open mobile-visible" : ""}`}
+      id="sidebar"
+    >
       {/* ================= LOGO ================= */}
       <div className="logo-container">
         <a className="logo">
           <div className="logo-icon">
             {companyLogo ? (
-              <img src={companyLogo} alt={companyName} style={{ width: 36, height: 36, objectFit: "contain" }} />
-            ) : initials}
+              <img
+                src={companyLogo}
+                alt={companyName}
+                style={{ width: 36, height: 36, objectFit: "contain" }}
+              />
+            ) : (
+              initials
+            )}
           </div>
           <div className="logo-text">{companyName}</div>
         </a>
       </div>
 
       <ul className="nav-menu">
-
         {/* ================= DASHBOARD ================= */}
         <li className="nav-item">
           {isClientAdmin ? (
             <a href="/admin/dashboard" className="nav-link">
-              <span className="nav-icon"><i className="fa-solid fa-chart-line" /></span>
+              <span className="nav-icon">
+                <i className="fa-solid fa-chart-line" />
+              </span>
               Dashboard
             </a>
           ) : (
@@ -151,7 +202,9 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
               className={`nav-link ${isActive("/user/dashboard") ? "active" : ""}`}
               onClick={handleLinkClick}
             >
-              <span className="nav-icon"><i className="fa-solid fa-chart-line" /></span>
+              <span className="nav-icon">
+                <i className="fa-solid fa-chart-line" />
+              </span>
               Dashboard
             </Link>
           )}
@@ -165,7 +218,9 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
               aria-expanded={openSection === "employees"}
               onClick={() => handleSectionToggle("employees")}
             >
-              <span className="nav-icon"><i className="fa-solid fa-users" /></span>
+              <span className="nav-icon">
+                <i className="fa-solid fa-users" />
+              </span>
               <span className="nav-text">Employees</span>
               <span className="nav-caret">▸</span>
             </button>
@@ -190,7 +245,9 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
               aria-expanded={openSection === "organization"}
               onClick={() => handleSectionToggle("organization")}
             >
-              <span className="nav-icon"><i className="fa-solid fa-building" /></span>
+              <span className="nav-icon">
+                <i className="fa-solid fa-building" />
+              </span>
               <span className="nav-text">Organization</span>
               <span className="nav-caret">▸</span>
             </button>
@@ -215,7 +272,9 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
               aria-expanded={openSection === "tickets"}
               onClick={() => handleSectionToggle("tickets")}
             >
-              <span className="nav-icon"><i className="fa-solid fa-ticket" /></span>
+              <span className="nav-icon">
+                <i className="fa-solid fa-ticket" />
+              </span>
               <span className="nav-text">Supporting Tickets</span>
               <span className="nav-caret">▸</span>
             </button>
@@ -239,7 +298,9 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
             aria-expanded={openSection === "profile"}
             onClick={() => handleSectionToggle("profile")}
           >
-            <span className="nav-icon"><i className="fa-solid fa-user" /></span>
+            <span className="nav-icon">
+              <i className="fa-solid fa-user" />
+            </span>
             <span className="nav-text">My Profile</span>
             <span className="nav-caret">▸</span>
           </button>
@@ -286,6 +347,47 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
             </li>
           </ul>
         </li>
+        {isClientAdmin && (
+          <li className={navHasSubmenu("support")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "support"}
+              onClick={() => handleSectionToggle("support")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-circle-question" />
+              </span>
+              <span className="nav-text">Help & Support</span>
+              <span className="nav-caret">▸</span>
+            </button>
+
+            <ul className="submenu" aria-hidden={submenuHidden("support")}>
+              <li>
+                <Link
+                  to="/admin/add-support-ticket"
+                  className={`submenu-link ${
+                    isActive("/admin/add-support-ticket") ? "active" : ""
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  Create Support Ticket
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/admin/list-support-ticket"
+                  className={`submenu-link ${
+                    isActive("/admin/list-support-ticket") ? "active" : ""
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  My Support Tickets
+                </Link>
+              </li>
+            </ul>
+          </li>
+        )}
 
         {/* ================= LOGOUT ================= */}
         <button
@@ -310,18 +412,26 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
       {/* ================= BOTTOM PROFILE ================= */}
       <div
         className="user-profile"
-        onClick={() => navigate(isClientAdmin ? "/admin/my-profile" : "/user/myprofile")}
+        onClick={() =>
+          navigate(isClientAdmin ? "/admin/my-profile" : "/user/myprofile")
+        }
         style={{ cursor: "pointer" }}
       >
         <div className="user-avatar">
           {userImage ? (
-            <img src={userImage} alt={userName} style={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              objectFit: "cover",
-            }} />
-          ) : initials}
+            <img
+              src={userImage}
+              alt={userName}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            initials
+          )}
         </div>
 
         <div className="user-info">
