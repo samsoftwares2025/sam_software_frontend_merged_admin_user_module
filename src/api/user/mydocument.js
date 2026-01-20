@@ -13,10 +13,7 @@ export const getMyDocuments = async () => {
     localStorage.getItem("token") ||
     localStorage.getItem("access_token");
 
-  console.log("[DOCUMENT STORAGE CHECK]", {
-    userId,
-    token,
-  });
+ 
 
   if (!userId || !token) {
     throw new Error("Session expired. Please login again.");
@@ -28,7 +25,6 @@ export const getMyDocuments = async () => {
     id: userId,
   };
 
-  console.log("[getMyDocuments] PAYLOAD:", payload);
 
   const { data } = await http.post(
     "/hr/get-employee/",

@@ -241,7 +241,6 @@ export const getMyProfile = async () => {
     id: userId,
   };
 
-  console.log("[getMyProfile] PAYLOAD:", payload);
 
   const { data } = await http.post(
     "/users/user-get-profile/",

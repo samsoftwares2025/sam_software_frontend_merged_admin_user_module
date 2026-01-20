@@ -106,7 +106,6 @@ export const refreshUserPermissions = async () => {
 
     return newPermissions;
   } catch (err) {
-    console.error("Permission refresh failed:", err);
     return null;
   }
 };
@@ -124,7 +123,6 @@ export const logoutUser = async () => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
   } catch (err) {
-    console.error("Logout API error:", err);
   } finally {
 
     localStorage.removeItem("accessToken");
