@@ -61,11 +61,7 @@ const PersonalEmploymentHistoryPage = () => {
         setEmployee(emp);
 
         const events = res.users_data.map((item) => ({
-          date:
-            item.confirmation_date ||
-            item.last_working_date ||
-            item.joining_date ||
-            null,
+          date: item.updated_at || null,
           item,
         }));
 
@@ -103,11 +99,15 @@ const PersonalEmploymentHistoryPage = () => {
      HELPERS
   ===================== */
   const getTenure = () => {
-    if (!employee?.joining_date) return "—";
+    if (!employee?.joining_date) return "0 days";
 
     const join = new Date(employee.joining_date);
     const today = new Date();
-    const days = Math.floor((today - join) / (1000 * 60 * 60 * 24));
+
+    let days = Math.floor((today - join) / (1000 * 60 * 60 * 24));
+
+    // ✅ Prevent negative tenure
+    if (days < 0) days = 0;
 
     const years = Math.floor(days / 365);
     const months = Math.floor((days % 365) / 30);
@@ -260,7 +260,7 @@ const PersonalEmploymentHistoryPage = () => {
                   {" "}
                   {employee?.joining_date
                     ? new Date(employee?.joining_date).toLocaleDateString(
-                        "en-GB"
+                        "en-GB",
                       )
                     : "-"}{" "}
                 </span>
@@ -289,69 +289,76 @@ const PersonalEmploymentHistoryPage = () => {
         )}
 
         {/* ===== HISTORY ===== */}
-       <section className="history-section">
-  <h3 className="section-title">Employment History</h3>
+        <section className="history-section">
+          <h3 className="section-title">Employment History</h3>
 
-  {filteredHistory.length === 0 ? (
-    <p className="small">No history available.</p>
-  ) : (
-    <div className="timeline-clean">
-      {filteredHistory.map(({ date, item }, index) => (
-        <div className="history-card" key={index}>
-          
-          {/* LEFT TIMELINE BAR */}
-          <div className="timeline-line"></div>
+          {filteredHistory.length === 0 ? (
+            <p className="small">No history available.</p>
+          ) : (
+            <div className="timeline-clean">
+              {filteredHistory.map(({ date, item }, index) => (
+                <div className="history-card" key={index}>
+                  {/* LEFT TIMELINE BAR */}
+                  <div className="timeline-line"></div>
 
-          {/* CARD CONTENT */}
-          <div className="history-content">
+                  {/* CARD CONTENT */}
+                  <div className="history-content">
+                    {/* Top Row: Order + Date */}
+                    <div className="history-header">
+                      <span className="history-order">#{index + 1}</span>
+                      <span className="history-date">
+                        {date
+                          ? new Date(date).toLocaleDateString("en-GB")
+                          : "—"}
+                      </span>
+                    </div>
 
-            {/* Top Row: Order + Date */}
-            <div className="history-header">
-              <span className="history-order">#{index + 1}</span>
-              <span className="history-date">
-                {date ? new Date(date).toLocaleDateString("en-GB") : "—"}
-              </span>
+                    {/* Position / Dept */}
+                    <div className="history-title">
+                      <span className="title-designation">
+                        {item.designation || "—"}
+                      </span>
+                      <span className="title-department">
+                        ({item.department || "—"})
+                      </span>
+                    </div>
+
+                    {/* Meta Row */}
+                    <div className="history-meta">
+                      {item.employment_type && (
+                        <div>
+                          <strong>Type:</strong> {item.employment_type}
+                        </div>
+                      )}
+                      {item.work_location && (
+                        <div>
+                          <strong>Location:</strong> {item.work_location}
+                        </div>
+                      )}
+                      {item.user_role && (
+                        <div>
+                          <strong>Role:</strong> {item.user_role}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Salary Info */}
+                    <div className="history-salary">
+                      {item.annual_ctc && <span>CTC: ₹{item.annual_ctc}</span>}
+                      {item.basic_salary && (
+                        <span>Basic: ₹{item.basic_salary}</span>
+                      )}
+                      {item.variable_pay && (
+                        <span>Variable: ₹{item.variable_pay}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Position / Dept */}
-            <div className="history-title">
-              <span className="title-designation">
-                {item.designation || "—"}
-              </span>
-              <span className="title-department">
-                ({item.department || "—"})
-              </span>
-            </div>
-
-            {/* Meta Row */}
-            <div className="history-meta">
-              {item.employment_type && (
-                <div><strong>Type:</strong> {item.employment_type}</div>
-              )}
-              {item.work_location && (
-                <div><strong>Location:</strong> {item.work_location}</div>
-              )}
-              {item.user_role && (
-                <div><strong>Role:</strong> {item.user_role}</div>
-              )}
-            </div>
-
-            {/* Salary Info */}
-            <div className="history-salary">
-              {item.annual_ctc && <span>CTC: ₹{item.annual_ctc}</span>}
-              {item.basic_salary && <span>Basic: ₹{item.basic_salary}</span>}
-              {item.variable_pay && <span>Variable: ₹{item.variable_pay}</span>}
-            </div>
-
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</section>
-
+          )}
+        </section>
       </main>
-     
     </div>
   );
 };

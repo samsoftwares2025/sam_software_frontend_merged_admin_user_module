@@ -178,10 +178,10 @@ const LoginPage = () => {
             </div>
 
             <div className="options">
-              <label className="remember-me">
+              {/* <label className="remember-me">
                 <input type="checkbox" />
                 <span>Keep me signed in</span>
-              </label>
+              </label> */}
 
               <a
                 href="/admin/forget-password"
