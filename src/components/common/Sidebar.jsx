@@ -65,17 +65,15 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
     const cleanModule = required.trim().toLowerCase();
 
     const handleClick = async (e) => {
-      e.preventDefault(); // ❗ STOP navigation
-      e.stopPropagation(); // ❗ STOP bubbling
+      e.preventDefault();
+      e.stopPropagation();
 
-      // client admin → always allowed
       if (isClientAdmin) {
         navigate(to);
         handleLinkClick();
         return;
       }
 
-      // Refresh permissions
       const newPermissions = await refreshUserPermissions();
 
       if (newPermissions) {
@@ -86,16 +84,19 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
       const hasAccess = newPermissions?.[cleanModule]?.view === true;
 
       if (hasAccess) {
-        navigate(to); // ✔ Now allow
+        navigate(to);
         handleLinkClick();
       } else {
-        setShowNoPermission(true); // ❌ show modal
-        // IMPORTANT: DO NOT NAVIGATE
+        setShowNoPermission(true);
       }
     };
 
     return (
-      <a href={to} className="submenu-link" onClick={handleClick}>
+      <a
+        href={to}
+        className={`submenu-link ${location.pathname === to ? "active" : ""}`}
+        onClick={handleClick}
+      >
         {children}
       </a>
     );
@@ -108,50 +109,18 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   };
 
   const employeeModules = filterAllowed([
-    {
-      permission: "employee",
-      label: "Master Data",
-      to: "/admin/employee-master",
-    },
-    {
-      permission: "employee",
-      label: "History",
-      to: "/admin/employment-history",
-    },
-    {
-      permission: "employee",
-      label: "Documents",
-      to: "/admin/employee-documents",
-    },
+    { permission: "employee", label: "Master Data", to: "/admin/employee-master" },
+    { permission: "employee", label: "History", to: "/admin/employment-history" },
+    { permission: "employee", label: "Documents", to: "/admin/employee-documents" },
   ]);
 
   const organizationModules = filterAllowed([
-    {
-      permission: "department",
-      label: "Departments",
-      to: "/admin/departments",
-    },
-    {
-      permission: "designation",
-      label: "Designations",
-      to: "/admin/designations",
-    },
-    {
-      permission: "employment type",
-      label: "Employment Type",
-      to: "/admin/employment-type",
-    },
-    {
-      permission: "roles & permissions",
-      label: "Roles & Permissions",
-      to: "/admin/roles-permissions",
-    },
+    { permission: "department", label: "Departments", to: "/admin/departments" },
+    { permission: "designation", label: "Designations", to: "/admin/designations" },
+    { permission: "employment type", label: "Employment Type", to: "/admin/employment-type" },
+    { permission: "roles & permissions", label: "Roles & Permissions", to: "/admin/roles-permissions" },
     { permission: "policies", label: "Policies", to: "/admin/policies" },
-    {
-      permission: "company rules",
-      label: "Company Rules",
-      to: "/admin/company-rules",
-    },
+    { permission: "company rules", label: "Company Rules", to: "/admin/company-rules" },
   ]);
 
   const ticketModules = filterAllowed([
@@ -164,7 +133,7 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   ]);
 
   return (
-    <aside
+   <aside
       className={`sidebar ${isMobileOpen ? "mobile-open mobile-visible" : ""}`}
       id="sidebar"
     >
