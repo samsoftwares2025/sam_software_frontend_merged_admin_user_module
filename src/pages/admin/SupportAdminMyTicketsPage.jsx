@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
-import "../../assets/styles/user.css";
+import "../../assets/styles/admin.css";
 import {
   listSuperAdminTickets,
   filterSuperAdminTickets,
