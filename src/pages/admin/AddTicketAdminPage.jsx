@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 
@@ -26,7 +27,10 @@ const SuccessModal = ({ title, message, onClose }) => (
   </div>
 );
 
-const AddTicketAdminPage = ({ sidebarOpen, onToggleSidebar }) => {
+const AddTicketAdminPage = () => {
+  /* ===== SIDEBAR STATE ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [attachment, setAttachment] = useState(null);
@@ -52,16 +56,13 @@ const AddTicketAdminPage = ({ sidebarOpen, onToggleSidebar }) => {
 
     getSuperAdminTicketTypes()
       .then((res) => {
-        console.log("SuperAdmin Ticket Types:", res);
-
         if (res.success) {
           setTicketTypes(res.types || []);
         } else {
           setMessage(res.message || "Failed to load ticket types");
         }
       })
-      .catch((err) => {
-        console.error("TYPE LOAD ERROR:", err);
+      .catch(() => {
         setMessage("Failed to load ticket types");
       });
   }, []);
@@ -92,8 +93,6 @@ const AddTicketAdminPage = ({ sidebarOpen, onToggleSidebar }) => {
 
     addSuperAdminTicket(formData)
       .then((res) => {
-        console.log("ADD TICKET RESPONSE:", res);
-
         if (res.success) {
           setShowSuccessModal(true);
 
@@ -105,35 +104,26 @@ const AddTicketAdminPage = ({ sidebarOpen, onToggleSidebar }) => {
           setMessage(res.message || "Failed to create ticket");
         }
       })
-      .catch((err) => {
-        console.error("ADD TICKET ERROR:", err);
+      .catch(() => {
         setMessage("Something went wrong");
       })
       .finally(() => setLoading(false));
   };
 
   return (
-    <>
-      {/* ================= SUCCESS MODAL ================= */}
-      {showSuccessModal && (
-        <SuccessModal
-          title="Ticket Created Successfully"
-          message="Your super admin ticket has been submitted."
-          onClose={() => navigate("/user/superadmin/support")}
-        />
-      )}
+    <div className="container">
+      {/* ===== SIDEBAR ===== */}
+      <Sidebar
+        sidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(false)}
+      />
 
-      {/* Overlay */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={onToggleSidebar}
-          aria-hidden="true"
-        />
-      )}
-
+      {/* ===== MAIN ===== */}
       <main className="main add-ticket-page">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} />
+        <Header
+          sidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
+        />
 
         <section className="card">
           <h3 className="info-title">Add Super Admin Support Ticket</h3>
@@ -187,8 +177,8 @@ const AddTicketAdminPage = ({ sidebarOpen, onToggleSidebar }) => {
               </label>
               <input
                 type="file"
-                onChange={(e) => setAttachment(e.target.files[0])}
                 accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                onChange={(e) => setAttachment(e.target.files[0])}
               />
             </div>
 
@@ -214,7 +204,24 @@ const AddTicketAdminPage = ({ sidebarOpen, onToggleSidebar }) => {
           </form>
         </section>
       </main>
-    </>
+
+      {/* ===== SIDEBAR OVERLAY ===== */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* ================= SUCCESS MODAL ================= */}
+      {showSuccessModal && (
+        <SuccessModal
+          title="Ticket Created Successfully"
+          message="Your super admin ticket has been submitted."
+          onClose={() => navigate("/user/superadmin/support")}
+        />
+      )}
+    </div>
   );
 };
 

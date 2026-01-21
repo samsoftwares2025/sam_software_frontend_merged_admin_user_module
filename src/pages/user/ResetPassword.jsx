@@ -33,6 +33,9 @@ const ResetPassword = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -96,56 +99,116 @@ const ResetPassword = () => {
           {message && <p className="small error-text">{message}</p>}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Current Password</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </div>
+           <div className="form-group" style={{ position: "relative" }}>
+  <label>Current Password</label>
+   <div className="password-wrapper">
+  <input
+    type={showCurrentPassword ? "text" : "password"}
+    value={currentPassword}
+    onChange={(e) => setCurrentPassword(e.target.value)}
+    required
+    style={{ paddingRight: "60px" }}
+  />
+  <button
+    type="button"
+    onClick={() => setShowCurrentPassword((prev) => !prev)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontSize: "12px",
+      color: "var(--accent)",
+    }}
+  >
+    {showCurrentPassword ? "Hide" : "Show"}
+  </button>
+</div>
+</div>
 
-            <div className="form-group">
-              <label>New Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+<div className="form-group" style={{ position: "relative" }}>
+  <label>New Password</label>
+   <div className="password-wrapper">
+  <input
+    type={showPassword ? "text" : "password"}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+    style={{ paddingRight: "60px" }}
+  />
+  <button
+    type="button"
+    onClick={() => setShowPassword((prev) => !prev)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontSize: "12px",
+      color: "var(--accent)",
+    }}
+  >
+    {showPassword ? "Hide" : "Show"}
+  </button>
+</div>
+</div>
 
-            <div className="form-group">
-              <label>Confirm Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
-                required
-              />
-            </div>
+<div className="form-group" style={{ position: "relative" }}>
+  <label>Confirm Password</label>
+   <div className="password-wrapper">
+  <input
+    type={showConfirmPassword ? "text" : "password"}
+    value={confirmPassword}
+    onChange={(e) => setConfirmPassword(e.target.value)}
+    required
+    style={{ paddingRight: "60px" }}
+  />
+  <button
+    type="button"
+    onClick={() => setShowConfirmPassword((prev) => !prev)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontSize: "12px",
+      color: "var(--accent)",
+    }}
+  >
+    {showConfirmPassword ? "Hide" : "Show"}
+  </button>
+</div>
+</div>
 
-            <div className="form-actions">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? "Updating..." : "Reset Password"}
-              </button>
+<div className="form-actions">
+  <button
+    type="submit"
+    className="btn btn-primary"
+    disabled={loading}
+  >
+    {loading ? "Updating..." : "Reset Password"}
+  </button>
 
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => navigate("/profile")}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-            </div>
+  <button
+    type="button"
+    className="btn btn-secondary"
+    onClick={() => navigate("/profile")}
+    disabled={loading}
+  >
+    Cancel
+  </button>
+</div>
+
+
           </form>
         </section>
       </main>

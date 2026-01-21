@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/user.css";
 import {
@@ -35,7 +36,9 @@ const SuccessModal = ({ title, message, onClose }) => (
       </div>
       <h2>{title}</h2>
       <p>{message}</p>
-      <button className="btn btn-primary" onClick={onClose}>OK</button>
+      <button className="btn btn-primary" onClick={onClose}>
+        OK
+      </button>
     </div>
   </div>
 );
@@ -50,15 +53,22 @@ const ConfirmModal = ({ title, message, onConfirm, onClose }) => (
       <h2>{title}</h2>
       <p>{message}</p>
       <div className="modal-actions">
-        <button className="btn btn-secondary" onClick={onClose}>Close</button>
-        <button className="btn btn-danger" onClick={onConfirm}>Yes, Cancel</button>
+        <button className="btn btn-secondary" onClick={onClose}>
+          Close
+        </button>
+        <button className="btn btn-danger" onClick={onConfirm}>
+          Yes, Cancel
+        </button>
       </div>
     </div>
   </div>
 );
 
-const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
+const SupportAdminMyTicketsPage = () => {
   const navigate = useNavigate();
+
+  /* ===== SIDEBAR STATE ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [tickets, setTickets] = useState([]);
   const [ticketTypeList, setTicketTypeList] = useState([]);
@@ -91,7 +101,9 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
         list.push({ id: t.ticket_type_id, title: t.ticket_type });
       }
     });
-    const unique = list.filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
+    const unique = list.filter(
+      (v, i, a) => a.findIndex((t) => t.id === v.id) === i
+    );
     setTicketTypeList(unique);
   };
 
@@ -185,20 +197,35 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
   const end = Math.min(currentPage * pageSize, totalRecords);
 
   return (
-    <>
-      {sidebarOpen && <div className="sidebar-overlay show" onClick={onToggleSidebar} />}
+    <div className="container">
+      {/* ===== SIDEBAR ===== */}
+      <Sidebar
+        sidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(false)}
+      />
 
+      {/* ===== MAIN ===== */}
       <main className="main">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={onToggleSidebar} />
+        <Header
+          sidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
+        />
 
         <section className="card history-card">
           <div className="doc-header">
             <div>
               <h3 className="info-title">Super Admin Support Tickets</h3>
-              <p className="doc-subtitle">Manage & review all raised tickets.</p>
+              <p className="doc-subtitle">
+                Manage & review all raised tickets.
+              </p>
             </div>
 
-            <button className="btn btn-primary" onClick={() => navigate("/user/superadmin/support/add")}>
+            <button
+              className="btn btn-primary"
+              onClick={() =>
+                navigate("/user/superadmin/support/add")
+              }
+            >
               + Add Ticket
             </button>
           </div>
@@ -238,7 +265,9 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
             >
               <option value="">All Ticket Types</option>
               {ticketTypeList.map((t) => (
-                <option key={t.id} value={t.id}>{t.title}</option>
+                <option key={t.id} value={t.id}>
+                  {t.title}
+                </option>
               ))}
             </select>
 
@@ -252,7 +281,7 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
             <table className="history-table">
               <thead>
                 <tr>
-                  <th>Order No</th>
+                  <th>#</th>
                   <th>Tracking ID</th>
                   <th>Ticket Type</th>
                   <th>Date</th>
@@ -265,60 +294,66 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
 
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="8" style={{ textAlign: "center" }}>Loading…</td></tr>
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: "center" }}>
+                      Loading…
+                    </td>
+                  </tr>
                 ) : tickets.length === 0 ? (
-                  <tr><td colSpan="8" style={{ textAlign: "center" }}>No tickets found</td></tr>
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: "center" }}>
+                      No tickets found
+                    </td>
+                  </tr>
                 ) : (
-                  tickets.map((ticket, index) => {
-                    const displayType = ticket.ticket_type || "—";
-
-                    return (
-                      <tr key={ticket.id}>
-                        <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                        <td>{ticket.tracking_id || "—"}</td>
-                        <td>{displayType}</td>
-                        <td>
-                          {ticket.created_at
-                            ? new Date(ticket.created_at).toLocaleDateString()
-                            : "—"}
-                        </td>
-                        <td>{ticket.subject}</td>
-                        <td>{ticket.content}</td>
-
-                        <td>
-                          <span className={`status-badge status-${formatStatus(ticket.status)
+                  tickets.map((ticket, index) => (
+                    <tr key={ticket.id}>
+                      <td>{(currentPage - 1) * pageSize + index + 1}</td>
+                      <td>{ticket.tracking_id || "—"}</td>
+                      <td>{ticket.ticket_type || "—"}</td>
+                      <td>
+                        {ticket.created_at
+                          ? new Date(ticket.created_at).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td>{ticket.subject}</td>
+                      <td>{ticket.content}</td>
+                      <td>
+                        <span
+                          className={`status-badge status-${formatStatus(
+                            ticket.status
+                          )
                             .toLowerCase()
-                            .replace(" ", "-")}`}>
+                            .replace(" ", "-")}`}
+                        >
+                          {formatStatus(ticket.status)}
+                        </span>
+                      </td>
+                      <td>
+                        {formatStatus(ticket.status) === "Pending" ? (
+                          <button
+                            className="btn-cancel-red"
+                            onClick={() => {
+                              setSelectedTicketId(ticket.id);
+                              setShowConfirmModal(true);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        ) : (
+                          <button className="btn btn-secondary btn-sm" disabled>
                             {formatStatus(ticket.status)}
-                          </span>
-                        </td>
-
-                        <td>
-                          {formatStatus(ticket.status) === "Pending" ? (
-                            <button
-                              className="btn-cancel-red"
-                              onClick={() => {
-                                setSelectedTicketId(ticket.id);
-                                setShowConfirmModal(true);
-                              }}
-                            >
-                              Cancel
-                            </button>
-                          ) : (
-                            <button className="btn btn-secondary btn-sm" disabled>
-                              {formatStatus(ticket.status)}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* ================= PAGINATION FOOTER (ADDED) ================= */}
+          {/* ================= PAGINATION ================= */}
           <div className="table-footer">
             <div id="tableInfo">
               Showing {start} to {end} of {totalRecords} tickets
@@ -342,10 +377,18 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
               </button>
             </div>
           </div>
-
         </section>
       </main>
 
+      {/* ===== SIDEBAR OVERLAY ===== */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* ===== MODALS ===== */}
       {showConfirmModal && (
         <ConfirmModal
           title="Cancel Ticket"
@@ -362,7 +405,7 @@ const SupportAdminMyTicketsPage = ({ sidebarOpen, onToggleSidebar }) => {
           onClose={() => setShowSuccessModal(false)}
         />
       )}
-    </>
+    </div>
   );
 };
 

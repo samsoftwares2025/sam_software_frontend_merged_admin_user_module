@@ -8,6 +8,7 @@ import {
   filterMyTickets,
   getMyTickets,
 } from "../../api/user/supportTickets";
+import { getAssignedTickets } from "../../api/user/supportTickets";
 
 /* ================= STATUS → DB MAP ================= */
 const STATUS_TO_DB = {
@@ -168,6 +169,26 @@ const MyTickets = () => {
   const end = Math.min(currentPage * pageSize, totalRecords);
 
   if (error) return <main className="main">{error}</main>;
+
+
+useEffect(() => {
+  checkAssignedTickets();
+}, []);
+
+
+  const checkAssignedTickets = async () => {
+  try {
+    const res = await getAssignedTickets(1, 1); // only need 1 record
+    if (res?.success && res?.pagination?.total_records > 0) {
+      setHasAssignedTickets(true);
+    } else {
+      setHasAssignedTickets(false);
+    }
+  } catch {
+    setHasAssignedTickets(false);
+  }
+};
+
 
   return (
     <div className="container">

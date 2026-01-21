@@ -479,7 +479,7 @@ export default function EmploymentSection({
 
           <div style={{ display: "flex", gap: 8 }}>
             <select
-              className="form-select select-ellipsis"
+               className="form-select"
               value={selectedDepartment}
               onChange={handleDepartmentChange}
               required
@@ -544,7 +544,7 @@ export default function EmploymentSection({
 
           <div style={{ display: "flex", gap: 8 }}>
             <select
-              className="form-select select-ellipsis"
+               className="form-select"
               value={selectedDesignation}
               onChange={handleDesignationChange}
               disabled={!selectedDepartment}
