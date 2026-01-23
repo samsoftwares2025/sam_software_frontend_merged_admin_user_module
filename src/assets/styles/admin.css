@@ -60,6 +60,7 @@ body {
 .container {
      display: flex;
   height: 100vh;      /* 🔑 fixed viewport height */
+  
 }
 
 aside.sidebar {
@@ -3451,4 +3452,34 @@ table.data-table th.wrap {
   background-color: #eef2ff;
   color: #4338ca;
   font-weight: 600;
+}
+
+
+
+
+
+
+/* ===== PASSWORD INPUT WITH SHOW/HIDE ===== */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper .form-input {
+  width: 100%;
+  padding-right: 70px; /* space for Show button */
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--accent);
+  padding: 0;
+  line-height: 1;
 }

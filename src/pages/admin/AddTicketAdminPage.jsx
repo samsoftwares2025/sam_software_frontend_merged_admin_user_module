@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
-import "../../assets/styles/user.css";
+import "../../assets/styles/admin.css";
 
 import {
   addSuperAdminTicket,
@@ -16,10 +17,8 @@ const SuccessModal = ({ title, message, onClose }) => (
       <div className="success-icon">
         <i className="fa-solid fa-circle-check" />
       </div>
-
       <h2>{title}</h2>
       <p>{message}</p>
-
       <button className="btn btn-primary" onClick={onClose}>
         Go to Tickets
       </button>
@@ -28,161 +27,153 @@ const SuccessModal = ({ title, message, onClose }) => (
 );
 
 const AddTicketAdminPage = () => {
-  /* ===== SIDEBAR STATE ===== */
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
+  /* ===== SIDEBAR STATE (FIXED) ===== */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [openSection, setOpenSection] = useState(null);
+  
+
+  const [ticketTypes, setTicketTypes] = useState([]);
+  const [ticketTypeId, setTicketTypeId] = useState("");
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [attachment, setAttachment] = useState(null);
-  const [ticketTypes, setTicketTypes] = useState([]);
-  const [ticketTypeId, setTicketTypeId] = useState("");
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const navigate = useNavigate();
-
   /* ================= LOAD TICKET TYPES ================= */
   useEffect(() => {
-    const userId =
-      localStorage.getItem("user_id") ||
-      localStorage.getItem("id") ||
-      localStorage.getItem("userId");
-
-    if (!userId) {
-      setMessage("User session missing. Please login again.");
-      return;
-    }
-
-    getSuperAdminTicketTypes()
-      .then((res) => {
-        if (res.success) {
-          setTicketTypes(res.types || []);
-        } else {
-          setMessage(res.message || "Failed to load ticket types");
-        }
-      })
-      .catch(() => {
+    const fetchTypes = async () => {
+      try {
+        const res = await getSuperAdminTicketTypes();
+        if (res?.success) setTicketTypes(res.types || []);
+        else setMessage(res?.message || "Failed to load ticket types");
+      } catch {
         setMessage("Failed to load ticket types");
-      });
+      }
+    };
+    fetchTypes();
   }, []);
 
   /* ================= SUBMIT ================= */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage("");
+
+    if (!ticketTypeId) return setMessage("Please select a ticket type");
+    if (!subject.trim() || !content.trim())
+      return setMessage("Subject and message are required");
 
     const userId =
       localStorage.getItem("user_id") ||
       localStorage.getItem("id") ||
       localStorage.getItem("userId");
 
-    if (!userId) {
-      setMessage("User session missing. Please login again.");
+    if (!userId) return setMessage("Session expired. Please login again.");
+
+    setLoading(true);
+    try {
+      const res = await addSuperAdminTicket({
+        user_id: userId,
+        ticket_type_id: ticketTypeId,
+        subject: subject.trim(),
+        content: content.trim(),
+        attachment,
+      });
+
+      if (res?.success) setShowSuccessModal(true);
+      else setMessage(res?.message || "Failed to create ticket");
+    } catch {
+      setMessage("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const formData = new FormData();
-    formData.append("user_id", userId);
-    formData.append("subject", subject);
-    formData.append("content", content);
-    formData.append("ticket_type_id", ticketTypeId);
-    if (attachment) formData.append("attachment", attachment);
-
-    addSuperAdminTicket(formData)
-      .then((res) => {
-        if (res.success) {
-          setShowSuccessModal(true);
-
-          setTimeout(() => {
-            setShowSuccessModal(false);
-            navigate("/user/superadmin/support");
-          }, 1500);
-        } else {
-          setMessage(res.message || "Failed to create ticket");
-        }
-      })
-      .catch(() => {
-        setMessage("Something went wrong");
-      })
-      .finally(() => setLoading(false));
   };
 
   return (
     <div className="container">
-      {/* ===== SIDEBAR ===== */}
-      <Sidebar
-        sidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(false)}
-      />
+      {/* ===== SIDEBAR (FIXED PROPS) ===== */}
+   
 
-      {/* ===== MAIN ===== */}
-      <main className="main add-ticket-page">
-        <Header
-          sidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
+           <Sidebar
+          isMobileOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          openSection={openSection}
+          setOpenSection={setOpenSection}
         />
 
-        <section className="card">
-          <h3 className="info-title">Add Super Admin Support Ticket</h3>
+        {/* ===== MAIN ===== */}
+        <main className="main">
+          {/* ===== HEADER (FIXED) ===== */}
+          <Header
+            onMenuClick={() => setIsSidebarOpen((p) => !p)}
+          />
 
+        {/* ===== PAGE HEADER ===== */}
+        <div className="page-header">
+          <div className="page-title">
+            <h3>Add Super Admin Support Ticket</h3>
+            <p>Raise a new support ticket for super admin</p>
+          </div>
+        </div>
+
+        {/* ===== FORM CONTAINER ===== */}
+        <div className="form-container">
           {message && <p className="small error-text">{message}</p>}
 
           <form onSubmit={handleSubmit} encType="multipart/form-data">
-            {/* ================= TICKET TYPE ================= */}
-            <div className="form-group">
-              <label>Ticket Type</label>
-              <select
-                value={ticketTypeId}
-                onChange={(e) => setTicketTypeId(e.target.value)}
-                required
-              >
-                <option value="">Select Ticket Type</option>
-                {ticketTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.title}
-                  </option>
-                ))}
-              </select>
+            <div className="form-grid">
+              <div className="form-group full-width">
+                <label className="form-label required">Ticket Type</label>
+                <select
+                  className="form-select"
+                  value={ticketTypeId}
+                  onChange={(e) => setTicketTypeId(e.target.value)}
+                >
+                  <option value="">Select Ticket Type</option>
+                  {ticketTypes.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group full-width">
+                <label className="form-label required">Subject</label>
+                <input
+                  className="form-input"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label className="form-label required">Message</label>
+                <textarea
+                  className="form-textarea"
+                  rows="5"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label className="form-label">
+                  Attachment <span className="small">(optional)</span>
+                </label>
+                <input
+                  className="form-input"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                  onChange={(e) => setAttachment(e.target.files[0])}
+                />
+              </div>
             </div>
 
-            {/* ================= SUBJECT ================= */}
-            <div className="form-group">
-              <label>Subject</label>
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* ================= MESSAGE ================= */}
-            <div className="form-group">
-              <label>Message</label>
-              <textarea
-                rows="5"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* ================= ATTACHMENT ================= */}
-            <div className="form-group">
-              <label>
-                Attachment <span className="small">(optional)</span>
-              </label>
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-                onChange={(e) => setAttachment(e.target.files[0])}
-              />
-            </div>
-
-            {/* ================= BUTTON ACTIONS ================= */}
             <div className="form-actions">
               <button
                 type="submit"
@@ -195,14 +186,14 @@ const AddTicketAdminPage = () => {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => navigate("/user/superadmin/support")}
+                onClick={() => navigate("/admin/list-support-ticket")}
                 disabled={loading}
               >
                 Cancel
               </button>
             </div>
           </form>
-        </section>
+        </div>
       </main>
 
       {/* ===== SIDEBAR OVERLAY ===== */}
@@ -213,12 +204,12 @@ const AddTicketAdminPage = () => {
         />
       )}
 
-      {/* ================= SUCCESS MODAL ================= */}
+      {/* ===== SUCCESS MODAL ===== */}
       {showSuccessModal && (
         <SuccessModal
           title="Ticket Created Successfully"
           message="Your super admin ticket has been submitted."
-          onClose={() => navigate("/user/superadmin/support")}
+          onClose={() => navigate("/admin/list-support-ticket")}
         />
       )}
     </div>

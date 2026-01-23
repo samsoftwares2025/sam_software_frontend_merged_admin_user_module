@@ -67,6 +67,8 @@ import Myhistory from "./pages/user/Myhistory";
 import ResetPassword from "./pages/user/ResetPassword";
 import MyTickets from "./pages/user/Supportpage";
 import AddTicket from "./pages/user/AddTicket";
+import AssignedTickets from "./pages/admin/Userassighnticket";
+
 
 import "./App.css";
 
@@ -478,6 +480,8 @@ function App() {
               <Route path="/profile/reset-password" element={<ResetPassword />} />
               <Route path="/user/support" element={<MyTickets />} />
               <Route path="/user/support/add" element={<AddTicket />} />
+              <Route path="/admin/support/assigned" element={<AssignedTickets />} />
+
 
             </Routes>
           </BrowserRouter>
