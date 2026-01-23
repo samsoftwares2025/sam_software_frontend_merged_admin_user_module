@@ -7,7 +7,7 @@ import Header from "../../components/common/Header";
 import UpdateEmployeDocumentForm from "../../components/admin/employee/UpdateEmployeDocumentForm";
 
 import "../../assets/styles/admin.css";
-import { getEmployeeById, updateEmployee } from "../../api/admin/employees";
+import { getEmployeeById, updateEmployeeDoc } from "../../api/admin/employees";
 
 function UpdateEmployeeDocumentsPage() {
   const { id } = useParams();
@@ -65,10 +65,10 @@ function UpdateEmployeeDocumentsPage() {
       }
 
       // REQUIRED BY BACKEND
-      formData.append("id", id);
+      formData.append("employee_id", id);
       formData.append("user_id", userId);
 
-      await updateEmployee(formData);
+      await updateEmployeeDoc(formData);
 
       navigate("/admin/employee-documents");
     } catch (err) {

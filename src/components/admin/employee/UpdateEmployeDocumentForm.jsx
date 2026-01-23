@@ -1,13 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
 
-
 import DocumentsSection from "./DocumentsSection";
-
 import "../../../assets/styles/admin.css";
 
 import { getEmployementTypes } from "../../../api/admin/employement_type";
 import { getDepartments } from "../../../api/admin/departments";
 import { getDesignations } from "../../../api/admin/designations";
+import { deleteEmployeedata } from "../../../api/admin/employees";
 
 export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   const formRef = useRef(null);
@@ -23,41 +22,39 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   const [selectedEmploymentType, setSelectedEmploymentType] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState("");
+
   const toDateInput = (value) => {
-  if (!value) return "";
-  return value.split("T")[0]; // ✅ YYYY-MM-DD
-};
+    if (!value) return "";
+    return value.split("T")[0];
+  };
 
   /* ================= DOCUMENTS ================= */
   const [documents, setDocuments] = useState([]);
 
   /* ================= SYNC INITIAL VALUES ================= */
   useEffect(() => {
-    // ✅ PROFILE PHOTO
     if (initialValues?.image) {
       setPhotoPreview(initialValues.image);
     }
 
-    // ✅ EMPLOYMENT
     setSelectedEmploymentType(initialValues?.employment_type_id || "");
     setSelectedDepartment(initialValues?.department_id || "");
     setSelectedDesignation(initialValues?.designation_id || "");
 
-    // ✅ DOCUMENTS (FIXED IMAGE MAPPING)
     if (Array.isArray(initialValues?.documents) && initialValues.documents.length) {
       setDocuments(
-        initialValues.documents.map(doc => ({
+        initialValues.documents.map((doc) => ({
           id: doc.document_id,
           type: doc.document_type || "",
           number: doc.document_number || "",
           country: doc.country || "",
-          issue_date: toDateInput(doc.issue_date),     // ✅ FIX
-          expiry_date: toDateInput(doc.expiry_date),   // ✅ FIX
+          issue_date: toDateInput(doc.issue_date),
+          expiry_date: toDateInput(doc.expiry_date),
           status: doc.status || "",
           notes: doc.note || "",
           files: [],
-          previews: (doc.images || []).map(img => ({
-            url: img.url,               // ✅ FIX
+          previews: (doc.images || []).map((img) => ({
+            url: img.url,
             image_id: img.image_id,
             existing: true,
           })),
@@ -84,7 +81,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
           ? deptRes
           : deptRes?.departments || [];
 
-        setDepartments(deptList.map(d => ({ value: d.id, label: d.name })));
+        setDepartments(deptList.map((d) => ({ value: d.id, label: d.name })));
 
         const desigRes = await getDesignations();
         const desigList = Array.isArray(desigRes)
@@ -92,7 +89,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
           : desigRes?.designations || [];
 
         const grouped = {};
-        desigList.forEach(d => {
+        desigList.forEach((d) => {
           if (!grouped[d.department_id]) grouped[d.department_id] = [];
           grouped[d.department_id].push(d);
         });
@@ -108,18 +105,18 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
 
   /* ================= DOCUMENT HANDLERS ================= */
   const handleAddDocument = () => {
-    setDocuments(prev => [...prev, { number: "", files: [], previews: [] }]);
+    setDocuments((prev) => [...prev, { number: "", files: [], previews: [] }]);
   };
 
   const handleDocumentChange = (index, field, value) => {
-    setDocuments(prev =>
+    setDocuments((prev) =>
       prev.map((doc, i) => (i === index ? { ...doc, [field]: value } : doc))
     );
   };
 
   const handleDocumentFilesChange = (index, files) => {
     const arr = Array.from(files);
-    setDocuments(prev =>
+    setDocuments((prev) =>
       prev.map((doc, i) =>
         i === index
           ? {
@@ -127,7 +124,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
               files: [...doc.files, ...arr],
               previews: [
                 ...doc.previews,
-                ...arr.map(f => ({ url: URL.createObjectURL(f) })),
+                ...arr.map((f) => ({ url: URL.createObjectURL(f) })),
               ],
             }
           : doc
@@ -136,7 +133,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   };
 
   const handleRemoveDocumentFile = (docIdx, fileIdx) => {
-    setDocuments(prev =>
+    setDocuments((prev) =>
       prev.map((doc, i) =>
         i === docIdx
           ? {
@@ -149,16 +146,45 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     );
   };
 
-  const handleRemoveDocument = index => {
-    setDocuments(prev => prev.filter((_, i) => i !== index));
+  /* ================= DELETE DOCUMENT (BACKEND + UI) ================= */
+  const handleRemoveDocument = async (index, documentId) => {
+    // If new document → remove locally only
+    if (!documentId) {
+      setDocuments((prev) => prev.filter((_, i) => i !== index));
+      return;
+    }
+
+    const user_id = localStorage.getItem("user_id");
+
+    if (!user_id) {
+      alert("Session expired. Please login again.");
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this document?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteEmployeedata({
+        user_id,
+        document_id: documentId,
+      });
+
+      setDocuments((prev) => prev.filter((_, i) => i !== index));
+    } catch (err) {
+      console.error("❌ Failed to delete document:", err);
+      alert("Failed to delete document. Please try again.");
+    }
   };
 
   /* ================= SUBMIT ================= */
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
-
 
     const mappedDocs = documents.map((doc, idx) => ({
       document_id: doc.id || null,
@@ -175,7 +201,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     formData.append("documents", JSON.stringify(mappedDocs));
 
     documents.forEach((doc, idx) => {
-      doc.files.forEach(file => {
+      doc.files.forEach((file) => {
         formData.append(`document_files_${idx}`, file);
       });
     });
@@ -186,8 +212,6 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   /* ================= RENDER ================= */
   return (
     <form className="form-container" ref={formRef} onSubmit={handleSubmit}>
-    
-
       <DocumentsSection
         documents={documents}
         onAdd={handleAddDocument}
@@ -196,8 +220,6 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
         onRemoveFile={handleRemoveDocumentFile}
         onRemoveDocument={handleRemoveDocument}
       />
-
-     
 
       <div className="form-actions" style={{ justifyContent: "flex-end" }}>
         <button type="submit" className="btn btn-primary">

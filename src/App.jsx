@@ -7,6 +7,8 @@ import { LoaderProvider, useLoader } from "./context/LoaderContext";
 import { registerLoader } from "./api/loaderRegistry";
 
 /* PUBLIC PAGES */
+import Coming_soon from "./pages/home/Coming_soon";
+import Home from "./pages/home/Home";
 import NotFound from "./pages/auth/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -30,6 +32,7 @@ import AddEmployeePage from "./pages/admin/AddEmployee";
 import EmployeeMasterDataPage from "./pages/admin/EmployeeMasterDataPage";
 import EmploymentHistoryPage from "./pages/admin/EmploymentHistoryPage";
 import EmployeeDocumentsPage from "./pages/admin/EmployeeDocumentsPage";
+import AddEmployeeDocumentsPage from "./pages/admin/AddEmployeeDocumentsPage";
 import UpdateEmployeDocumentPage from "./pages/admin/UpdateEmployeDocumentPage";
 import EmployeeDocumentsView from "./components/admin/EmployeeDocumentsView";
 import MyProfile from "./pages/admin/MyProfile";
@@ -91,7 +94,9 @@ function App() {
 
               {/* PUBLIC ROUTES */}
               <Route path="*" element={<NotFound />} />
-              <Route path="/" element={<LoginPage />} />
+              <Route path="/" element={<Coming_soon />} />
+              <Route path="/hr/software" element={<Home />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/company/registration" element={<CompanyRegistrationPage />} />
               <Route path="/admin/forget-password" element={<ForgotPasswordPage />} />
 
@@ -138,6 +143,15 @@ function App() {
                 element={
                   <ProtectedRoute module="employee">
                     <EmployeeDocumentsPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/admin/add-employee-documents"
+                element={
+                  <ProtectedRoute module="employee">
+                    <AddEmployeeDocumentsPage />
                   </ProtectedRoute>
                 }
               />

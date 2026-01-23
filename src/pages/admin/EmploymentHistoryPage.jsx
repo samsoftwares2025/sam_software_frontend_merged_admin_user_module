@@ -12,43 +12,13 @@ import {
   filterEmployeeHistoryData,
 } from "../../api/admin/employees";
 
-/* ===============================
-   Client-side filters
-================================ */
-const applyClientSideFilters = (rows, search, department, type, status) => {
-  return rows.filter((r) => {
-    if (search) {
-      const term = search.toLowerCase();
-      const matches =
-        r.name?.toLowerCase().includes(term) ||
-        r.employee_id?.toLowerCase().includes(term) ||
-        r.phone?.toLowerCase().includes(term);
-
-      if (!matches) return false;
-    }
-
-    if (department && r.department !== department) return false;
-    if (type && r.employment_type !== type) return false;
-    if (status !== "" && String(r.is_active) !== status) return false;
-    return true;
-  });
-};
-
 function EmploymentHistoryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("employees");
 
-  const [masterHistory, setMasterHistory] = useState([]); // FULL DATA
-  const [history, setHistory] = useState([]); // PAGINATED DATA
-  const getStatusClassName = (isActive) =>
-    isActive ? "status-pill status-active" : "status-pill status-inactive";
-  const handleAddEmployee = () => {
-    navigate("/admin/add-employee");
-  };
-  // master data
+  const [history, setHistory] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [employmentTypes, setEmploymentTypes] = useState([]);
-  const [statuses, setStatuses] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,93 +32,79 @@ function EmploymentHistoryPage() {
   const pageSize = 20;
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const activeFilter =
-    filterStatus === "" ? "" : filterStatus === "true" ? true : false;
 
   const navigate = useNavigate();
+
+  const getStatusClassName = (isActive) =>
+    isActive ? "status-pill status-active" : "status-pill status-inactive";
 
   /* ===============================
      LOAD MASTER DATA
   ================================ */
   useEffect(() => {
-    getDepartments_employee_mgmnt().then((resp) =>
-      setDepartments(resp?.departments || [])
-    );
-    getEmployementTypes_employee_mgmnt().then((resp) =>
-      setEmploymentTypes(resp?.employment_types || resp || [])
-    );
+    getDepartments_employee_mgmnt().then((resp) => {
+      setDepartments(resp?.departments || []);
+    });
+
+    getEmployementTypes_employee_mgmnt().then((resp) => {
+      setEmploymentTypes(resp?.employment_types || []);
+    });
   }, []);
 
   /* ===============================
-     LOAD EMPLOYEE HISTORY (Full Data)
+     LOAD EMPLOYMENT HISTORY
   ================================ */
-  const loadAllData = () => {
+  const loadHistory = (pageNo = 1) => {
     setLoading(true);
     setError(null);
 
-    const filtersApplied =
+    const normalizedStatus =
+      filterStatus === ""
+        ? ""
+        : filterStatus === "true"
+        ? true
+        : false;
+
+    const payload = {
+      search: searchTerm || "",
+      department_id: filterDepartment || "",
+      employment_type_id: filterType || "",
+      is_active: normalizedStatus,
+      page: pageNo,
+      page_size: pageSize,
+    };
+
+    const hasFilters =
       searchTerm || filterDepartment || filterType || filterStatus;
 
-    const apiCall = filtersApplied
-      ? filterEmployeeHistoryData({
-          search: searchTerm,
-          status: activeFilter,
-          department: filterDepartment,
-          employment_type: filterType,
-          is_active: activeFilter,
-          page: 1,
-          page_size: 99999,
-        })
+    const apiCall = hasFilters
+      ? filterEmployeeHistoryData(payload)
       : getEmployeeHistoryData({
-          page: 1,
-          page_size: 99999,
+          page: pageNo,
+          page_size: pageSize,
         });
 
-    Promise.resolve(apiCall)
+    apiCall
       .then((resp) => {
-        const allRows = resp?.users_data || [];
-        setMasterHistory(allRows);
+        setHistory(resp?.users_data || []);
+        setTotalCount(resp?.total_count || 0);
+        setTotalPages(resp?.total_pages || 1);
       })
-      .catch(() => setError("Unable to load employment history."))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        setError("Unable to load employment history.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
-  // load full data once AND whenever filters change
-  useEffect(() => {
-    loadAllData();
-  }, [searchTerm, filterDepartment, filterType, filterStatus]);
-
   /* ===============================
-     FILTER + PAGINATE CLIENT-SIDE
+     LOAD ON FILTER CHANGE
   ================================ */
   useEffect(() => {
-    let filtered = applyClientSideFilters(
-      masterHistory,
-      searchTerm,
-      filterDepartment,
-      filterType,
-      filterStatus
-    );
-
-    setStatuses([...new Set(filtered.map((r) => r.status).filter(Boolean))]);
-
-    setTotalCount(filtered.length);
-
-    const pages = Math.ceil(filtered.length / pageSize);
-    setTotalPages(pages || 1);
-
-    if (page > pages) setPage(1);
-
-    const start = (page - 1) * pageSize;
-    setHistory(filtered.slice(start, start + pageSize));
-  }, [
-    masterHistory,
-    searchTerm,
-    filterDepartment,
-    filterType,
-    filterStatus,
-    page,
-  ]);
+    setPage(1);
+    loadHistory(1);
+  }, [searchTerm, filterDepartment, filterType, filterStatus]);
 
   /* ===============================
      PAGINATION
@@ -156,6 +112,7 @@ function EmploymentHistoryPage() {
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
     setPage(newPage);
+    loadHistory(newPage);
   };
 
   /* ===============================
@@ -167,6 +124,7 @@ function EmploymentHistoryPage() {
     setFilterType("");
     setFilterStatus("");
     setPage(1);
+    loadHistory(1);
   };
 
   const startRow = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -206,6 +164,7 @@ function EmploymentHistoryPage() {
               />
             </div>
 
+            {/* Department */}
             <select
               className="filter-select"
               value={filterDepartment}
@@ -213,25 +172,27 @@ function EmploymentHistoryPage() {
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept.id} value={dept.name}>
+                <option key={dept.id} value={dept.id}>
                   {dept.name}
                 </option>
               ))}
             </select>
 
+            {/* Employment Type */}
             <select
               className="filter-select"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
             >
               <option value="">All Employment Types</option>
-              {employmentTypes.map((t, idx) => (
-                <option key={t.id ?? idx} value={t.name ?? t}>
-                  {t.name ?? t}
+              {employmentTypes.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
                 </option>
               ))}
             </select>
 
+            {/* Status */}
             <select
               className="filter-select"
               value={filterStatus}
@@ -243,20 +204,9 @@ function EmploymentHistoryPage() {
             </select>
           </div>
 
-          <div className="filters-right">
-            <button className="btn btn-ghost" onClick={handleClearFilters}>
-              <i className="fa-solid fa-filter-circle-xmark" /> Clear Filters
-            </button>
-
-            <ProtectedAction
-              module="employee"
-              action="add"
-              onAllowed={handleAddEmployee}
-              className="btn btn-primary"
-            >
-              <i className="fa-solid fa-user-plus" /> Add Employee
-            </ProtectedAction>
-          </div>
+          <button className="btn btn-ghost" onClick={handleClearFilters}>
+            <i className="fa-solid fa-filter-circle-xmark" /> Clear Filters
+          </button>
         </div>
 
         {/* TABLE */}
@@ -269,7 +219,9 @@ function EmploymentHistoryPage() {
           </div>
 
           {loading ? (
-            <div style={{ padding: "1rem" }}>Loading employment history...</div>
+            <div style={{ padding: "1rem" }}>
+              Loading employment history...
+            </div>
           ) : error ? (
             <div style={{ padding: "1rem", color: "orange" }}>{error}</div>
           ) : (
@@ -290,54 +242,50 @@ function EmploymentHistoryPage() {
                   </thead>
 
                   <tbody>
-                    {history.map((row, index) => {
-                      const orderNo = (page - 1) * pageSize + index + 1;
-
-                      return (
-                        <tr key={row.id}>
-                          <td>{orderNo}</td>
-                          <td>{row.employee_id}</td>
-                          <td>{row.name}</td>
-                          <td>{row.employment_type}</td>
-                          <td>
-                            <span className={getStatusClassName(row.is_active)}>
-                              ● {row.is_active ? "Active" : "Inactive"}
-                            </span>
-                          </td>{" "}
-                          <td>
-                            {row.joining_date
-                              ? new Date(row.joining_date).toLocaleDateString(
-                                  "en-GB"
-                                )
-                              : "-"}
-                          </td>
-                          <td>
-                            {row.last_working_date
-                              ? new Date(
-                                  row.last_working_date
-                                ).toLocaleDateString("en-GB")
-                              : "-"}
-                          </td>
-                          <td>
-                            <div className="table-actions">
-                              <ProtectedAction
-                                module="employee"
-                                action="view"
-                                to={`/admin/view-employment-history/${row.id}`}
-                                className="icon-btn view"
-                                title="View Employment History"
-                              >
-                                <i className="fa-solid fa-eye" />
-                              </ProtectedAction>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {history.map((row, index) => (
+                      <tr key={row.id}>
+                        <td>{(page - 1) * pageSize + index + 1}</td>
+                        <td>{row.employee_id}</td>
+                        <td>{row.name}</td>
+                        <td>{row.employment_type}</td>
+                        <td>
+                          <span
+                            className={getStatusClassName(row.is_active)}
+                          >
+                            ● {row.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td>
+                          {row.joining_date
+                            ? new Date(
+                                row.joining_date
+                              ).toLocaleDateString("en-GB")
+                            : "-"}
+                        </td>
+                        <td>
+                          {row.last_working_date
+                            ? new Date(
+                                row.last_working_date
+                              ).toLocaleDateString("en-GB")
+                            : "-"}
+                        </td>
+                        <td>
+                          <ProtectedAction
+                            module="employee"
+                            action="view"
+                            to={`/admin/view-employment-history/${row.id}`}
+                            className="icon-btn view"
+                            title="View Employment History"
+                          >
+                            <i className="fa-solid fa-eye" />
+                          </ProtectedAction>
+                        </td>
+                      </tr>
+                    ))}
 
                     {history.length === 0 && (
                       <tr>
-                        <td colSpan={9} style={{ textAlign: "center" }}>
+                        <td colSpan={8} style={{ textAlign: "center" }}>
                           No employment records found.
                         </td>
                       </tr>

@@ -10,7 +10,6 @@ import {
   getEmployeeMasterData,
   filterEmployeeMasterData,
   deleteEmployee,
-  updateEmployee,
   exportEmployeesToExcel,
 } from "../../api/admin/employees";
 
@@ -150,7 +149,7 @@ function EmployeeMasterDataPage() {
 
     const payload = {
       search: searchTerm,
-      department: filterDepartment,
+      department_id: filterDepartment,
       is_active: filterStatus,
       page: newPage,
       page_size: pageSize,

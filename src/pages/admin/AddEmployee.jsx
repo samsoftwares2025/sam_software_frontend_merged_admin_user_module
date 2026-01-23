@@ -161,7 +161,7 @@ function AddEmployeePage() {
         formRef.current.handleReset();
       }
 
-      setSuccessMessage("Employee created successfully.");
+      setSuccessMessage("The employee account has been created successfully. Login credentials have been sent to the employee’s official company email address.");
       setShowSuccessModal(true);
 
       return response;

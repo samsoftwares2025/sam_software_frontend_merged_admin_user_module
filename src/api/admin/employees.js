@@ -38,7 +38,6 @@ export const filterEmployeeMasterData = async (payload) => {
       department_name: payload?.department || "",
       is_active: payload?.is_active || "",   
       page: payload?.page || 1,
-      page_size: payload?.page_size || 20,
     }
   );
 
@@ -71,7 +70,13 @@ export const filterEmployeeHistoryData = async (payload) => {
     {
       user_id: userId,
       search: payload?.search || "",
-      is_active: payload?.is_active || "", 
+      is_active:
+  payload?.is_active === undefined || payload?.is_active === ""
+    ? ""
+    : payload.is_active,
+
+      department_id: payload?.department_id || "", 
+      employment_type_id: payload?.employment_type_id ?? "",
       page: payload?.page || 1,
       page_size: payload?.page_size || 20,
       page_size: payload?.page_size || 20,
@@ -118,9 +123,9 @@ export const filterEmployeeDocuments = async (payload) => {
       search: payload?.search || "",
       status: payload?.status || "",
       department_id: payload?.department_id || "",
+      employment_type_id: payload?.employment_type_id ?? "",
       country: payload?.country || "",
       page: payload?.page || 1,
-      page_size: payload?.page_size || 20,
     }
   );
 
@@ -162,11 +167,14 @@ export const getEmployeesList = async () => {
   const { data } = await http.post("/hr/list-employee-master-data/", {
     user_id: userId,
     page: 1,
-    page_size: 500, // enough for dropdown
+    page_size: 1000, // enough for dropdown
   });
 
   return data.users_data || [];
 };
+
+
+
 
 export const getEmployeesList_employee_mgmnt = async () => {
   const token = localStorage.getItem("accessToken");
@@ -274,6 +282,62 @@ export const updateEmployee = async (formData) => {
   );
   return data;
 };
+
+
+export const updateEmployeeDoc = async (formData) => {
+  const { data } = await http.post(
+    "/hr/update-employee-documents/",
+    formData
+    ,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return data;
+};
+
+
+
+export const deleteEmployeeAllDocs = async (user_id) => {
+  const userId = getUserId();
+
+  const formData = new FormData();
+  formData.append("employee_id", user_id);      
+  formData.append("user_id", userId);
+
+  return http.post(
+    "/hr/delete-employee-all-documents/",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+};
+
+
+
+/**
+ * add new document employee
+ */
+
+export const Add_New_Employee_Doc = async (formData) => {
+  const { data } = await http.post(
+    "/hr/add-employee-documents/",
+    formData
+    ,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return data;
+};
+
 
 
 

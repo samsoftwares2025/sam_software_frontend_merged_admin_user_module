@@ -1,0 +1,111 @@
+/* PAGE-SCOPED RESET */
+.wrapper * {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.wrapper {
+  min-height: 100vh;
+  background: #f5f7fb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Headings */
+.wrapper .title {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.wrapper .subtitle {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+/* Countdown */
+.wrapper .countdown {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+/* Card */
+.wrapper .card {
+  position: relative;
+  width: 160px;
+  height: 130px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Remove global shade */
+.wrapper .card::before,
+.wrapper .card::after {
+  content: none !important;
+  display: none !important;
+}
+
+.wrapper .card h2 {
+  font-size: 38px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.wrapper .card span {
+  font-size: 12px;
+  color: #777;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
+/* Footer */
+.wrapper .footer {
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
+/* Button (desktop) */
+.wrapper .btn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  font-size: 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(59, 130, 246, 0.45);
+  width: auto;
+}
+
+/* 📱 MOBILE ONLY */
+@media (max-width: 768px) {
+  .wrapper .title {
+    font-size: 32px;
+  }
+
+  .wrapper .countdown {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+
+  .wrapper .card {
+    width: 140px;
+    height: 120px;
+  }
+
+  .wrapper .btn {
+    padding: 12px 24px;
+    font-size: 15px;
+    margin: 0 16px; /* space on both sides */
+  }
+}
