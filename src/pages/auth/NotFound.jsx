@@ -11,7 +11,7 @@ export default function NotFound() {
           The page you are looking for doesn’t exist.
         </p>
 
-        <Link to="/" className="notfound-button">
+        <Link to="/login" className="notfound-button">
           Go to Login
         </Link>
       </div>
