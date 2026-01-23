@@ -60,7 +60,10 @@ export default function ComingSoon() {
 
       {/* ✅ NEW WRAPPER */}
       <div className="btn-wrapper">
-        <button className="btn notify-btn">Notify Me</button>
+        
+        <a href="mailto:samad.samsoftwares@gmail.com" class="btn notify-btn">
+            Notify Me
+        </a>
       </div>
     </div>
   );
