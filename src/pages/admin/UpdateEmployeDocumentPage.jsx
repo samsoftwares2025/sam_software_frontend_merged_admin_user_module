@@ -6,6 +6,11 @@ import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import UpdateEmployeDocumentForm from "../../components/admin/employee/UpdateEmployeDocumentForm";
 
+import LoaderOverlay from "../../components/common/LoaderOverlay";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 import "../../assets/styles/admin.css";
 import { getEmployeeById, updateEmployeeDoc } from "../../api/admin/employees";
 
@@ -17,8 +22,23 @@ function UpdateEmployeeDocumentsPage() {
   const [openSection, setOpenSection] = useState("employees");
 
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
   const [error, setError] = useState(null);
   const [initialValues, setInitialValues] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  
+  const handleRequestDeleteDocument = ({ index, documentId }) => {
+    setDeleteTarget({ index, documentId });
+    setShowDeleteModal(true);
+  };
+  
+  /* ===== MODALS ===== */
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   /* ============================
      FETCH EMPLOYEE DOCUMENTS
@@ -34,11 +54,9 @@ function UpdateEmployeeDocumentsPage() {
       try {
         const resp = await getEmployeeById(id);
 
-        const documents = resp?.documents || [];
-
         setInitialValues({
           id,
-          documents, // ✅ ONLY DOCUMENTS
+          documents: resp?.documents || [],
         });
       } catch (err) {
         console.error("❌ Failed to load employee documents:", err);
@@ -55,25 +73,29 @@ function UpdateEmployeeDocumentsPage() {
      SUBMIT HANDLER
   ============================ */
   const handleFormSubmit = async (formData) => {
+    const userId = localStorage.getItem("user_id");
+
+    if (!userId) {
+      setErrorMessage("Session expired. Please login again.");
+      setShowError(true);
+      return;
+    }
+
     try {
-      const userId = localStorage.getItem("user_id");
+      setSubmitting(true);
 
-      if (!userId) {
-        alert("Session expired. Please login again.");
-        navigate("/login");
-        return;
-      }
-
-      // REQUIRED BY BACKEND
       formData.append("employee_id", id);
       formData.append("user_id", userId);
 
       await updateEmployeeDoc(formData);
 
-      navigate("/admin/employee-documents");
+      setShowSuccess(true);
     } catch (err) {
       console.error("❌ Failed to update employee documents:", err);
-      alert("Failed to update documents. Please try again.");
+      setErrorMessage("Failed to update documents. Please try again.");
+      setShowError(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -99,25 +121,62 @@ function UpdateEmployeeDocumentsPage() {
           </div>
         </div>
 
-        {loading && (
-          <div style={{ padding: "2rem" }}>
-            Loading documents...
-          </div>
-        )}
+        {loading && <div style={{ padding: "2rem" }}>Loading documents...</div>}
 
         {!loading && error && (
-          <div style={{ padding: "2rem", color: "orange" }}>
-            {error}
-          </div>
+          <div style={{ padding: "2rem", color: "orange" }}>{error}</div>
         )}
 
         {!loading && !error && initialValues && (
-          <UpdateEmployeDocumentForm
-            initialValues={initialValues}
-            onSubmit={handleFormSubmit}
-          />
+         <UpdateEmployeDocumentForm
+  initialValues={initialValues}
+  onSubmit={handleFormSubmit}
+  onRequestDelete={handleRequestDeleteDocument}
+/>
+
         )}
       </main>
+
+      {/* ===== GLOBAL LOADER ===== */}
+      {submitting && <LoaderOverlay />}
+
+      {/* ===== SUCCESS MODAL ===== */}
+      {showSuccess && (
+        <SuccessModal
+          title="Documents Updated"
+          message="Employee documents have been updated successfully."
+          onClose={() => {
+            setShowSuccess(false);
+            navigate("/admin/employee-documents");
+          }}
+        />
+      )}
+
+      {/* ===== ERROR MODAL ===== */}
+      {showError && (
+        <ErrorModal
+          title="Update Failed"
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+        />
+      )}
+
+      {/* ===== DELETE CONFIRM MODAL (reserved if needed later) ===== */}
+      {/* 
+      {showDeleteModal && (
+  <DeleteConfirmModal
+    title="Delete Document"
+    message="Are you sure you want to delete this document?"
+    loading={deleting}
+    onClose={() => {
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
+    }}
+    onConfirm={confirmDeleteDocument}
+  />
+)}
+
+      */}
     </div>
   );
 }

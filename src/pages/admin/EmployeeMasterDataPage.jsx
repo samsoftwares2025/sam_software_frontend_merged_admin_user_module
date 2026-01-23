@@ -5,6 +5,8 @@ import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 import { getDepartments_employee_mgmnt } from "../../api/admin/departments";
 import ProtectedAction from "../../components/admin/ProtectedAction";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+
 
 import {
   getEmployeeMasterData,
@@ -241,10 +243,9 @@ function EmployeeMasterDataPage() {
             </p>
           </div>
 
-         <button className="excel-btn" onClick={handleExportExcel}>
-  <i className="fa-solid fa-file-excel"></i> Export Excel
-</button>
-
+          <button className="excel-btn" onClick={handleExportExcel}>
+            <i className="fa-solid fa-file-excel"></i> Export Excel
+          </button>
         </div>
 
         {/* FILTERS */}
@@ -349,23 +350,22 @@ function EmployeeMasterDataPage() {
                           {" "}
                           {emp.joining_date
                             ? new Date(emp.joining_date).toLocaleDateString(
-                                "en-GB"
+                                "en-GB",
                               )
                             : "-"}{" "}
                         </td>
                         <td>
                           {" "}
                           <div class="table-actions">
-                           <ProtectedAction
-  module="employee"
-  action="view"
-  to={`/admin/employee-profile/${emp.id}`}
-  className="icon-btn view"
-  title="View Details"
->
-  <i className="fa-solid fa-eye"></i>
-</ProtectedAction>
-
+                            <ProtectedAction
+                              module="employee"
+                              action="view"
+                              to={`/admin/employee-profile/${emp.id}`}
+                              className="icon-btn view"
+                              title="View Details"
+                            >
+                              <i className="fa-solid fa-eye"></i>
+                            </ProtectedAction>
 
                             <ProtectedAction
                               module="employee"
@@ -432,7 +432,7 @@ function EmployeeMasterDataPage() {
                       >
                         {p}
                       </button>
-                    )
+                    ),
                   )}
 
                   {/* Next */}
@@ -450,60 +450,17 @@ function EmployeeMasterDataPage() {
         </div>
       </main>
       {showDeleteModal && (
-        <div className="modal-backdrop" style={backdropStyle}>
-          <div className="modal" style={modalStyle}>
-            <h3>Confirm delete</h3>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong>{employeeToDelete?.name}</strong>?
-            </p>
+  <DeleteConfirmModal
+    title="Delete Employee"
+    message={`Are you sure you want to delete ${employeeToDelete?.name}?`}
+    loading={deleting}
+    onClose={closeDeleteModal}
+    onConfirm={confirmDelete}
+  />
+)}
 
-            {deleteError && (
-              <div style={{ color: "orange", marginBottom: 8 }}>
-                {deleteError}
-              </div>
-            )}
-
-            <div
-              style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
-            >
-              <button
-                className="btn"
-                onClick={closeDeleteModal}
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={confirmDelete}
-                disabled={deleting}
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-const backdropStyle = {
-  position: "fixed",
-  inset: 0,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 2000,
-};
-
-const modalStyle = {
-  width: 420,
-  background: "#fff",
-  padding: "1.25rem",
-  borderRadius: 8,
-  boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
-};
 
 export default EmployeeMasterDataPage;

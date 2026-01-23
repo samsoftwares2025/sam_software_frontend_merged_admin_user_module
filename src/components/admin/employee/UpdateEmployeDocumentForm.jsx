@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 
 import DocumentsSection from "./DocumentsSection";
+import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal";
 import "../../../assets/styles/admin.css";
 
 import { getEmployementTypes } from "../../../api/admin/employement_type";
@@ -23,13 +24,18 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState("");
 
+  /* ================= DOCUMENTS ================= */
+  const [documents, setDocuments] = useState([]);
+
+  /* ================= DELETE MODAL ================= */
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const toDateInput = (value) => {
     if (!value) return "";
     return value.split("T")[0];
   };
-
-  /* ================= DOCUMENTS ================= */
-  const [documents, setDocuments] = useState([]);
 
   /* ================= SYNC INITIAL VALUES ================= */
   useEffect(() => {
@@ -146,13 +152,19 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     );
   };
 
-  /* ================= DELETE DOCUMENT (BACKEND + UI) ================= */
-  const handleRemoveDocument = async (index, documentId) => {
-    // If new document → remove locally only
+  /* ================= DELETE DOCUMENT ================= */
+  const handleRemoveDocument = (index, documentId) => {
     if (!documentId) {
       setDocuments((prev) => prev.filter((_, i) => i !== index));
       return;
     }
+
+    setDeleteTarget({ index, documentId });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!deleteTarget) return;
 
     const user_id = localStorage.getItem("user_id");
 
@@ -161,22 +173,25 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this document?"
-    );
-
-    if (!confirmDelete) return;
-
     try {
+      setDeleting(true);
+
       await deleteEmployeedata({
         user_id,
-        document_id: documentId,
+        document_id: deleteTarget.documentId,
       });
 
-      setDocuments((prev) => prev.filter((_, i) => i !== index));
+      setDocuments((prev) =>
+        prev.filter((_, i) => i !== deleteTarget.index)
+      );
+
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
     } catch (err) {
       console.error("❌ Failed to delete document:", err);
       alert("Failed to delete document. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -226,6 +241,19 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
           <i className="fa-solid fa-save" /> Update Employee
         </button>
       </div>
+
+      {showDeleteModal && (
+        <DeleteConfirmModal
+          title="Delete Document"
+          message="Are you sure you want to delete this document?"
+          loading={deleting}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setDeleteTarget(null);
+          }}
+          onConfirm={confirmDeleteDocument}
+        />
+      )}
     </form>
   );
 }
