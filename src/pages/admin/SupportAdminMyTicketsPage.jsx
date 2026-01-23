@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
+
 import {
   listSuperAdminTickets,
   filterSuperAdminTickets,
@@ -32,7 +34,7 @@ const SuccessModal = ({ title, message, onClose }) => (
   <div className="modal-overlay">
     <div className="modal-card">
       <div className="success-icon">
-        <i className="fa-solid fa-circle-check"></i>
+        <i className="fa-solid fa-circle-check" />
       </div>
       <h2>{title}</h2>
       <p>{message}</p>
@@ -48,7 +50,7 @@ const ConfirmModal = ({ title, message, onConfirm, onClose }) => (
   <div className="modal-overlay">
     <div className="modal-card">
       <div className="success-icon warning">
-        <i className="fa-solid fa-triangle-exclamation"></i>
+        <i className="fa-solid fa-triangle-exclamation" />
       </div>
       <h2>{title}</h2>
       <p>{message}</p>
@@ -67,110 +69,78 @@ const ConfirmModal = ({ title, message, onConfirm, onClose }) => (
 const SupportAdminMyTicketsPage = () => {
   const navigate = useNavigate();
 
-  /* ===== SIDEBAR STATE ===== */
+  /* ===== SIDEBAR STATE (FIXED) ===== */
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+      const [openSection, setOpenSection] = useState(null);
+  
 
   const [tickets, setTickets] = useState([]);
   const [ticketTypeList, setTicketTypeList] = useState([]);
-
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    page_size: 10,
-    total_pages: 1,
-    total_records: 0,
-    has_next: false,
-    has_previous: false,
-  });
+  const [loading, setLoading] = useState(true);
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [ticketType, setTicketType] = useState("");
 
-  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    page_size: 10,
+    total_records: 0,
+    has_next: false,
+    has_previous: false,
+  });
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
 
-  /* ================= EXTRACT UNIQUE TICKET TYPES ================= */
-  const extractTicketTypes = (data = []) => {
-    const list = [];
-    data.forEach((t) => {
-      if (t.ticket_type_id && t.ticket_type) {
-        list.push({ id: t.ticket_type_id, title: t.ticket_type });
-      }
-    });
-    const unique = list.filter(
-      (v, i, a) => a.findIndex((t) => t.id === v.id) === i
-    );
-    setTicketTypeList(unique);
-  };
-
-  /* ================= LOAD NORMAL LIST ================= */
+  /* ================= LOAD DATA ================= */
   const loadTickets = () => {
     setLoading(true);
     listSuperAdminTickets(page)
       .then((res) => {
-        if (!res?.success) throw new Error(res.message);
-        setTickets(res.support_tickets || []);
-        setPagination(res.pagination || {});
-        extractTicketTypes(res.support_tickets || []);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  /* ================= LOAD FILTERED LIST ================= */
-  const loadFilteredTickets = () => {
-    setLoading(true);
-
-    filterSuperAdminTickets(page, 10, status, search, ticketType)
-      .then((res) => {
-        if (res.success) {
-          let filtered = res.support_tickets || [];
-          extractTicketTypes(res.support_tickets || []);
-
-          const s = search.trim().toLowerCase();
-
-          if (s !== "") {
-            filtered = filtered.filter((t) => {
-              const tracking = (t.tracking_id || "").toLowerCase();
-              const subject = (t.subject || "").toLowerCase();
-              const content = (t.content || "").toLowerCase();
-              const rawStatus = (t.status || "").toLowerCase();
-              const type = (t.ticket_type || "").toLowerCase();
-
-              return (
-                tracking.includes(s) ||
-                subject.includes(s) ||
-                content.includes(s) ||
-                type.includes(s) ||
-                rawStatus.includes(s)
-              );
-            });
-          }
-
-          setTickets(filtered);
+        if (res?.success) {
+          setTickets(res.support_tickets || []);
           setPagination(res.pagination || {});
+          extractTicketTypes(res.support_tickets || []);
         }
       })
       .finally(() => setLoading(false));
   };
 
-  /* ================= AUTO FILTER OR NORMAL ================= */
+  const loadFilteredTickets = () => {
+    setLoading(true);
+    filterSuperAdminTickets(page, 10, status, search, ticketType)
+      .then((res) => {
+        if (res?.success) {
+          setTickets(res.support_tickets || []);
+          setPagination(res.pagination || {});
+          extractTicketTypes(res.support_tickets || []);
+        }
+      })
+      .finally(() => setLoading(false));
+  };
+
   useEffect(() => {
-    if (search !== "" || status !== "" || ticketType !== "") {
+    if (search || status || ticketType) {
       loadFilteredTickets();
     } else {
       loadTickets();
     }
   }, [page, search, status, ticketType]);
 
-  useEffect(() => {
-    loadTickets();
-  }, []);
+  /* ================= HELPERS ================= */
+  const extractTicketTypes = (data = []) => {
+    const unique = [];
+    data.forEach((t) => {
+      if (t.ticket_type_id && !unique.find((x) => x.id === t.ticket_type_id)) {
+        unique.push({ id: t.ticket_type_id, title: t.ticket_type });
+      }
+    });
+    setTicketTypeList(unique);
+  };
 
-  /* ================= CLEAR FILTERS ================= */
   const handleClearFilters = () => {
     setSearch("");
     setStatus("");
@@ -178,71 +148,64 @@ const SupportAdminMyTicketsPage = () => {
     setPage(1);
   };
 
-  /* ================= CANCEL ACTION ================= */
   const handleCancelConfirm = async () => {
     const res = await cancelSuperAdminTicket(selectedTicketId);
-    if (res.success) {
+    if (res?.success) {
       setShowConfirmModal(false);
       setShowSuccessModal(true);
       loadTickets();
     }
   };
 
-  /* ================= PAGINATION INFO ================= */
-  const currentPage = pagination.current_page || 1;
-  const pageSize = pagination.page_size || 10;
-  const totalRecords = pagination.total_records || 0;
-
-  const start = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, totalRecords);
+  const { current_page = 1, page_size = 10, total_records = 0 } = pagination;
+  const start = total_records === 0 ? 0 : (current_page - 1) * page_size + 1;
+  const end = Math.min(current_page * page_size, total_records);
 
   return (
     <div className="container">
-      {/* ===== SIDEBAR ===== */}
-      <Sidebar
-        sidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(false)}
-      />
+     
 
-      {/* ===== MAIN ===== */}
-      <main className="main">
-        <Header
-          sidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen((p) => !p)}
+
+
+          
+           <Sidebar
+          isMobileOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          openSection={openSection}
+          setOpenSection={setOpenSection}
         />
 
-        <section className="card history-card">
-          <div className="doc-header">
-            <div>
-              <h3 className="info-title">Super Admin Support Tickets</h3>
-              <p className="doc-subtitle">
-                Manage & review all raised tickets.
-              </p>
+        {/* ===== MAIN ===== */}
+        <main className="main">
+          {/* ===== HEADER (FIXED) ===== */}
+          <Header
+            onMenuClick={() => setIsSidebarOpen((p) => !p)}
+          />
+
+
+        {/* PAGE TITLE */}
+        <div className="page-title">
+          <h3>Super Admin Support Tickets</h3>
+          <p className="subtitle">Manage & review all raised tickets.</p>
+        </div>
+
+        {/* FILTERS */}
+        <div className="filters-container">
+          <div className="filters-left">
+            <div className="search-input">
+              <i className="fa-solid fa-magnifying-glass" />
+              <input
+                placeholder="Search tickets..."
+                value={search}
+                onChange={(e) => {
+                  setPage(1);
+                  setSearch(e.target.value);
+                }}
+              />
             </div>
 
-            <button
-              className="btn btn-primary"
-              onClick={() =>
-                navigate("/user/superadmin/support/add")
-              }
-            >
-              + Add Ticket
-            </button>
-          </div>
-
-          {/* ================= FILTER ROW ================= */}
-          <div className="filter-row">
-            <input
-              type="text"
-              placeholder="Search (tracking ID, subject, message, ticket type, status)"
-              value={search}
-              onChange={(e) => {
-                setPage(1);
-                setSearch(e.target.value);
-              }}
-            />
-
             <select
+              className="filter-select"
               value={status}
               onChange={(e) => {
                 setPage(1);
@@ -257,6 +220,7 @@ const SupportAdminMyTicketsPage = () => {
             </select>
 
             <select
+              className="filter-select"
               value={ticketType}
               onChange={(e) => {
                 setPage(1);
@@ -270,123 +234,137 @@ const SupportAdminMyTicketsPage = () => {
                 </option>
               ))}
             </select>
+          </div>
 
+          <div className="filters-right">
             <button className="btn btn-ghost" onClick={handleClearFilters}>
-              <i className="fa-solid fa-filter-circle-xmark"></i> Clear
+              <i className="fa-solid fa-filter-circle-xmark" /> Clear Filters
+            </button>
+
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate("/admin/add-support-ticket")}
+            >
+              + Add Ticket
             </button>
           </div>
+        </div>
 
-          {/* ================= TABLE ================= */}
-          <div className="history-table-wrapper">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Tracking ID</th>
-                  <th>Ticket Type</th>
-                  <th>Date</th>
-                  <th>Subject</th>
-                  <th>Message</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
+        {/* TABLE */}
+        <div className="table-container">
+          <div className="table-header-bar">
+            <h4>
+              Support Tickets{" "}
+              <span className="badge-pill">Total: {total_records}</span>
+            </h4>
+          </div>
 
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="8" style={{ textAlign: "center" }}>
-                      Loading…
-                    </td>
-                  </tr>
-                ) : tickets.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" style={{ textAlign: "center" }}>
-                      No tickets found
-                    </td>
-                  </tr>
-                ) : (
-                  tickets.map((ticket, index) => (
-                    <tr key={ticket.id}>
-                      <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                      <td>{ticket.tracking_id || "—"}</td>
-                      <td>{ticket.ticket_type || "—"}</td>
-                      <td>
-                        {ticket.created_at
-                          ? new Date(ticket.created_at).toLocaleDateString()
-                          : "—"}
-                      </td>
-                      <td>{ticket.subject}</td>
-                      <td>{ticket.content}</td>
-                      <td>
-                        <span
-                          className={`status-badge status-${formatStatus(
-                            ticket.status
-                          )
-                            .toLowerCase()
-                            .replace(" ", "-")}`}
-                        >
-                          {formatStatus(ticket.status)}
-                        </span>
-                      </td>
-                      <td>
-                        {formatStatus(ticket.status) === "Pending" ? (
-                          <button
-                            className="btn-cancel-red"
-                            onClick={() => {
-                              setSelectedTicketId(ticket.id);
-                              setShowConfirmModal(true);
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        ) : (
-                          <button className="btn btn-secondary btn-sm" disabled>
-                            {formatStatus(ticket.status)}
-                          </button>
-                        )}
-                      </td>
+          {loading ? (
+            <div style={{ padding: "1rem" }}>Loading tickets...</div>
+          ) : (
+            <>
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th>Subject</th>
+                      <th>Message</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
 
-          {/* ================= PAGINATION ================= */}
-          <div className="table-footer">
-            <div id="tableInfo">
-              Showing {start} to {end} of {totalRecords} tickets
-            </div>
+                  <tbody>
+                    {tickets.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" style={{ textAlign: "center" }}>
+                          No tickets found.
+                        </td>
+                      </tr>
+                    ) : (
+                      tickets.map((t, i) => {
+                        const statusLabel = formatStatus(t.status);
+                        const statusClass =
+                          "status-" +
+                          statusLabel.toLowerCase().replace(" ", "-");
 
-            <div className="pagination">
-              <button
-                disabled={!pagination.has_previous}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                <i className="fa-solid fa-angle-left" />
-              </button>
+                        return (
+                          <tr key={t.id}>
+                            <td>{start + i}</td>
+                            <td>{t.tracking_id}</td>
+                            <td>{t.ticket_type}</td>
+                            <td>
+                              {t.created_at
+                                ? new Date(t.created_at).toLocaleDateString()
+                                : "-"}
+                            </td>
+                            <td>{t.subject}</td>
+                            <td>{t.content}</td>
+                            <td>
+                              <span className={`status-pill ${statusClass}`}>
+                                ● {statusLabel}
+                              </span>
+                            </td>
+                            <td>
+                              {statusLabel === "Pending" ? (
+                                <button
+                                  className="btn-cancel-red"
+                                  onClick={() => {
+                                    setSelectedTicketId(t.id);
+                                    setShowConfirmModal(true);
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              ) : (
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  disabled
+                                >
+                                  {statusLabel}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-              <button className="active-page">{currentPage}</button>
+              {/* PAGINATION */}
+              <div className="table-footer">
+                <div id="tableInfo">
+                  Showing {start} to {end} of {total_records} tickets
+                </div>
 
-              <button
-                disabled={!pagination.has_next}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                <i className="fa-solid fa-angle-right" />
-              </button>
-            </div>
-          </div>
-        </section>
+                <div className="pagination">
+                  <button
+                    disabled={!pagination.has_previous}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    <i className="fa-solid fa-angle-left" />
+                  </button>
+
+                  <button className="active-page">{current_page}</button>
+
+                  <button
+                    disabled={!pagination.has_next}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    <i className="fa-solid fa-angle-right" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </main>
-
-      {/* ===== SIDEBAR OVERLAY ===== */}
-      {isSidebarOpen && (
-        <div
-          className="sidebar-overlay show"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
 
       {/* ===== MODALS ===== */}
       {showConfirmModal && (
@@ -403,6 +381,14 @@ const SupportAdminMyTicketsPage = () => {
           title="Ticket Cancelled"
           message="This ticket has been successfully cancelled."
           onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {/* ===== OVERLAY ===== */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay show"
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
     </div>
