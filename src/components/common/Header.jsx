@@ -39,7 +39,7 @@ function Header({ onMenuClick }) {
             className="logout-btn"
             onClick={async () => {
               await logoutUser();
-              window.location.href = "/";
+              window.location.href = "/login";
             }}
           >
             Logout

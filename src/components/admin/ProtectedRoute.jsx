@@ -37,7 +37,7 @@ const ProtectedRoute = ({
   if (isLoading) return null;
 
   if (!isAuthenticated) {
-    window.location.href = "/";
+    window.location.href = "/login";
     return null;
   }
 

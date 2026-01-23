@@ -367,7 +367,7 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
               await logoutUser();
             } finally {
               onClose();
-              window.location.href = "/";
+              window.location.href = "/login";
             }
           }}
         >
