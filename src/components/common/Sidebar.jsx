@@ -316,6 +316,28 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
             </li>
           </ul>
         </li>
+ 
+
+
+ 
+        {/* ================= USER HELP & SUPPORT ================= */}
+{!isClientAdmin && (
+  <li className="nav-item">
+    <Link
+      to="/user/support"
+      className={`nav-link ${isActive("/user/support") ? "active" : ""}`}
+      onClick={handleLinkClick}
+    >
+      <span className="nav-icon">
+        <i className="fa-solid fa-circle-question" />
+      </span>
+      Help & Support
+    </Link>
+  </li>
+)}
+
+
+
         {isClientAdmin && (
           <li className={navHasSubmenu("support")}>
             <button
