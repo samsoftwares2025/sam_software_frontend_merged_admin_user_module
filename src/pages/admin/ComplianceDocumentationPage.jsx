@@ -5,7 +5,8 @@ import "../../assets/styles/admin.css";
 
 import {
   getSupportTickets,
-  filterSupportTickets,getEmployeesList_filter
+  filterSupportTickets,
+  getEmployeesList_filter,
 } from "../../api/admin/support_tickets";
 
 import Select from "react-select";
@@ -228,7 +229,7 @@ function ComplianceDocumentationPage() {
                 classNamePrefix="react-select"
                 value={
                   employeeOptions.find(
-                    (o) => o.value === Number(submittedBy)
+                    (o) => o.value === Number(submittedBy),
                   ) || null
                 }
                 onChange={(opt) => {
@@ -365,7 +366,14 @@ function ComplianceDocumentationPage() {
                               >
                                 <i className="fa-solid fa-eye" />
                               </button>
-
+                              <ProtectedAction
+                                module="designation"
+                                action="update"
+                                to={`/admin/update/compliance-ticket/${t.id}`}
+                                className="icon-btn edit"
+                              >
+                                <i className="fa-solid fa-pen" />
+                              </ProtectedAction>
                               <button
                                 className="icon-btn edit"
                                 onClick={() =>
@@ -415,7 +423,7 @@ function ComplianceDocumentationPage() {
                       >
                         {p}
                       </button>
-                    )
+                    ),
                   )}
 
                   <button

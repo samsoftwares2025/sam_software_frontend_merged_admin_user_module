@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+import ProtectedAction from "../../components/admin/ProtectedAction";
 
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
@@ -74,7 +75,7 @@ function DesignationsPage() {
     if (!term) return designations;
 
     return designations.filter((d) =>
-      (d.name || "").toLowerCase().includes(term)
+      (d.name || "").toLowerCase().includes(term),
     );
   }, [searchTerm, designations]);
 
@@ -99,7 +100,7 @@ function DesignationsPage() {
       await apiDeleteDesignation(designationToDelete.id);
 
       setDesignations((prev) =>
-        prev.filter((item) => item.id !== designationToDelete.id)
+        prev.filter((item) => item.id !== designationToDelete.id),
       );
 
       setDeleting(false);
@@ -153,7 +154,6 @@ function DesignationsPage() {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-
           <div className="page-title">
             <h3>Designations</h3>
             <p className="subtitle">Manage company designations easily.</p>
@@ -180,14 +180,14 @@ function DesignationsPage() {
                 <i className="fa-solid fa-rotate" /> Refresh
               </button>
 
-              <button
+              <ProtectedAction
+                module="designation"
+                action="add"
+                to="/admin/add-Designation"
                 className="btn btn-primary"
-                onClick={() =>
-                  (window.location.href = "/admin/add-Designation")
-                }
               >
                 <i className="fa-solid fa-plus" /> Add Designation
-              </button>
+              </ProtectedAction>
             </div>
           </div>
 
@@ -223,30 +223,29 @@ function DesignationsPage() {
                       </td>
 
                       <td>
-                        <div className="wrap">
-                          {row.department_name || "—"}
-                        </div>
+                        <div className="wrap">{row.department_name || "—"}</div>
                       </td>
 
                       <td>
                         <div className="table-actions">
-                          <button
+                          
+                          <ProtectedAction
+                            module="designation"
+                            action="update"
+                            to={`/admin/update-Designation?id=${row.id}`}
                             className="icon-btn edit"
-                            title="Edit"
-                            onClick={() =>
-                              (window.location.href = `/admin/update-Designation?id=${row.id}`)
-                            }
                           >
                             <i className="fa-solid fa-pen" />
-                          </button>
-
-                          <button
+                          </ProtectedAction>
+                           <ProtectedAction
+                            module="designation"
+                            action="delete"
+                            onAllowed={() => openDeleteModal(row)}
                             className="icon-btn delete"
-                            title="Delete"
-                            onClick={() => openDeleteModal(row)}
                           >
                             <i className="fa-solid fa-trash" />
-                          </button>
+                          </ProtectedAction>
+                        
                         </div>
                       </td>
                     </tr>
@@ -254,7 +253,10 @@ function DesignationsPage() {
 
                   {!loading && filteredDesignations.length === 0 && (
                     <tr>
-                      <td colSpan="4" style={{ textAlign: "center", padding: 16 }}>
+                      <td
+                        colSpan="4"
+                        style={{ textAlign: "center", padding: 16 }}
+                      >
                         No designations found
                       </td>
                     </tr>

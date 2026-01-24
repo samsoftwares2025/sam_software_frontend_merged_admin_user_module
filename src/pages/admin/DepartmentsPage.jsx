@@ -8,6 +8,7 @@ import LoaderOverlay from "../../components/common/LoaderOverlay";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
+import ProtectedAction from "../../components/admin/ProtectedAction";
 
 import "../../assets/styles/admin.css";
 
@@ -79,7 +80,7 @@ function DepartmentsPage() {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return departments;
     return departments.filter((d) =>
-      (d.name || "").toLowerCase().includes(term)
+      (d.name || "").toLowerCase().includes(term),
     );
   }, [searchTerm, departments]);
 
@@ -160,7 +161,6 @@ function DepartmentsPage() {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((prev) => !prev)} />
 
-
           <div className="page-title">
             <h3>Departments</h3>
             <p className="subtitle">Manage company departments easily.</p>
@@ -186,14 +186,14 @@ function DepartmentsPage() {
                 <i className="fa-solid fa-rotate" /> Refresh
               </button>
 
-              <button
+              <ProtectedAction
+                module="department"
+                action="add"
+                to="/admin/add-department"
                 className="btn btn-primary"
-                onClick={() =>
-                  (window.location.href = "/admin/add-department")
-                }
               >
                 <i className="fa-solid fa-plus" /> Add Department
-              </button>
+              </ProtectedAction>
             </div>
           </div>
 
@@ -233,22 +233,23 @@ function DepartmentsPage() {
 
                       <td>
                         <div className="table-actions">
-                          <button
+                          <ProtectedAction
+                            module="department"
+                            action="update"
+                            to={`/admin/update-department?id=${row.id}`}
                             className="icon-btn edit"
-                            onClick={() =>
-                              (window.location.href =
-                                `/admin/update-department?id=${row.id}`)
-                            }
                           >
                             <i className="fa-solid fa-pen" />
-                          </button>
+                          </ProtectedAction>
 
-                          <button
+                          <ProtectedAction
+                            module="department"
+                            action="delete"
+                            onAllowed={() => openDeleteModal(row)}
                             className="icon-btn delete"
-                            onClick={() => openDeleteModal(row)}
                           >
                             <i className="fa-solid fa-trash" />
-                          </button>
+                          </ProtectedAction>
                         </div>
                       </td>
                     </tr>
