@@ -139,13 +139,22 @@ export default function PreviousExperienceSection({
         );
       })}
 
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={onAdd}
-      >
-        <i className="fa-solid fa-plus" /> Add Experience
-      </button>
+      <div
+  style={{
+    marginTop: experiences.length === 0 ? "12px" : "0",
+    marginLeft: experiences.length === 0 ? "28px" : "0",
+  }}
+>
+  <button
+    type="button"
+    className="btn btn-primary"
+    onClick={onAdd}
+  >
+    <i className="fa-solid fa-plus me-2" />
+    Add Experience
+  </button>
+</div>
+
     </div>
   );
 }
