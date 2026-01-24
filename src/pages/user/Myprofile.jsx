@@ -253,7 +253,7 @@ const Myprofile = () => {
 
             {/* ================= ADDRESS ================= */}
             <div className="card info-card">
-              <h3>Address Details</h3>
+              <h3>Address Details1</h3>
               <p><b>Address:</b> {profile.address || "-"}</p>
               <p><b>City:</b> {profile.city || "-"}</p>
               <p><b>State:</b> {profile.state || "-"}</p>
