@@ -79,19 +79,33 @@ export const filterSupportTickets = async (filters = {}) => {
 // src/api/admin/support_tickets.js
 
 
+// src/api/admin/support_tickets.js
+
+
 export const getSupportTicketById = async (ticketId) => {
   const userId = getUserId();
+  if (!userId) throw new Error("Session expired");
 
-  if (!userId) {
-    throw new Error("Session expired");
+  try {
+    // 🔵 TRY POST FIRST (clean, expected)
+    const { data } = await http.post("/users/user-get-support-ticket/", {
+      user_id: userId,
+      ticket_id: ticketId,
+    });
+    return data;
+  } catch (err) {
+    // 🔴 FALLBACK TO GET (prod-safe)
+    if (err.response?.status === 404) {
+      const { data } = await http.get("/users/user-get-support-ticket/", {
+        params: {
+          user_id: userId,
+          ticket_id: ticketId,
+        },
+      });
+      return data;
+    }
+    throw err;
   }
-
-  const { data } = await http.post("/users/user-get-support-ticket/", {
-    user_id: userId,
-    ticket_id: ticketId,
-  });
-
-  return data;
 };
 
 
