@@ -5,13 +5,15 @@ import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 import { getSupportTicketById } from "../../api/admin/support_tickets";
+import { API_BASE_URL } from "../../api/config";
 
-/* Convert /media/... to full URL */
 const getFileUrl = (url) => {
   if (!url) return null;
   if (url.startsWith("http")) return url;
-  return `${window.location.origin}${url}`;
+  return `${API_BASE_URL}${url}`;
 };
+
+
 
 function ComplianceTicketDetails() {
   const { id } = useParams(); // same as EmployeeProfile
