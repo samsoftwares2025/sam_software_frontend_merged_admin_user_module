@@ -154,114 +154,88 @@ main.main {
     color: var(--text-light);
 }
 
-/* Header */
+/* ================= HEADER ================= */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
-    gap: 12px;
+    gap: 8px;
+    margin-bottom: 6px;   /* reduced */
     flex-wrap: wrap;
-
-
+   
 }
 
-/* common style for the line */
+/* ================= SEPARATOR LINE ================= */
 .the_line {
-  border-bottom: 1px solid var(--muted-border);
-  margin-bottom: 2%;
+    border-bottom: 1px solid var(--muted-border);
+    margin-bottom: 6px;
 }
 
-/* adjust only the sidebar's line to match header’s vertical position */
-
-
-/* header line – no extra top margin */
-
-
-
+/* ================= TITLE ================= */
 .page-title h1 {
-    font-size: 26px;
-    margin-bottom: 6px;
+    font-size: 18px;      /* smaller */
+    margin: 0;
+    line-height: 1.1;    /* tighter */
 }
 
-.page-title p {
-    color: var(--text-light);
-    font-size: 14px;
-    margin-bottom: 6px;
-}
-
-.page-title h3 {
-    font-size: 19px;
-    margin-bottom: 2%;
-}
-
+.page-title p,
+.page-title h3,
 .page-title p.subtitle {
-    margin-bottom: 2%;
+    margin: 0;
 }
 
+/* ================= ACTIONS ================= */
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
 }
 
+/* ================= NOTIFICATION ================= */
 .notification-btn {
-    position: relative;
-    width: 44px;
-    height: 44px;
+    width: 32px;         /* smaller */
+    height: 32px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    border: 1px solid var(--muted-border);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    background: #f1f5f9;
-    border: 1px solid var(--muted-border);
-    cursor: pointer;
-    transition: var(--transition);
+    padding: 0;
 }
 
-.notification-btn:hover {
-    transform: translateY(1px);
-    box-shadow: var(--shadow);
-}
-
-/* small round badge used in a few places */
+/* ================= BADGE ================= */
 .notification-badge {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: var(--danger);
-    color: #fff;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.35);
-    animation: pulse 2s infinite;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    top: -4px;
+    right: -4px;
 }
 
-@keyframes pulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.06);
-    }
-}
-
+/* ================= DATE ================= */
 .current-date {
-    padding: 10px 14px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    border: 1px solid var(--muted-border);
-    font-weight: 600;
-    color: var(--text-light);
-    white-space: nowrap;
+    padding: 4px 8px;    /* reduced */
+    font-size: 12px;
+    border-radius: 6px;
+    line-height: 1;
 }
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+    .header {
+        flex-wrap: nowrap;   /* stay single-row */
+    }
+
+    .page-title h1 {
+        font-size: 16px;
+    }
+
+    .current-date {
+        display: none;      /* remove vertical bulk */
+    }
+}
+
 
 /* Navigation */
 .nav-menu {
@@ -3482,4 +3456,132 @@ table.data-table th.wrap {
   color: var(--accent);
   padding: 0;
   line-height: 1;
+}
+
+
+
+/* ================= FILTERS – MOBILE FIX ================= */
+@media (max-width: 768px) {
+
+    .filters-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filters-left {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    /* force ALL filters same width */
+    .filters-left > * {
+        width: 100% !important;
+    }
+
+    /* search input */
+    .search-input {
+        width: 100%;
+    }
+
+    .search-input input {
+        width: 100%;
+    }
+
+    /* normal select */
+    .filter-select {
+        width: 100%;
+    }
+
+    /* react-select override */
+    .react-select__control {
+        width: 100%;
+        min-height: 34px;
+    }
+
+    .react-select__value-container {
+        padding: 0 8px;
+    }
+
+    /* clear filter button */
+    .filters-container > .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ================= FILTERS – MOBILE (HARD FIX) ================= */
+@media (max-width: 768px) {
+
+    .filters-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filters-left {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    /* force every child full width */
+    .filters-left > div,
+    .filters-left > select {
+        width: 100% !important;
+    }
+
+    /* SEARCH */
+    .search-input {
+        width: 100%;
+    }
+
+    .search-input input {
+        width: 100%;
+    }
+
+    /* NORMAL SELECT */
+    .filter-select {
+        width: 100%;
+    }
+
+    /* ================= REACT SELECT (CRITICAL FIX) ================= */
+    .react-select {
+        width: 100% !important;
+    }
+
+    .react-select__control {
+        width: 100% !important;
+        min-height: 40px;
+        box-sizing: border-box;
+    }
+
+    .react-select__value-container {
+        width: 100%;
+        padding: 0 10px;
+    }
+
+    .react-select__indicators {
+        padding-right: 6px;
+    }
+
+    /* CLEAR FILTER BUTTON */
+    .filters-container > .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+/* filter item wrapper */
+.filter-item {
+    width: 200px;
+}
+
+/* mobile override */
+@media (max-width: 768px) {
+    .filter-item {
+        width: 100%;
+    }
 }

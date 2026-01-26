@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
+import ProtectedAction from "../../components/admin/ProtectedAction";
 
 import {
   getSupportTickets,
@@ -221,7 +222,8 @@ function ComplianceDocumentationPage() {
             </select>
 
             {/* SUBMITTED BY - SEARCHABLE */}
-            <div style={{ width: 200 }}>
+           <div className="filter-item">
+
               <Select
                 options={employeeOptions}
                 placeholder="Submitted By"
@@ -240,7 +242,8 @@ function ComplianceDocumentationPage() {
             </div>
 
             {/* ASSIGNED TO - SEARCHABLE */}
-            <div style={{ width: 200 }}>
+           <div className="filter-item">
+
               <Select
                 options={employeeOptions}
                 placeholder="Assigned To"
@@ -367,21 +370,14 @@ function ComplianceDocumentationPage() {
                                 <i className="fa-solid fa-eye" />
                               </button>
                               <ProtectedAction
-                                module="designation"
+                                module="supporting tickets"
                                 action="update"
                                 to={`/admin/update/compliance-ticket/${t.id}`}
                                 className="icon-btn edit"
                               >
                                 <i className="fa-solid fa-pen" />
                               </ProtectedAction>
-                              <button
-                                className="icon-btn edit"
-                                onClick={() =>
-                                  (window.location.href = `/admin/update/compliance-ticket/${t.id}`)
-                                }
-                              >
-                                <i className="fa-solid fa-pen" />
-                              </button>
+                              
                             </div>
                           </td>
                         </tr>

@@ -24,7 +24,7 @@ function Header({ onMenuClick }) {
         </button>
 
         <div className="page-title">
-          <h1>Welcome {userName}</h1>
+          <h3>Welcome {userName}</h3>
         </div>
 
         <div className="header-actions">
