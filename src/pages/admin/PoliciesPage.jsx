@@ -45,26 +45,27 @@ function PoliciesPage() {
   /* ===============================
       DOWNLOAD HELPER
   ================================ */
-  const downloadFile = async (fileUrl, fileName = "policy") => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fileName;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setErrorMessage("Unable to download file.");
-      setShowErrorModal(true);
+  const downloadFile = (fileUrl, fileName = "policy") => {
+  try {
+    if (!fileUrl) {
+      throw new Error("Invalid file URL");
     }
-  };
+
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = fileName;   // hint for filename
+    link.target = "_blank";     // fallback for some browsers
+    link.rel = "noopener noreferrer";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    setErrorMessage("Unable to download file.");
+    setShowErrorModal(true);
+  }
+};
+
 
   /* ===============================
       LOAD POLICIES
