@@ -74,7 +74,6 @@ export const filterSupportTickets = async (filters) => {
  * ===============================
  */
 
-
 export const getSupportTicketById = async (ticketId) => {
   const userId = localStorage.getItem("userId");
 
@@ -82,15 +81,18 @@ export const getSupportTicketById = async (ticketId) => {
     throw new Error("Session expired");
   }
 
+  const payload = JSON.stringify({
+    user_id: Number(userId),
+    ticket_id: Number(ticketId),
+  });
+
   const { data } = await http.post(
     "/users/user-get-support-ticket/",
-    {
-      user_id: userId,
-      ticket_id: ticketId,
-    },
+    payload,
     {
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
     }
   );
