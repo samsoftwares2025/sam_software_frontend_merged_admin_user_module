@@ -78,16 +78,22 @@ export const filterSupportTickets = async (filters) => {
 export const getSupportTicketById = async (ticketId) => {
   const userId = localStorage.getItem("userId");
 
-
   if (!userId) {
     throw new Error("Session expired");
   }
 
-  const { data } = await http.post("/users/user-get-support-ticket/", {
-    user_id: userId,
-    ticket_id: ticketId,
-
-  });
+  const { data } = await http.post(
+    "/users/user-get-support-ticket/",
+    {
+      user_id: userId,
+      ticket_id: ticketId,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   return data;
 };
