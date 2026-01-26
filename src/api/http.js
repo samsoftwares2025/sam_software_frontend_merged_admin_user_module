@@ -4,24 +4,31 @@ import { triggerShow, triggerHide } from "./loaderRegistry";
 
 const isDev = import.meta.env.DEV;
 
+/* ================= AXIOS INSTANCE ================= */
 const http = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
   withCredentials: true,
-  
 });
 
-/* 🔄 GLOBAL LOADER HOOK */
-http.interceptors.request.use((req) => {
-  triggerShow();
-  return req;
-});
+/* ================= REQUEST INTERCEPTOR ================= */
+http.interceptors.request.use(
+  (config) => {
+    triggerShow();
 
-/* 🔄 GLOBAL LOADER HIDE */
-http.interceptors.response.use(
-  (res) => {
-    triggerHide();
-    return res;
+    // ✅ ENSURE JSON BODY IS PRESERVED
+    return {
+      ...config,
+      data: config.data,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...config.headers,
+      },
+      ...(isDev && {
+        metadata: { startTime: new Date() },
+      }),
+    };
   },
   (error) => {
     triggerHide();
@@ -29,41 +36,47 @@ http.interceptors.response.use(
   }
 );
 
-/* 🔐 Allow external modules to set/clear auth token */
-export const setAuth = ({ token = null } = {}) => {
-  if (token) {
-    http.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete http.defaults.headers.common["Authorization"];
-  }
-};
-
-/* 🔎 DEV logging */
-http.interceptors.request.use((req) => {
-  if (isDev) {
-    req.metadata = { startTime: new Date() };
-    console.info("[HTTP] →", req.method?.toUpperCase(), req.baseURL + req.url);
-  }
-  return req;
-});
-
+/* ================= RESPONSE INTERCEPTOR ================= */
 http.interceptors.response.use(
-  (res) => {
-    if (isDev && res.config.metadata) {
-      res.config.metadata.endTime = new Date();
-      res.duration =
-        res.config.metadata.endTime - res.config.metadata.startTime;
+  (response) => {
+    triggerHide();
+
+    /* 🔎 DEV LOGGING */
+    if (isDev && response.config.metadata) {
+      const endTime = new Date();
+      const duration = endTime - response.config.metadata.startTime;
 
       console.info(
-        `[HTTP] ← ${res.status} (${res.duration}ms)`,
-        res.config.url
+        `[HTTP] ← ${response.status} (${duration}ms)`,
+        response.config.url
       );
     }
-    return res;
+
+    return response;
   },
   (error) => {
+    triggerHide();
+
+    if (isDev) {
+      console.error(
+        "[HTTP ERROR]",
+        error.response?.status,
+        error.config?.url,
+        error.response?.data
+      );
+    }
+
     return Promise.reject(error);
   }
 );
+
+/* ================= AUTH TOKEN HANDLER ================= */
+export const setAuth = ({ token = null } = {}) => {
+  if (token) {
+    http.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete http.defaults.headers.common.Authorization;
+  }
+};
 
 export default http;
