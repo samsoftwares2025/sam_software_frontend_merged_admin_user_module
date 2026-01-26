@@ -1,8 +1,9 @@
+// src/pages/admin/ComplianceTicketDetails.jsx
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
-import { useParams } from "react-router-dom";
 import { getSupportTicketById } from "../../api/admin/support_tickets";
 
 /* Convert /media/... to full URL */
@@ -13,55 +14,51 @@ const getFileUrl = (url) => {
 };
 
 function ComplianceTicketDetails() {
+  const { id } = useParams(); // same as EmployeeProfile
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("organization");
-  const { id } = useParams();
+
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [preview, setPreview] = useState(null);
 
-  const downloadFile = async (fileUrl, fileName = "attachment") => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
-      alert("Unable to download file.");
-    }
-  };
-
-  const fetchTicket = async () => {
-    setLoading(true);
-    try {
-      const res = await getSupportTicketById(id);
-      if (res?.support_ticket) setTicket(res.support_ticket);
-      else setError("Ticket not found");
-    } catch (err) {
-      setError("Failed to load ticket details.");
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
+    let mounted = true;
+
+    const fetchTicket = async () => {
+      try {
+        const res = await getSupportTicketById(id);
+
+        if (!res?.support_ticket) {
+          throw new Error("Ticket not found");
+        }
+
+        if (mounted) setTicket(res.support_ticket);
+      } catch (err) {
+        if (mounted) {
+          setError(err.message || "Failed to load ticket details.");
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
     fetchTicket();
+    return () => (mounted = false);
   }, [id]);
 
-  if (loading)
-    return (
-      <div style={{ padding: "2rem", fontSize: 18 }}>Loading ticket...</div>
-    );
-  if (error)
-    return <div style={{ padding: "2rem", color: "red" }}>{error}</div>;
-  if (!ticket) return null;
+  if (loading) {
+    return <main className="main">Loading ticket...</main>;
+  }
+
+  if (error) {
+    return <main className="main">{error}</main>;
+  }
+
+  if (!ticket) {
+    return <main className="main">No ticket data found.</main>;
+  }
 
   const file = getFileUrl(ticket.attachment?.url);
   const isImage = file && /\.(png|jpg|jpeg|gif|webp)$/i.test(file);
@@ -69,10 +66,12 @@ function ComplianceTicketDetails() {
   return (
     <div className="container">
       <Sidebar
-      isMobileOpen={isSidebarOpen}
+        isMobileOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         openSection={openSection}
-        setOpenSection={setOpenSection} />
+        setOpenSection={setOpenSection}
+      />
+
       <main className="main">
         <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
@@ -81,19 +80,21 @@ function ComplianceTicketDetails() {
           <p className="subtitle">A clean overview of this support ticket.</p>
         </div>
 
-        {/* MAIN CARD */}
         <div className="ticket-box">
-          {/* Row */}
           <div className="ticket-row">
             <label>Date</label>
             <span>
-              {new Date(ticket.created_at).toLocaleDateString("en-GB")}
+              {ticket.created_at
+                ? new Date(ticket.created_at).toLocaleDateString("en-GB")
+                : "-"}
             </span>
           </div>
-         <div className="ticket-row">
+
+          <div className="ticket-row">
             <label>Tracking ID</label>
             <span>{ticket.tracking_id}</span>
           </div>
+
           <div className="ticket-row">
             <label>Subject</label>
             <span>{ticket.subject}</span>
@@ -117,7 +118,9 @@ function ComplianceTicketDetails() {
           <div className="ticket-row">
             <label>Status</label>
             <span
-              className={`status-pill status-${ticket.status?.toLowerCase()}`}
+              className={`status-pill status-${ticket.status
+                ?.toLowerCase()
+                .replace(/\s+/g, "-")}`}
             >
               {ticket.status}
             </span>
@@ -139,7 +142,18 @@ function ComplianceTicketDetails() {
 
                 <button
                   className="btn download-btn"
-                  onClick={() => downloadFile(file, ticket.attachment?.name)}
+                  onClick={async () => {
+                    const response = await fetch(file);
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = ticket.attachment?.name || "attachment";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
                 >
                   Download
                 </button>
@@ -159,8 +173,6 @@ function ComplianceTicketDetails() {
           </div>
         </div>
       )}
-
-      
     </div>
   );
 }

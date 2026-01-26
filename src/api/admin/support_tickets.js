@@ -76,6 +76,9 @@ export const filterSupportTickets = async (filters = {}) => {
  * Get Single Support Ticket
  * ===============================
  */
+// src/api/admin/support_tickets.js
+
+
 export const getSupportTicketById = async (ticketId) => {
   const userId = getUserId();
 
@@ -83,19 +86,14 @@ export const getSupportTicketById = async (ticketId) => {
     throw new Error("Session expired");
   }
 
-  const payload = {
+  const { data } = await http.post("/users/user-get-support-ticket/", {
     user_id: userId,
     ticket_id: ticketId,
-  };
-
-  const { data } = await http.post(
-    "/users/user-get-support-ticket/",
-    payload,
-    { headers: { "Content-Type": "application/json" } }
-  );
+  });
 
   return data;
 };
+
 
 /**
  * ===============================
