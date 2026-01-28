@@ -467,6 +467,12 @@ function EmployeeDocumentsPage() {
           />
         )}
       </main>
+      
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
     </div>
   );
 }

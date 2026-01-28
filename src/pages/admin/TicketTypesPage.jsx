@@ -3,6 +3,10 @@ import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 import ProtectedAction from "../../components/admin/ProtectedAction";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+
 
 import {
   getTicketTypes as apiGetTicketTypes,
@@ -18,16 +22,20 @@ function TicketTypesPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+    
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // delete modal
+  /* ================= Success MODAL ================= */
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  /* ================= DELETE MODAL ================= */
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
 
-  /* ==============================
-        LOAD TICKET TYPES
-  =============================== */
+  /* ================= LOAD DATA ================= */
   const fetchTicketTypes = async () => {
     setLoading(true);
     setError(null);
@@ -36,12 +44,10 @@ function TicketTypesPage() {
       const resp = await apiGetTicketTypes();
 
       let list = [];
-      if (resp && Array.isArray(resp.types)) list = resp.types;
+      if (Array.isArray(resp?.types)) list = resp.types;
       else if (Array.isArray(resp)) list = resp;
-      else if (Array.isArray(resp.results)) list = resp.results;
-      else if (Array.isArray(resp.data)) list = resp.data;
-      else if (resp && typeof resp === "object")
-        list = resp.types || resp.results || resp.data || [];
+      else if (Array.isArray(resp?.results)) list = resp.results;
+      else if (Array.isArray(resp?.data)) list = resp.data;
 
       setTicketTypes(Array.isArray(list) ? list : []);
     } catch (err) {
@@ -64,9 +70,7 @@ function TicketTypesPage() {
     fetchTicketTypes();
   }, []);
 
-  /* ==============================
-         FRONTEND SEARCH
-  =============================== */
+  /* ================= SEARCH ================= */
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return ticketTypes;
@@ -78,41 +82,44 @@ function TicketTypesPage() {
   const totalCount = ticketTypes.length;
   const visibleCount = filtered.length;
 
-  /* ==============================
-            DELETE
-  =============================== */
-  const openDeleteModal = (item) => {
-    setTypeToDelete(item);
-    setDeleteError(null);
-    setShowDeleteModal(true);
-  };
+  /* ================= DELETE HANDLERS ================= */
+const openDeleteModal = (item) => {
+  setTypeToDelete(item);
+  setShowDeleteModal(true);
+};
+
 
   const closeDeleteModal = () => {
     setShowDeleteModal(false);
     setTypeToDelete(null);
     setDeleting(false);
-    setDeleteError(null);
   };
 
-  const confirmDelete = async () => {
-    if (!typeToDelete) return;
+ const confirmDelete = async () => {
+  if (!typeToDelete) return;
 
-    setDeleting(true);
-    try {
-      await apiDeleteTicketType(typeToDelete.id);
+  setDeleting(true);
+  try {
+    await apiDeleteTicketType(typeToDelete.id);
 
-      setTicketTypes((prev) => prev.filter((t) => t.id !== typeToDelete.id));
+    setTicketTypes((prev) =>
+      prev.filter((t) => t.id !== typeToDelete.id)
+    );
 
-      closeDeleteModal();
-    } catch {
-      setDeleteError("Unable to delete ticket type.");
-      setDeleting(false);
-    }
-  };
+    closeDeleteModal();
 
-  /* ==============================
-              RENDER
-  =============================== */
+    setSuccessMessage("Ticket type deleted successfully.");
+    setShowSuccessModal(true);
+  } catch {
+    setDeleting(false);
+
+    setErrorMessage("Failed to delete ticket type.");
+    setShowErrorModal(true);
+  }
+};
+
+
+  /* ================= RENDER ================= */
   return (
     <div className="container">
       <Sidebar
@@ -124,7 +131,6 @@ function TicketTypesPage() {
 
       <main className="main">
         <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
-
 
         <div className="page-title">
           <h3>Ticket Types</h3>
@@ -195,7 +201,6 @@ function TicketTypesPage() {
                     <td style={{ textAlign: "center" }}>{index + 1}</td>
                     <td className="wrap">{row.title}</td>
                     <td className="wrap">{row.description || "-"}</td>
-
                     <td>
                       <div className="table-actions">
                         <ProtectedAction
@@ -224,10 +229,7 @@ function TicketTypesPage() {
 
                 {!loading && filtered.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={5}
-                      style={{ textAlign: "center", padding: "1.5rem" }}
-                    >
+                    <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>
                       No ticket types found.
                     </td>
                   </tr>
@@ -241,61 +243,35 @@ function TicketTypesPage() {
           </div>
         </div>
       </main>
+ {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
 
-      {/* DELETE MODAL */}
+      {/* ERROR MODAL */}
+{showErrorModal && (
+  <ErrorModal
+    message={errorMessage}
+    onClose={() => setShowErrorModal(false)}
+  />
+)}
+
+      {/* COMMON DELETE MODAL */}
       {showDeleteModal && (
-        <div className="modal-backdrop" style={backdropStyle}>
-          <div style={modalStyle}>
-            <h3>Confirm delete</h3>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong>{typeToDelete?.title}</strong>?
-            </p>
+        <DeleteConfirmModal
+          title="Confirm delete"
+          message={`Are you sure you want to delete "${typeToDelete?.title}"?`}
+          loading={deleting}
+          onClose={closeDeleteModal}
 
-            {deleteError && (
-              <div style={{ color: "orange", marginBottom: 8 }}>
-                {deleteError}
-              </div>
-            )}
-
-            <div
-              style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
-            >
-              <button className="btn" onClick={closeDeleteModal}>
-                Cancel
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={confirmDelete}
-                disabled={deleting}
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+          onConfirm={confirmDelete}
+        />
       )}
     </div>
   );
 }
-
-/* BACKDROP STYLE */
-const backdropStyle = {
-  position: "fixed",
-  inset: 0,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 2000,
-};
-
-/* MODAL STYLE */
-const modalStyle = {
-  background: "#fff",
-  padding: "1.25rem",
-  borderRadius: 8,
-  width: 420,
-};
 
 export default TicketTypesPage;

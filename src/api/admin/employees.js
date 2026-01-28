@@ -48,18 +48,20 @@ export const filterEmployeeMasterData = async (payload) => {
 /**
  * getEmployeeHistoryData
  */
-export const getEmployeeHistoryData = async () => {
-
+export const getEmployeeHistoryData = async ({ page = 1, page_size = 20 }) => {
   const userId = localStorage.getItem("userId");
 
   const { data } = await http.post(
     "/hr/list-employee-master-data/",
-    { user_id: userId }
+    {
+      user_id: userId,
+      page,
+      page_size,
+    }
   );
 
   return data;
 };
-
 
 
 export const filterEmployeeHistoryData = async (payload) => {
@@ -71,16 +73,13 @@ export const filterEmployeeHistoryData = async (payload) => {
       user_id: userId,
       search: payload?.search || "",
       is_active:
-  payload?.is_active === undefined || payload?.is_active === ""
-    ? ""
-    : payload.is_active,
-
-      department_id: payload?.department_id || "", 
-      employment_type_id: payload?.employment_type_id ?? "",
+        payload?.is_active === undefined || payload?.is_active === ""
+          ? ""
+          : payload.is_active,
+      department_id: payload?.department_id || "",
+      employment_type_id: payload?.employment_type_id || "",
       page: payload?.page || 1,
       page_size: payload?.page_size || 20,
-      page_size: payload?.page_size || 20,
-
     }
   );
 

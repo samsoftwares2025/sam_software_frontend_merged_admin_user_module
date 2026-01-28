@@ -185,6 +185,12 @@ function MyProfile() {
             <p><b>Email:</b> {profile.emergency_contact_email || "-"}</p>
           </div>
         </section>
+        
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       </main>
     </div>
   );

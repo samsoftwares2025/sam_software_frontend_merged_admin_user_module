@@ -179,12 +179,11 @@ const RolesPermissions = () => {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-          <div className="header">
+          
             <div className="page-title">
-              <h1>Roles and Permissions</h1>
+              <h3>Roles and Permissions</h3>
               <p className="subtitle">Manage user roles dynamically.</p>
             </div>
-          </div>
 
           <div className="filters-container">
             <div className="filters-left">

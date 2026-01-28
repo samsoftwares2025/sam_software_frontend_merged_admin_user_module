@@ -7,7 +7,6 @@ import { getDepartments_employee_mgmnt } from "../../api/admin/departments";
 import ProtectedAction from "../../components/admin/ProtectedAction";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 
-
 import {
   getEmployeeMasterData,
   filterEmployeeMasterData,
@@ -229,16 +228,16 @@ function EmployeeMasterDataPage() {
         <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
         <div
-          className="page-title"
+          className=""
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
           }}
         >
-          <div>
+          <div >
             <h3>Employee Master Data</h3>
-            <p className="subtitle">
+            <p className="subtitle-master">
               View, filter and manage all employee records.
             </p>
           </div>
@@ -449,16 +448,21 @@ function EmployeeMasterDataPage() {
           )}
         </div>
       </main>
+      
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       {showDeleteModal && (
-  <DeleteConfirmModal
-    title="Delete Employee"
-    message={`Are you sure you want to delete ${employeeToDelete?.name}?`}
-    loading={deleting}
-    onClose={closeDeleteModal}
-    onConfirm={confirmDelete}
-  />
-)}
-
+        <DeleteConfirmModal
+          title="Delete Employee"
+          message={`Are you sure you want to delete ${employeeToDelete?.name}?`}
+          loading={deleting}
+          onClose={closeDeleteModal}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   );
 }

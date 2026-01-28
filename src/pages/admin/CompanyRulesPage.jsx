@@ -382,6 +382,11 @@ function CompanyRulesPage() {
         </div>
       )}
 
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       {/* DELETE MODAL */}
       {showDeleteModal && (
         <DeleteConfirmModal

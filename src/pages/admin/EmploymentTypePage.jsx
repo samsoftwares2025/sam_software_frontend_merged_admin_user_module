@@ -257,6 +257,11 @@ function EmploymentTypesPage() {
         </main>
       </div>
 
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       {/* DELETE CONFIRM MODAL */}
       {showDeleteModal && (
         <DeleteConfirmModal

@@ -358,6 +358,12 @@ const PersonalEmploymentHistoryPage = () => {
             </div>
           )}
         </section>
+        
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       </main>
     </div>
   );

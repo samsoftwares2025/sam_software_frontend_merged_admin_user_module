@@ -312,6 +312,12 @@ function AddRolePage() {
             </form>
           </div>
         </main>
+        
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       </div>
     </>
   );

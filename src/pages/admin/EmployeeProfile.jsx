@@ -60,14 +60,14 @@ function EmployeeProfile() {
           <h3>Employee Profile</h3>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div className="edit-btn-wrapper">
           <button
-            className="btn btn-primary"
+            className="btn btn-primary edit-btn"
             onClick={() =>
               navigate(`/admin/update-employee-profile/${profile.id}`)
             }
           >
-            Edit
+            Update
           </button>
         </div>
 
@@ -232,6 +232,12 @@ function EmployeeProfile() {
             </p>
           </div>
         </section>
+
+        <div
+          id="sidebarOverlay"
+          className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+          onClick={() => setIsSidebarOpen(false)}
+        />
       </main>
     </div>
   );

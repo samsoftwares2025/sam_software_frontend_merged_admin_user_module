@@ -33,7 +33,7 @@ function Header({ onMenuClick }) {
             <span className="notification-badge">2</span>
           </button>
 
-          <div className="current-date">{formattedDate}</div>
+          {/* <div className="current-date">{formattedDate}</div> */}
 
           <button
             className="logout-btn"

@@ -240,7 +240,7 @@ function AddEmployeeDocumentsPage() {
       />
 
       <main className="main">
-        <Header />
+        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}/>
 
         <div className="page-title">
           <h3>Add Employee Documents</h3>
@@ -297,6 +297,12 @@ function AddEmployeeDocumentsPage() {
           </div>
         </form>
       </main>
+      
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
     </div>
   );
 }

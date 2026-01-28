@@ -145,7 +145,7 @@ function EmploymentHistoryPage() {
       <main className="main">
         <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-        <div className="page-title">
+        <div className="page-title" >
           <h3>Employee Employment History</h3>
           <p className="subtitle">
             View and manage employment history records.
@@ -332,6 +332,12 @@ function EmploymentHistoryPage() {
             </>
           )}
         </div>
+        
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       </main>
     </div>
   );

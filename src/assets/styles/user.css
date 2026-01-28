@@ -85,7 +85,6 @@ body {
 }
 
 aside.sidebar {
-  width: 260px;
   background: linear-gradient(180deg, #99a6a6 0%, #f8fafc 100%);
   padding: 28px 0;
   border-right: 1px solid var(--muted-border);
@@ -104,17 +103,6 @@ aside.sidebar::-webkit-scrollbar {
   display: none;
 }
 
-main.main {
-  flex: 1;
-  padding: 32px;
-  overflow: auto;
-  background: var(--bg-muted);
-   height: 100vh;      /* 🔑 same viewport height */
-  overflow-y: auto;   /* 🔑 dashboard scrolls */
-
-   scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* IE & Edge */
-}
 
 main.main::-webkit-scrollbar {
   width: 0;
@@ -1579,10 +1567,7 @@ table.data-table tbody tr:hover {
     z-index: 40;
   }
 
-  main.main {
-    padding: 20px;
-    /* latest from listing block */
-  }
+
 
   .sidebar-overlay.show {
     display: block;

@@ -228,7 +228,6 @@ function DesignationsPage() {
 
                       <td>
                         <div className="table-actions">
-                          
                           <ProtectedAction
                             module="designation"
                             action="update"
@@ -237,7 +236,7 @@ function DesignationsPage() {
                           >
                             <i className="fa-solid fa-pen" />
                           </ProtectedAction>
-                           <ProtectedAction
+                          <ProtectedAction
                             module="designation"
                             action="delete"
                             onAllowed={() => openDeleteModal(row)}
@@ -245,7 +244,6 @@ function DesignationsPage() {
                           >
                             <i className="fa-solid fa-trash" />
                           </ProtectedAction>
-                        
                         </div>
                       </td>
                     </tr>
@@ -267,7 +265,10 @@ function DesignationsPage() {
           </div>
         </main>
       </div>
-
+      <div
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       {/* DELETE CONFIRM MODAL */}
       {showDeleteModal && (
         <DeleteConfirmModal

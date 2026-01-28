@@ -109,18 +109,50 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   };
 
   const employeeModules = filterAllowed([
-    { permission: "employee", label: "Master Data", to: "/admin/employee-master" },
-    { permission: "employee", label: "History", to: "/admin/employment-history" },
-    { permission: "employee", label: "Documents", to: "/admin/employee-documents" },
+    {
+      permission: "employee",
+      label: "Master Data",
+      to: "/admin/employee-master",
+    },
+    {
+      permission: "employee",
+      label: "History",
+      to: "/admin/employment-history",
+    },
+    {
+      permission: "employee",
+      label: "Documents",
+      to: "/admin/employee-documents",
+    },
   ]);
 
   const organizationModules = filterAllowed([
-    { permission: "department", label: "Departments", to: "/admin/departments" },
-    { permission: "designation", label: "Designations", to: "/admin/designations" },
-    { permission: "employment type", label: "Employment Type", to: "/admin/employment-type" },
-    { permission: "roles & permissions", label: "Roles & Permissions", to: "/admin/roles-permissions" },
+    {
+      permission: "department",
+      label: "Departments",
+      to: "/admin/departments",
+    },
+    {
+      permission: "designation",
+      label: "Designations",
+      to: "/admin/designations",
+    },
+    {
+      permission: "employment type",
+      label: "Employment Type",
+      to: "/admin/employment-type",
+    },
+    {
+      permission: "roles & permissions",
+      label: "Roles & Permissions",
+      to: "/admin/roles-permissions",
+    },
     { permission: "policies", label: "Policies", to: "/admin/policies" },
-    { permission: "company rules", label: "Company Rules", to: "/admin/company-rules" },
+    {
+      permission: "company rules",
+      label: "Company Rules",
+      to: "/admin/company-rules",
+    },
   ]);
 
   const ticketModules = filterAllowed([
@@ -133,7 +165,7 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   ]);
 
   return (
-   <aside
+    <aside
       className={`sidebar ${isMobileOpen ? "mobile-open mobile-visible" : ""}`}
       id="sidebar"
     >
@@ -261,82 +293,88 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
         )}
 
         {/* ================= MY PROFILE (Always visible) ================= */}
-        <li className={navHasSubmenu("profile")}>
-          <button
-            className="nav-toggle"
-            aria-expanded={openSection === "profile"}
-            onClick={() => handleSectionToggle("profile")}
-          >
-            <span className="nav-icon">
-              <i className="fa-solid fa-user" />
-            </span>
-            <span className="nav-text">My Profile</span>
-            <span className="nav-caret">▸</span>
-          </button>
+        {/* ================= MY PROFILE (Hide for Client Admin) ================= */}
+        {!isClientAdmin && (
+          <li className={navHasSubmenu("profile")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "profile"}
+              onClick={() => handleSectionToggle("profile")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-user" />
+              </span>
+              <span className="nav-text">My Profile</span>
+              <span className="nav-caret">▸</span>
+            </button>
 
-          <ul className="submenu" aria-hidden={submenuHidden("profile")}>
-            <li>
-              <Link
-                to="/user/myprofile"
-                className={`submenu-link ${isActive("/user/myprofile") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                Personal Details
-              </Link>
-            </li>
+            <ul className="submenu" aria-hidden={submenuHidden("profile")}>
+              <li>
+                <Link
+                  to="/user/myprofile"
+                  className={`submenu-link ${
+                    isActive("/user/myprofile") ? "active" : ""
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  Personal Details
+                </Link>
+              </li>
 
-            <li>
-              <Link
-                to="/profile/documents"
-                className={`submenu-link ${isActive("/profile/documents") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                My Documents
-              </Link>
-            </li>
+              <li>
+                <Link
+                  to="/profile/documents"
+                  className={`submenu-link ${
+                    isActive("/profile/documents") ? "active" : ""
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  My Documents
+                </Link>
+              </li>
 
-            <li>
-              <Link
-                to="/profile/history"
-                className={`submenu-link ${isActive("/profile/history") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                My History
-              </Link>
-            </li>
+              <li>
+                <Link
+                  to="/profile/history"
+                  className={`submenu-link ${
+                    isActive("/profile/history") ? "active" : ""
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  My History
+                </Link>
+              </li>
 
-            <li>
-              <Link
-                to="/profile/reset-password"
-                className={`submenu-link ${isActive("/profile/reset-password") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                Reset Password
-              </Link>
-            </li>
-          </ul>
-        </li>
- 
+              <li>
+                <Link
+                  to="/profile/reset-password"
+                  className={`submenu-link ${
+                    isActive("/profile/reset-password") ? "active" : ""
+                  }`}
+                  onClick={handleLinkClick}
+                >
+                  Reset Password
+                </Link>
+              </li>
+            </ul>
+          </li>
+        )}
 
-
- 
         {/* ================= USER HELP & SUPPORT ================= */}
-{!isClientAdmin && (
-  <li className="nav-item">
-    <Link
-      to="/user/support"
-      className={`nav-link ${isActive("/user/support") ? "active" : ""}`}
-      onClick={handleLinkClick}
-    >
-      <span className="nav-icon">
-        <i className="fa-solid fa-circle-question" />
-      </span>
-      Help & Support
-    </Link>
-  </li>
-)}
-
-
+        {!isClientAdmin && (
+          <li className="nav-item">
+            <Link
+              to="/user/support"
+              className={`nav-link ${isActive("/user/support") ? "active" : ""}`}
+              onClick={handleLinkClick}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-circle-question" />
+              </span>
+              Help & Support
+            </Link>
+          </li>
+        )}
 
         {isClientAdmin && (
           <li className={navHasSubmenu("support")}>

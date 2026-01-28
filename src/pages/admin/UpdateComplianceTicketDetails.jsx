@@ -10,37 +10,11 @@ import {
 import { getEmployeesList } from "../../api/admin/employees";
 import Select from "react-select";
 
-/* ================= SHARED MODAL (Same UI) ================= */
-const InfoModal = ({ title, message, onOk, isError }) => (
-  <div className="modal-overlay">
-    <div className="modal-card">
-      <div
-        className="success-icon"
-        style={{ color: isError ? "#dc3545" : "#28a745" }}
-      >
-        <i
-          className={`fa-solid ${
-            isError ? "fa-circle-exclamation" : "fa-circle-check"
-          }`}
-        ></i>
-      </div>
-
-      <h2>{title}</h2>
-      <p>{message}</p>
-
-      <button className="btn btn-primary" onClick={onOk}>
-        OK
-      </button>
-    </div>
-  </div>
-);
+import SuccessModal from "../../components/common/SuccessModal";
+import ErrorModal from "../../components/common/ErrorModal";
+import LoaderOverlay from "../../components/common/LoaderOverlay";
 
 function UpdateComplianceTicketDetails() {
-  const [showModal, setShowModal] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalError, setModalError] = useState(false);
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("tickets");
 
@@ -51,10 +25,16 @@ function UpdateComplianceTicketDetails() {
   const [employees, setEmployees] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   const [assignedTo, setAssignedTo] = useState("");
   const [status, setStatus] = useState("");
+
+  /* ===== MODALS ===== */
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   /* ========== Fetch Ticket ========== */
   const fetchTicket = async () => {
@@ -70,7 +50,7 @@ function UpdateComplianceTicketDetails() {
       } else {
         setError("Ticket not found");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load ticket details.");
     }
     setLoading(false);
@@ -89,6 +69,8 @@ function UpdateComplianceTicketDetails() {
   /* ========== Submit Update ========== */
   const handleSubmit = async () => {
     try {
+      setSubmitting(true);
+
       const payload = {
         ticket_id: id,
         assigned_to: assignedTo,
@@ -97,22 +79,18 @@ function UpdateComplianceTicketDetails() {
 
       const res = await updateSupportTicket(payload);
 
-      if (res.success) {
-        setModalTitle("Ticket Updated Successfully");
-        setModalMessage("The support ticket has been updated in the system.");
-        setModalError(false);
-        setShowModal(true);
+      if (res?.success) {
+        setModalMessage("The support ticket has been updated successfully.");
+        setShowSuccess(true);
       } else {
-        setModalTitle("Update Failed");
-        setModalMessage(res.message || "Could not update the ticket.");
-        setModalError(true);
-        setShowModal(true);
+        setModalMessage(res?.message || "Could not update the ticket.");
+        setShowError(true);
       }
-    } catch (err) {
-      setModalTitle("Error");
+    } catch {
       setModalMessage("A server error occurred while updating the ticket.");
-      setModalError(true);
-      setShowModal(true);
+      setShowError(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -160,10 +138,12 @@ function UpdateComplianceTicketDetails() {
                   : "-"}
               </span>
             </div>
-          <div className="ticket-row">
-            <label>Tracking ID</label>
-            <span>{ticket.tracking_id}</span>
-          </div>
+
+            <div className="ticket-row">
+              <label>Tracking ID</label>
+              <span>{ticket.tracking_id}</span>
+            </div>
+
             <div className="ticket-row">
               <label>Subject</label>
               <span>{ticket.subject}</span>
@@ -218,9 +198,12 @@ function UpdateComplianceTicketDetails() {
               </div>
             </div>
 
-            {/* Submit */}
             <div style={{ textAlign: "right", marginTop: 20 }}>
-              <button className="btn btn-primary" onClick={handleSubmit}>
+              <button
+                className="btn btn-primary"
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
                 Save Changes
               </button>
             </div>
@@ -228,18 +211,25 @@ function UpdateComplianceTicketDetails() {
         </main>
       </div>
 
-      {/* SHARED MODAL */}
-      {showModal && (
-        <InfoModal
-          title={modalTitle}
+      {/* LOADER */}
+      {submitting && <LoaderOverlay />}
+
+      {/* SUCCESS MODAL */}
+      {showSuccess && (
+        <SuccessModal
           message={modalMessage}
-          isError={modalError}
-          onOk={() => {
-            if (!modalError) {
-              navigate("/admin/compliance-documentation");
-            }
-            setShowModal(false);
+          onClose={() => {
+            setShowSuccess(false);
+            navigate("/admin/compliance-documentation");
           }}
+        />
+      )}
+
+      {/* ERROR MODAL */}
+      {showError && (
+        <ErrorModal
+          message={modalMessage}
+          onClose={() => setShowError(false)}
         />
       )}
     </>

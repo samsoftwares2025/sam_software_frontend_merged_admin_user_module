@@ -167,6 +167,11 @@ function ComplianceTicketDetails() {
         </div>
       </main>
 
+      <div
+        id="sidebarOverlay"
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       {/* IMAGE PREVIEW */}
       {preview && (
         <div className="modal-backdrop" onClick={() => setPreview(null)}>
