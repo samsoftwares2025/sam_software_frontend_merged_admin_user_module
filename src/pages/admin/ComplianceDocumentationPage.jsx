@@ -45,25 +45,33 @@ function ComplianceDocumentationPage() {
   const [totalCount, setTotalCount] = useState(0);
 
   /* ================= DOWNLOAD FILE ================= */
-  const downloadFile = async (fileUrl, fileName = "attachment") => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
+const downloadFile = async (fileUrl, fileName = "attachment") => {
+  try {
+    const res = await fetch(fileUrl, {
+      credentials: "include",
+    });
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fileName;
+    if (!res.ok) throw new Error("Download failed");
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed:", err);
-      alert("Unable to download file.");
-    }
-  };
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName; // default name
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Unable to download file");
+    console.error(err);
+  }
+};
+
+
+
 
   /* ================= EMPLOYEE DROPDOWN OPTIONS ================= */
   const employeeOptions = employees.map((e) => ({

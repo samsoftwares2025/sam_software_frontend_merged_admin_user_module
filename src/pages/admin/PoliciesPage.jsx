@@ -45,27 +45,26 @@ function PoliciesPage() {
   /* ===============================
       DOWNLOAD HELPER
   ================================ */
-  const downloadFile = (fileUrl, fileName = "policy") => {
-  try {
-    if (!fileUrl) {
-      throw new Error("Invalid file URL");
+   const downloadFile = async (fileUrl, fileName = "policy") => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setErrorMessage("Unable to download file.");
+      setShowErrorModal(true);
     }
-
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = fileName;   // hint for filename
-    link.target = "_blank";     // fallback for some browsers
-    link.rel = "noopener noreferrer";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (err) {
-    setErrorMessage("Unable to download file.");
-    setShowErrorModal(true);
-  }
-};
-
+  };
 
   /* ===============================
       LOAD POLICIES
@@ -94,7 +93,7 @@ function PoliciesPage() {
           respData?.detail ||
           (status
             ? `Unable to load policies (status ${status})`
-            : "Unable to load policies.")
+            : "Unable to load policies."),
       );
     } finally {
       setLoading(false);
@@ -217,7 +216,11 @@ function PoliciesPage() {
             </div>
 
             <div className="filters-right" style={{ display: "flex", gap: 8 }}>
-              <button className="btn" onClick={fetchPolicies} disabled={loading}>
+              <button
+                className="btn"
+                onClick={fetchPolicies}
+                disabled={loading}
+              >
                 <i className="fa-solid fa-rotate" /> Refresh
               </button>
 
@@ -236,7 +239,8 @@ function PoliciesPage() {
           <div className="table-container">
             <div className="table-header-bar">
               <h4>
-                Policies <span className="badge-pill">Total: {visibleCount}</span>
+                Policies{" "}
+                <span className="badge-pill">Total: {visibleCount}</span>
               </h4>
             </div>
 
@@ -258,7 +262,8 @@ function PoliciesPage() {
                 <tbody>
                   {filteredPolicies.map((row, index) => {
                     const file = row.image;
-                    const isImage = file && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+                    const isImage =
+                      file && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
 
                     return (
                       <tr key={row.id}>
@@ -335,7 +340,10 @@ function PoliciesPage() {
 
                   {visibleCount === 0 && (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: "center", padding: "1.5rem" }}>
+                      <td
+                        colSpan={8}
+                        style={{ textAlign: "center", padding: "1.5rem" }}
+                      >
                         {loading ? "Loading policies..." : "No policies found."}
                       </td>
                     </tr>
