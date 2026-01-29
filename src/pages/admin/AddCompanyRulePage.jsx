@@ -7,6 +7,7 @@ import Sidebar from "../../components/common/Sidebar";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
 import LoaderOverlay from "../../components/common/LoaderOverlay";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import "../../assets/styles/admin.css";
 
@@ -16,6 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 function AddCompanyRulePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("organization");
+ 
 
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -39,7 +41,15 @@ function AddCompanyRulePage() {
   /* ==========================================================
         SECURE FILE VALIDATION
   =========================================================== */
-  const allowedExtensions = ["pdf", "doc", "docx", "jpg", "jpeg", "png", "webp"];
+  const allowedExtensions = [
+    "pdf",
+    "doc",
+    "docx",
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+  ];
   const allowedMimes = [
     "application/pdf",
     "application/msword",
@@ -65,7 +75,12 @@ function AddCompanyRulePage() {
       const blob = file.slice(0, length);
       reader.onloadend = () => {
         const arr = new Uint8Array(reader.result);
-        resolve([...arr].map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase());
+        resolve(
+          [...arr]
+            .map((x) => x.toString(16).padStart(2, "0"))
+            .join("")
+            .toUpperCase(),
+        );
       };
       reader.readAsArrayBuffer(blob);
     });
@@ -99,7 +114,7 @@ function AddCompanyRulePage() {
     const magic = await readMagicBytes(file);
     const validMagicList = magicSignatures[ext] || [];
 
-    if (!validMagicList.some(sig => magic.startsWith(sig))) {
+    if (!validMagicList.some((sig) => magic.startsWith(sig))) {
       setErrorMessage("File signature does not match its type.");
       setShowErrorModal(true);
       return false;
@@ -151,7 +166,6 @@ function AddCompanyRulePage() {
 
       setSuccessMessage(resp?.message || "Company rule added successfully");
       setShowSuccessModal(true);
-
     } catch (err) {
       console.error("CREATE COMPANY RULE FAILED:", err);
 
@@ -159,7 +173,9 @@ function AddCompanyRulePage() {
       const respData = err?.response?.data;
 
       if (status === 401 || status === 403) {
-        setErrorMessage(respData?.detail || "Session expired. Please sign in again.");
+        setErrorMessage(
+          respData?.detail || "Session expired. Please sign in again.",
+        );
         setShowErrorModal(true);
         logout();
         navigate("/", { replace: true });
@@ -168,12 +184,11 @@ function AddCompanyRulePage() {
 
       setErrorMessage(
         respData?.message ||
-        respData?.detail ||
-        respData?.error ||
-        "Failed to add company rule."
+          respData?.detail ||
+          respData?.error ||
+          "Failed to add company rule.",
       );
       setShowErrorModal(true);
-
     } finally {
       setSaving(false);
       setProcessing(false);
@@ -212,7 +227,6 @@ function AddCompanyRulePage() {
         <main className="main">
           <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
 
-
           <div className="page-title">
             <h3>Add Company Rule</h3>
             <p className="subtitle">Create a new company rule.</p>
@@ -220,7 +234,6 @@ function AddCompanyRulePage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
-              
               {/* TITLE */}
               <div className="designation-page-form-row">
                 <label>Rule Title</label>
@@ -229,6 +242,7 @@ function AddCompanyRulePage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  onBlur={() => setTitle(toSentenceCase(title))}
                   disabled={saving}
                 />
               </div>
@@ -241,6 +255,8 @@ function AddCompanyRulePage() {
                   rows={3}
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
+                  onBlur={() =>
+                  setShortDescription(toSentenceCase(shortDescription))}
                   disabled={saving}
                 />
               </div>
@@ -253,6 +269,8 @@ function AddCompanyRulePage() {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onBlur={() =>
+                  setDescription(toSentenceCase(description))}
                   disabled={saving}
                 />
               </div>
@@ -291,7 +309,11 @@ function AddCompanyRulePage() {
 
               {/* ACTION BUTTONS */}
               <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={saving}
+                >
                   {saving ? "Saving..." : "Add Rule"}
                 </button>
 
@@ -304,7 +326,6 @@ function AddCompanyRulePage() {
                   Cancel
                 </button>
               </div>
-
             </form>
           </div>
         </main>
