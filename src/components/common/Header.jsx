@@ -35,15 +35,18 @@ function Header({ onMenuClick }) {
 
           {/* <div className="current-date">{formattedDate}</div> */}
 
-          <button
-            className="logout-btn"
-            onClick={async () => {
-              await logoutUser();
-              window.location.href = "/login";
-            }}
-          >
-            Logout
-          </button>
+         <button
+  className="logout-btn"
+  onClick={async () => {
+    await logoutUser();
+    window.location.href = "/login";
+  }}
+  title="Logout"
+>
+  <i className="fa-solid fa-right-from-bracket" />
+  <span className="logout-text">Logout</span>
+</button>
+
         </div>
       </div>
 

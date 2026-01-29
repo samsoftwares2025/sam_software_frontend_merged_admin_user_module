@@ -498,7 +498,8 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
               onClick={() => handleSectionToggle("clients")}
             >
               <span className="nav-icon">
-                <i className="fa-solid fa-users" />
+               <i className="fa-solid fa-handshake" />
+
               </span>
               <span className="nav-text">Clients</span>
               <span className="nav-caret">▸</span>

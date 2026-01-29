@@ -104,6 +104,12 @@ aside.sidebar::-webkit-scrollbar {
     display: none;
 }
 
+
+/* Reduce gap between main sidebar items */
+.sidebar ul > li {
+  margin-bottom: 0px; /* reduce from default (often 10–16px) */
+}
+
 main.main {
     flex: 1;
     padding: 32px;
@@ -3719,4 +3725,88 @@ table.data-table th.wrap {
     min-width: 34px;
     height: 34px;
   }
+}
+
+
+/* ===== Logout Button ===== */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 6px;
+
+  background: transparent;
+  border: 1px solid #e5e7eb;
+
+  color: #374151;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Hover */
+.logout-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* Icon */
+.logout-btn i {
+  font-size: 0.95rem;
+}
+
+/* Mobile – hide text, keep icon */
+@media (max-width: 640px) {
+  .logout-btn {
+    padding: 6px;
+  }
+
+  .logout-text {
+    display: none;
+  }
+}
+
+
+
+/* ===== Sidebar icon container (FIX ALIGNMENT) ===== */
+.nav-icon {
+  width: 22px;               /* fixed width */
+  min-width: 22px;
+  height: 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 16px;           /* normalize icon size */
+  line-height: 1;
+
+  margin-right: 10px;
+  color: #0ea5e9;            /* optional: icon color */
+}
+
+.nav-link,
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0;                    /* we already use margin on icon */
+}
+
+.nav-icon i {
+  font-size: 16px;           /* SAME for all icons */
+}
+
+.nav-caret {
+  margin-left: auto;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.submenu-link {
+  padding-left: 48px; /* aligns under text, not icon */
 }
