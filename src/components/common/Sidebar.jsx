@@ -108,6 +108,19 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
     return items.filter((item) => canView(item.permission));
   };
 
+  const recruitmentModules = filterAllowed([
+    {
+      permission: "vacancy listing",
+      label: "Vacancy Listing",
+      to: "/admin/recruitment/vacancies",
+    },
+    {
+      permission: "view applications",
+      label: "View Applications",
+      to: "/admin/recruitment/applications",
+    },
+  ]);
+
   const employeeModules = filterAllowed([
     {
       permission: "employee",
@@ -123,6 +136,114 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
       permission: "employee",
       label: "Documents",
       to: "/admin/employee-documents",
+    },
+  ]);
+
+  const attendanceModules = filterAllowed([
+    {
+      permission: "attendance register",
+      label: "Attendance Register",
+      to: "/admin/attendance/register",
+    },
+    {
+      permission: "shifts",
+      label: "Shifts",
+      to: "/admin/attendance/shifts",
+    },
+  ]);
+
+  const payrollModules = filterAllowed([
+    {
+      permission: "Records",
+      label: "Records",
+      to: "/admin/payroll/records",
+    },
+    {
+      permission: "payslips",
+      label: "Payslips",
+      to: "/admin/payroll/payslips",
+    },
+    {
+      permission: "tax & compliance",
+      label: "Tax & Compliance",
+      to: "/admin/payroll/tax-compliance",
+    },
+    {
+      permission: "pf & esi",
+      label: "PF / ESI",
+      to: "/admin/payroll/pf-esi",
+    },
+    {
+      permission: "bonuses",
+      label: "Bonuses & Incentives",
+      to: "/admin/payroll/bonuses",
+    },
+
+    {
+      permission: "full & final",
+      label: "Full & Final Settlement",
+      to: "/admin/payroll/full-final",
+    },
+  ]);
+
+  const reminderModules = filterAllowed([
+    {
+      permission: "employee documents",
+      label: "Employee Documents",
+      to: "/admin/reminders/employee-documents",
+    },
+    {
+      permission: "employee document expiry",
+      label: "Employee Document Expiry",
+      to: "/admin/reminders/employee-expiry",
+    },
+    {
+      permission: "company documents",
+      label: "Company Documents",
+      to: "/admin/reminders/company-documents",
+    },
+    {
+      permission: "company document expiry",
+      label: "Company Document Expiry",
+      to: "/admin/reminders/company-expiry",
+    },
+    {
+      permission: "reminder notifications",
+      label: "Notifications",
+      to: "/admin/reminders/notifications",
+    },
+    {
+      permission: "reminder reports",
+      label: "Reports",
+      to: "/admin/reminders/reports",
+    },
+    {
+      permission: "reminder settings",
+      label: "Settings",
+      to: "/admin/reminders/settings",
+    },
+  ]);
+
+  const clientModules = filterAllowed([
+    {
+      permission: "clients",
+      label: "Clients",
+      to: "/admin/clients",
+    },
+    {
+      permission: "client work",
+      label: "Work / Services",
+      to: "/admin/clients/work",
+    },
+    {
+      permission: "client finance",
+      label: "Finance",
+      to: "/admin/clients/finance",
+    },
+    {
+      permission: "client follow up",
+      label: "Follow-Ups",
+      to: "/admin/clients/follow-ups",
     },
   ]);
 
@@ -211,6 +332,59 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
           )}
         </li>
 
+        {/* ================= ORGANIZATION ================= */}
+        {organizationModules.length > 0 && (
+          <li className={navHasSubmenu("organization")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "organization"}
+              onClick={() => handleSectionToggle("organization")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-building" />
+              </span>
+              <span className="nav-text">Organization</span>
+              <span className="nav-caret">▸</span>
+            </button>
+
+            <ul className="submenu" aria-hidden={submenuHidden("organization")}>
+              {organizationModules.map((item, index) => (
+                <li key={index}>
+                  <ProtectedLink required={item.permission} to={item.to}>
+                    {item.label}
+                  </ProtectedLink>
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
+
+        {/* ================= Recruitment ================= */}
+        {recruitmentModules.length > 0 && (
+          <li className={navHasSubmenu("recruitment")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "recruitment"}
+              onClick={() => handleSectionToggle("recruitment")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-user-tie" />
+              </span>
+              <span className="nav-text">Recruitment</span>
+              <span className="nav-caret">▸</span>
+            </button>
+
+            <ul className="submenu" aria-hidden={submenuHidden("recruitment")}>
+              {recruitmentModules.map((item, index) => (
+                <li key={index}>
+                  <ProtectedLink required={item.permission} to={item.to}>
+                    {item.label}
+                  </ProtectedLink>
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
         {/* ================= EMPLOYEES ================= */}
         {employeeModules.length > 0 && (
           <li className={navHasSubmenu("employees")}>
@@ -237,24 +411,101 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
             </ul>
           </li>
         )}
-
-        {/* ================= ORGANIZATION ================= */}
-        {organizationModules.length > 0 && (
-          <li className={navHasSubmenu("organization")}>
+        {/* ================= Attendance ================= */}
+        {attendanceModules.length > 0 && (
+          <li className={navHasSubmenu("attendance")}>
             <button
               className="nav-toggle"
-              aria-expanded={openSection === "organization"}
-              onClick={() => handleSectionToggle("organization")}
+              aria-expanded={openSection === "attendance"}
+              onClick={() => handleSectionToggle("attendance")}
             >
               <span className="nav-icon">
-                <i className="fa-solid fa-building" />
+                <i className="fa-solid fa-clock" />
               </span>
-              <span className="nav-text">Organization</span>
+              <span className="nav-text">Attendance</span>
               <span className="nav-caret">▸</span>
             </button>
 
-            <ul className="submenu" aria-hidden={submenuHidden("organization")}>
-              {organizationModules.map((item, index) => (
+            <ul className="submenu" aria-hidden={submenuHidden("attendance")}>
+              {attendanceModules.map((item, index) => (
+                <li key={index}>
+                  <ProtectedLink required={item.permission} to={item.to}>
+                    {item.label}
+                  </ProtectedLink>
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
+        {/* ================= Payroll ================= */}
+        {payrollModules.length > 0 && (
+          <li className={navHasSubmenu("payroll")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "payroll"}
+              onClick={() => handleSectionToggle("payroll")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-money-bill-wave" />
+              </span>
+              <span className="nav-text">Payroll</span>
+              <span className="nav-caret">▸</span>
+            </button>
+
+            <ul className="submenu" aria-hidden={submenuHidden("payroll")}>
+              {payrollModules.map((item, index) => (
+                <li key={index}>
+                  <ProtectedLink required={item.permission} to={item.to}>
+                    {item.label}
+                  </ProtectedLink>
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
+        {/* ================= Reminders ================= */}
+        {reminderModules.length > 0 && (
+          <li className={navHasSubmenu("reminders")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "reminders"}
+              onClick={() => handleSectionToggle("reminders")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-bell" />
+              </span>
+              <span className="nav-text">Reminders</span>
+              <span className="nav-caret">▸</span>
+            </button>
+
+            <ul className="submenu" aria-hidden={submenuHidden("reminders")}>
+              {reminderModules.map((item, index) => (
+                <li key={index}>
+                  <ProtectedLink required={item.permission} to={item.to}>
+                    {item.label}
+                  </ProtectedLink>
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
+        {/* ================= Client Management ================= */}
+        {clientModules.length > 0 && (
+          <li className={navHasSubmenu("clients")}>
+            <button
+              className="nav-toggle"
+              aria-expanded={openSection === "clients"}
+              onClick={() => handleSectionToggle("clients")}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-users" />
+              </span>
+              <span className="nav-text">Clients</span>
+              <span className="nav-caret">▸</span>
+            </button>
+
+            <ul className="submenu" aria-hidden={submenuHidden("clients")}>
+              {clientModules.map((item, index) => (
                 <li key={index}>
                   <ProtectedLink required={item.permission} to={item.to}>
                     {item.label}

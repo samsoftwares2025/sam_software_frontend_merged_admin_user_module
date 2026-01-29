@@ -4,22 +4,29 @@ import Select from "react-select";
 import { selectStyles } from "../../../utils/selectStyles";
 
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
+import EditableSelect from "./EditableSelect";
+import SuccessModal from "../../common/SuccessModal";
+import ErrorModal from "../../common/ErrorModal";
 
 import {
   listUserRoles_employee_mgmnt,
   createRole,
+  updateRole,
 } from "../../../api/admin/roles";
 import {
   getDepartments_employee_mgmnt,
   createDepartment,
+  updateDepartment,
 } from "../../../api/admin/departments";
 import {
   getDesignations_employee_mgmnt,
+  updateDesignation,
   createDesignation,
 } from "../../../api/admin/designations";
 import {
   getEmployementTypes_employee_mgmnt,
   createEmployementType,
+  updateEmployementType,
 } from "../../../api/admin/employement_type";
 import { getEmployeesList_employee_mgmnt } from "../../../api/admin/employees";
 
@@ -50,6 +57,8 @@ export default function EmploymentSection({
 
   setFormErrors,
 }) {
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const [errors, setErrors] = useState({
     employee_id: "",
     official_email: "",
@@ -83,7 +92,9 @@ export default function EmploymentSection({
   const [employmentTypes, setEmploymentTypes] = useState([]);
   const [isAddingEmploymentType, setIsAddingEmploymentType] = useState(false);
   const [newEmploymentTypeName, setNewEmploymentTypeName] = useState("");
-
+  const [isEditingDept, setIsEditingDept] = useState(false);
+  const [editingDeptId, setEditingDeptId] = useState(null);
+  const [editingDeptLabel, setEditingDeptLabel] = useState("");
   const fetchEmploymentTypes = async () => {
     const resp = await getEmployementTypes_employee_mgmnt();
     const list = Array.isArray(resp?.employment_types)
@@ -177,6 +188,8 @@ export default function EmploymentSection({
 
   /* ================= DEPARTMENTS / DESIGNATIONS ================= */
   const [departments, setDepartments] = useState([]);
+  const [deptMenuOpen, setDeptMenuOpen] = useState(false);
+
   const [designationsByDept, setDesignationsByDept] = useState({});
 
   const [isAddingDept, setIsAddingDept] = useState(false);
@@ -213,6 +226,16 @@ export default function EmploymentSection({
       setSelectedDesignation(initialValues.designation_id.toString());
     }
   };
+
+  const departmentId = Number(selectedDepartment);
+
+  const designationOptions =
+    departmentId && designationsByDept[departmentId]
+      ? designationsByDept[departmentId].map((d) => ({
+          value: d.id,
+          label: d.name,
+        }))
+      : [];
 
   useEffect(() => {
     fetchDepartments();
@@ -417,196 +440,185 @@ export default function EmploymentSection({
         <div className="form-group">
           <label className="form-label required">Employment Type</label>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-              className="form-select"
-              value={selectedEmploymentType}
-              onChange={handleEmploymentTypeChange}
-              required
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Employment Type</option>
-              {employmentTypes.map((et) => (
-                <option key={et.id} value={et.id}>
-                  {et.name}
-                </option>
-              ))}
-              <option value="__add_employment_type__">
-                + Add Employment Type
-              </option>
-            </select>
+          <EditableSelect
+            styles={selectStyles}
+            onRefresh={fetchEmploymentTypes}
+            placeholder="Select Employment Type"
+            value={selectedEmploymentType}
+            options={employmentTypes.map((et) => ({
+              value: et.id,
+              label: et.name,
+            }))}
+            onChange={(val) => {
+              setSelectedEmploymentType(val);
+            }}
+            onCreate={async (name) => {
+              try {
+                const res = await createEmployementType(name.trim());
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={fetchEmploymentTypes}
-            >
-              <i className="fa-solid fa-rotate-right" />
-            </button>
-          </div>
+                await fetchEmploymentTypes();
+                setSelectedEmploymentType(String(res.id));
 
-          {isAddingEmploymentType && (
-            <div className="form-group">
-              <input
-                className="form-input"
-                placeholder="Enter new employment type"
-                value={newEmploymentTypeName}
-                onChange={(e) => setNewEmploymentTypeName(e.target.value)}
-              />
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleConfirmAddEmploymentType}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsAddingEmploymentType(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+                setSuccessMsg(
+                  res?.message ||
+                    res?.detail ||
+                    "Employment type created successfully",
+                );
+              } catch (err) {
+                setErrorMsg(
+                  err?.response?.data?.message ||
+                    err?.response?.data?.detail ||
+                    "Failed to create employment type",
+                );
+              }
+            }}
+            onUpdate={async (id, name) => {
+              try {
+                // ✅ FIXED CALL
+                const res = await updateEmployementType(id, name.trim());
+
+                await fetchEmploymentTypes();
+                setSelectedEmploymentType(String(id));
+
+                setSuccessMsg(
+                  res?.message ||
+                    res?.detail ||
+                    "Employment type updated successfully",
+                );
+              } catch (err) {
+                setErrorMsg(
+                  err?.response?.data?.message ||
+                    err?.response?.data?.detail ||
+                    "Failed to update employment type",
+                );
+              }
+            }}
+          />
         </div>
 
         {/* =================== DEPARTMENT =================== */}
         <div className="form-group">
           <label className="form-label required">Department</label>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-               className="form-select"
-              value={selectedDepartment}
-              onChange={handleDepartmentChange}
-              required
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Department</option>
-              {departments.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-              <option value="__add_dept__">+ Add Department</option>
-            </select>
+          <EditableSelect
+            styles={selectStyles}
+            onRefresh={fetchDepartments}
+            placeholder="Select Department"
+            value={selectedDepartment}
+            options={departments}
+            menuIsOpen={deptMenuOpen}
+            onMenuOpen={() => setDeptMenuOpen(true)}
+            onMenuClose={() => setDeptMenuOpen(false)}
+            onChange={(val) => {
+              setSelectedDepartment(val);
+              setSelectedDesignation("");
+            }}
+            onCreate={async (name) => {
+              try {
+                const res = await createDepartment(name);
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={async () => {
-                // clear selections
-                setSelectedDepartment("");
-                setSelectedDesignation("");
-
-                // refetch data
                 await fetchDepartments();
-              }}
-            >
-              <i className="fa-solid fa-rotate-right" />
-            </button>
-          </div>
+                setSelectedDepartment(res.id);
 
-          {isAddingDept && (
-            <div className="form-group">
-              <input
-                className="form-input"
-                placeholder="Enter new department"
-                value={newDeptLabel}
-                onChange={(e) => setNewDeptLabel(e.target.value)}
-              />
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleConfirmAddDepartment}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsAddingDept(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+                setSuccessMsg(res.message || "Department created successfully");
+              } catch (err) {
+                setErrorMsg(
+                  err?.response?.data?.message || "Failed to create department",
+                );
+              }
+            }}
+            onUpdate={async (id, name) => {
+              try {
+                const res = await updateDepartment(id, name);
+
+                await fetchDepartments();
+                setSelectedDepartment(id);
+
+                setSuccessMsg(res.message || "Department updated successfully");
+              } catch (err) {
+                setErrorMsg(
+                  err?.response?.data?.message || "Failed to update department",
+                );
+              }
+            }}
+          />
         </div>
 
         {/* =================== DESIGNATION =================== */}
         <div className="form-group">
           <label className="form-label required">Designation</label>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-               className="form-select"
-              value={selectedDesignation}
-              onChange={handleDesignationChange}
-              disabled={!selectedDepartment}
-              required
-              style={{ flex: 1 }}
-            >
-              <option value="">
-                {selectedDepartment
-                  ? "Select Designation"
-                  : "Select Department first"}
-              </option>
+          <EditableSelect
+            styles={selectStyles}
+            onRefresh={fetchDesignations}
+            isDisabled={!selectedDepartment}
+            placeholder={
+              selectedDepartment
+                ? "Select Designation"
+                : "Select Department first"
+            }
+            value={selectedDesignation}
+            options={designationOptions}
+            onChange={(val) => {
+              setSelectedDesignation(val);
+            }}
+            /* ✅ ONLY ENABLE ADD / EDIT WHEN DEPARTMENT IS SELECTED */
+            onCreate={
+              selectedDepartment
+                ? async (name) => {
+                    try {
+                      const res = await createDesignation({
+                        name,
+                        department_id: Number(selectedDepartment),
+                      });
 
-              {(designationsByDept[selectedDepartment] || []).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
+                      await fetchDesignations();
+                      setSelectedDesignation(res.id);
 
-              {selectedDepartment && (
-                <option value="__add_desig__">+ Add Designation</option>
-              )}
-            </select>
+                      setSuccessMsg(
+                        res?.message ||
+                          res?.detail ||
+                          "Designation created successfully",
+                      );
+                    } catch (err) {
+                      setErrorMsg(
+                        err?.response?.data?.message ||
+                          err?.response?.data?.detail ||
+                          "Failed to create designation",
+                      );
+                    }
+                  }
+                : undefined
+            }
+            onUpdate={
+              selectedDepartment
+                ? async (id, name) => {
+                    try {
+                      const res = await updateDesignation(
+                        id,
+                        name,
+                        Number(selectedDepartment),
+                      );
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={async () => {
-                setSelectedDesignation(""); // clear selected designation
-                await fetchDesignations(); // reload list
-              }}
-              disabled={!selectedDepartment}
-            >
-              <i className="fa-solid fa-rotate-right" />
-            </button>
-          </div>
+                      await fetchDesignations();
+                      setSelectedDesignation(String(id));
 
-          {isAddingDesig && (
-            <div className="form-group">
-              <input
-                className="form-input"
-                placeholder="Enter new designation"
-                value={newDesigLabel}
-                onChange={(e) => setNewDesigLabel(e.target.value)}
-              />
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleConfirmAddDesignation}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsAddingDesig(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+                      setSuccessMsg(
+                        res?.message ||
+                          res?.detail ||
+                          "Designation updated successfully",
+                      );
+                    } catch (err) {
+                      setErrorMsg(
+                        err?.response?.data?.message ||
+                          err?.response?.data?.detail ||
+                          "Failed to update designation",
+                      );
+                    }
+                  }
+                : undefined
+            }
+          />
         </div>
 
         {/* =================== Is Department Head =================== */}
@@ -649,61 +661,65 @@ export default function EmploymentSection({
         <div className="form-group">
           <label className="form-label required">Role</label>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-              className="form-select"
-              value={selectedRoleId}
-              onChange={handleRoleChange}
-              required
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Role</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.role}
-                </option>
-              ))}
-              <option value="__add_role__">+ Add Role</option>
-            </select>
+          <EditableSelect
+            styles={selectStyles}
+            onRefresh={async () => {
+              const res = await listUserRoles_employee_mgmnt();
+              if (res?.success) setRoles(res.user_roles || []);
+            }}
+            placeholder="Select Role"
+            value={selectedRoleId}
+            options={roles.map((r) => ({
+              value: r.id,
+              label: r.role,
+            }))}
+            onChange={(val) => {
+              setSelectedRoleId(val);
+            }}
+            onCreate={async (name) => {
+              try {
+                const res = await createRole(name.trim());
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={async () => {
-                const res = await listUserRoles_employee_mgmnt();
-                if (res?.success) setRoles(res.user_roles || []);
-              }}
-            >
-              <i className="fa-solid fa-rotate-right" />
-            </button>
-          </div>
+                const refreshed = await listUserRoles_employee_mgmnt();
+                if (refreshed?.success) setRoles(refreshed.user_roles || []);
 
-          {isAddingRole && (
-            <div className="form-group">
-              <input
-                className="form-input"
-                placeholder="Enter new role"
-                value={newRoleName}
-                onChange={(e) => setNewRoleName(e.target.value)}
-              />
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleConfirmAddRole}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsAddingRole(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+                setSelectedRoleId(String(res.id));
+
+                setSuccessMsg(
+                  res?.message || res?.detail || "Role created successfully",
+                );
+              } catch (err) {
+                setErrorMsg(
+                  err?.response?.data?.message ||
+                    err?.response?.data?.detail ||
+                    "Failed to create role",
+                );
+              }
+            }}
+            onUpdate={async (id, name) => {
+              try {
+                const res = await updateRole(id, {
+                  roleName: name.trim(),
+                  permissions: undefined, // or [] if backend requires
+                });
+
+                const refreshed = await listUserRoles_employee_mgmnt();
+                if (refreshed?.success) setRoles(refreshed.user_roles || []);
+
+                setSelectedRoleId(String(id));
+
+                setSuccessMsg(
+                  res?.message || res?.detail || "Role updated successfully",
+                );
+              } catch (err) {
+                setErrorMsg(
+                  err?.response?.data?.message ||
+                    err?.response?.data?.detail ||
+                    "Failed to update role",
+                );
+              }
+            }}
+          />
         </div>
 
         {/* =================== STATUS (EDIT ONLY) =================== */}
@@ -739,6 +755,16 @@ export default function EmploymentSection({
               }
             />
           </div>
+        )}
+        {successMsg && (
+          <SuccessModal
+            message={successMsg}
+            onClose={() => setSuccessMsg("")}
+          />
+        )}
+
+        {errorMsg && (
+          <ErrorModal message={errorMsg} onClose={() => setErrorMsg("")} />
         )}
       </div>
     </div>

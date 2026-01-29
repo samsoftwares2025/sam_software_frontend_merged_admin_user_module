@@ -86,7 +86,7 @@ export const getSupportTicketById = async (ticketId) => {
     throw new Error("Session expired");
   }
 
-  const { data } = await http.post("/users/user-get-support-ticket/", {
+  const { data } = await http.post("/hr/get-support-ticket/", {
     user_id: userId,
     ticket_id: ticketId,
   });

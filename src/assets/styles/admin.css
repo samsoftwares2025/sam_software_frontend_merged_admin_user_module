@@ -3674,3 +3674,49 @@ table.data-table th.wrap {
     max-height: 80vh;
   }
 }
+
+
+
+/* ===== EditableSelect horizontal mobile-safe ===== */
+.editable-select-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Allow react-select to shrink properly */
+.editable-select-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ensure refresh button is tappable on mobile */
+.editable-select-refresh {
+  flex-shrink: 0;
+  min-width: 44px; /* mobile touch target */
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== EditableSelect Refresh Button Size Fix ===== */
+.editable-select-refresh {
+  flex-shrink: 0;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Slightly smaller on very small screens */
+@media (max-width: 480px) {
+  .editable-select-refresh {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+  }
+}

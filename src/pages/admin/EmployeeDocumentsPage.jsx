@@ -31,7 +31,8 @@ function EmployeeDocumentsPage() {
         page_size: pageSize,
       })
         .then((resp) => {
-          setEmployees(resp?.users_documents || []);
+          setEmployees(resp?.users || []);
+
           setTotalCount(resp?.total_count || 0);
           setTotalPages(resp?.total_pages || 1);
         })
@@ -118,7 +119,8 @@ function EmployeeDocumentsPage() {
 
     getEmployeeDocuments({ page: pageNo, page_size: pageSize })
       .then((resp) => {
-        setEmployees(resp?.users_documents || []);
+        setEmployees(resp?.users || []);
+
         setTotalCount(resp?.total_count || 0);
         setTotalPages(resp?.total_pages || 1);
 
@@ -151,7 +153,7 @@ function EmployeeDocumentsPage() {
       page_size: pageSize,
     })
       .then((resp) => {
-        setEmployees(resp?.users_documents || []);
+        setEmployees(resp?.users || []);
 
         setTotalCount(resp?.total_count || 0);
         setTotalPages(resp?.total_pages || 1);
@@ -289,124 +291,73 @@ function EmployeeDocumentsPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th style={{ width: "5%" }}>Order No</th>
-                      <th style={{ width: "5%" }}>Employee ID</th>
-                      <th style={{ width: "15%" }}>Name</th>
-                      <th style={{ width: "10%" }}>Document Type</th>
-                      <th style={{ width: "10%" }}>Document No.</th>
-                      <th style={{ width: "10%" }}>Country</th>
-                      <th style={{ width: "15%" }}>Issue Date</th>
-                      <th style={{ width: "15%" }}>Expiry Date</th>
-                      <th style={{ width: "5%" }}>Status</th>
-                      <th style={{ width: "10%" }}>Action</th>
+                      <th>Order No</th>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Department</th>
+                      <th>Designation</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
+
                   <tbody>
-                    {employees.map((emp, empIndex) =>
-                      (emp.documents || []).map((doc, docIndex) => {
-                        const orderNo = (page - 1) * pageSize + empIndex + 1;
+                    {employees.map((emp, index) => {
+                      const orderNo = (page - 1) * pageSize + index + 1;
 
-                        return (
-                          <tr key={doc.id}>
-                            {/* SERIAL NO */}
-                            {docIndex === 0 && (
-                              <td rowSpan={emp.documents.length}>{orderNo}</td>
-                            )}
+                      return (
+                        <tr key={emp.user_id}>
+                          <td>{orderNo}</td>
+                          <td>{emp.employee_id}</td>
+                          <td>{emp.name}</td>
+                          <td>{emp.department}</td>
+                          <td>{emp.designation}</td>
+                          <td>
+                            <span style={getStatusStyle(emp.status)}>
+                              {emp.status}
+                            </span>
+                          </td>
 
-                            {/* EMPLOYEE ID */}
-                            {docIndex === 0 && (
-                              <td rowSpan={emp.documents.length}>
-                                {emp.employee_id}
-                              </td>
-                            )}
+                          <td>
+                            <div className="table-actions">
+                              <ProtectedAction
+                                module="employee"
+                                action="view"
+                                to={`/admin/employee-documents-view/${emp.user_id}`}
+                                className="icon-btn view"
+                              >
+                                <i className="fa-solid fa-eye" />
+                              </ProtectedAction>
 
-                            {/* EMPLOYEE NAME */}
-                            {docIndex === 0 && (
-                              <td rowSpan={emp.documents.length}>{emp.name}</td>
-                            )}
+                              <ProtectedAction
+                                module="employee"
+                                action="update"
+                                to={`/admin/update-employee-documents/${emp.user_id}`}
+                                className="icon-btn view"
+                              >
+                                <i className="fa-solid fa-pen" />
+                              </ProtectedAction>
 
-                            {/* DOCUMENT FIELDS */}
-                            <td>{doc.document_type}</td>
-                            <td>{doc.document_number}</td>
-                            <td>{doc.country}</td>
-                            <td>
-                              {doc.issue_date
-                                ? new Date(doc.issue_date).toLocaleDateString(
-                                    "en-GB",
-                                  )
-                                : "-"}
-                            </td>
-                            <td>
-                              {doc.expiry_date
-                                ? new Date(doc.expiry_date).toLocaleDateString(
-                                    "en-GB",
-                                  )
-                                : "-"}
-                            </td>
-                            <td>
-                              <span style={getStatusStyle(doc.status)}>
-                                {doc.status || "-"}
-                              </span>
-                            </td>
-
-                            {/* ACTIONS */}
-                            {docIndex === 0 && (
-                              <td rowSpan={emp.documents.length}>
-                                <div className="table-actions">
-                                  <ProtectedAction
-                                    module="employee"
-                                    action="view"
-                                    to={`/admin/employee-documents-view/${emp.user_id}`}
-                                    className="icon-btn view"
-                                    title="View Details"
-                                  >
-                                    <i className="fa-solid fa-eye" />
-                                  </ProtectedAction>
-
-                                  <ProtectedAction
-                                    module="employee"
-                                    action="update"
-                                    to={`/admin/update-employee-documents/${emp.user_id}`}
-                                    className="icon-btn view"
-                                    title="Edit Employee"
-                                  >
-                                    <i className="fa-solid fa-pen" />
-                                  </ProtectedAction>
-
-                                  <ProtectedAction                   
-                                    module="employee"
-                                    action="delete"
-                                    onAllowed={() => {
-                                      const payload = {
-                                        user_id: emp.user_id,
-                                     
-                                        name: emp.name,
-                                      };
-
-                                      console.log(
-                                        "CLICK DELETE → payload:",
-                                        payload,
-                                      );
-
-                                      setEmployeeToDelete(payload);
-                                      setShowDeleteModal(true);
-                                    }}
-                                    className="icon-btn delete"
-                                    title="Delete Employment Record"
-                                  >
-                                    <i className="fa-solid fa-trash" />
-                                  </ProtectedAction>
-                                </div>
-                              </td>
-                            )}
-                          </tr>
-                        );
-                      }),
-                    )}
+                              <ProtectedAction
+                                module="employee"
+                                action="delete"
+                                onAllowed={() => {
+                                  setEmployeeToDelete(emp);
+                                  setShowDeleteModal(true);
+                                }}
+                                className="icon-btn delete"
+                              >
+                                <i className="fa-solid fa-trash" />
+                              </ProtectedAction>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
 
                     {employees.length === 0 && (
                       <tr>
-                        <td colSpan={10} style={{ textAlign: "center" }}>
+                        <td colSpan={8} style={{ textAlign: "center" }}>
                           No records found.
                         </td>
                       </tr>
@@ -467,7 +418,7 @@ function EmployeeDocumentsPage() {
           />
         )}
       </main>
-      
+
       <div
         id="sidebarOverlay"
         className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
