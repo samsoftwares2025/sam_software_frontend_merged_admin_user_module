@@ -112,7 +112,7 @@ aside.sidebar::-webkit-scrollbar {
 
 main.main {
     flex: 1;
-    padding: 32px;
+    padding: 18px;
     overflow: auto;
     background: var(--bg-muted);
 }
@@ -191,7 +191,6 @@ main.main {
     gap: 8px;
     margin-bottom: 6px;   /* reduced */
     flex-wrap: wrap;
-    margin-top: -2%;
    
 }
 

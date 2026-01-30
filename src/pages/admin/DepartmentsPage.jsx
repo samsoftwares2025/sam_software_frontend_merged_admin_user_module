@@ -13,7 +13,7 @@ import ProtectedAction from "../../components/admin/ProtectedAction";
 import "../../assets/styles/admin.css";
 
 import {
-  getDepartments as apiGetDepartments,
+  listDepartments,
   deleteDepartment as apiDeleteDepartment,
 } from "../../api/admin/departments";
 
@@ -47,7 +47,7 @@ function DepartmentsPage() {
     setErrorMessage("");
 
     try {
-      const resp = await apiGetDepartments();
+      const resp = await listDepartments();
 
       let list = [];
       if (Array.isArray(resp?.departments)) list = resp.departments;

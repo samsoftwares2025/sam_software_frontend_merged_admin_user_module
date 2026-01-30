@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
@@ -110,6 +111,7 @@ function AddEmploymentTypePage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setName(toSentenceCase(name))}
                   placeholder="e.g. Full Time"
                   disabled={saving}
                 />

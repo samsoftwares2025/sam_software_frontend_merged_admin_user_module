@@ -1,5 +1,6 @@
 import React from "react";
 import "../../../assets/styles/admin.css";
+import { toSentenceCase } from "../../../utils/textFormatters";
 
 export default function PreviousExperienceSection({
   experiences = [],
@@ -14,7 +15,7 @@ export default function PreviousExperienceSection({
       exp.job_title?.trim() ||
       exp.start_date ||
       exp.end_date ||
-      exp.responsibilities?.trim()
+      exp.responsibilities?.trim(),
     );
   };
 
@@ -38,9 +39,7 @@ export default function PreviousExperienceSection({
               marginBottom: 15,
             }}
           >
-            <h3 style={{ marginBottom: 10 }}>
-              Experience {index + 1}
-            </h3>
+            <h3 style={{ marginBottom: 10 }}>Experience {index + 1}</h3>
 
             <div className="form-grid">
               {/* Company Name */}
@@ -55,6 +54,11 @@ export default function PreviousExperienceSection({
                   onChange={(e) =>
                     onChange(exp._key, "company_name", e.target.value)
                   }
+                  // Added formatting logic here
+                  onBlur={(e) => {
+                    const formatted = toSentenceCase(e.target.value);
+                    onChange(exp._key, "company_name", formatted);
+                  }}
                   required={required}
                 />
               </div>
@@ -71,10 +75,14 @@ export default function PreviousExperienceSection({
                   onChange={(e) =>
                     onChange(exp._key, "job_title", e.target.value)
                   }
+                  // Added formatting logic here
+                  onBlur={(e) => {
+                    const formatted = toSentenceCase(e.target.value);
+                    onChange(exp._key, "job_title", formatted);
+                  }}
                   required={required}
                 />
               </div>
-
               {/* Start Date */}
               <div className="form-group">
                 <label className={`form-label ${required ? "required" : ""}`}>
@@ -82,6 +90,7 @@ export default function PreviousExperienceSection({
                 </label>
                 <input
                   type="date"
+                   style={{ textTransform: "uppercase" }} 
                   className="form-input"
                   value={exp.start_date || ""}
                   onChange={(e) =>
@@ -98,6 +107,7 @@ export default function PreviousExperienceSection({
                 </label>
                 <input
                   type="date"
+                   style={{ textTransform: "uppercase" }} 
                   className="form-input"
                   value={exp.end_date || ""}
                   onChange={(e) =>
@@ -120,6 +130,11 @@ export default function PreviousExperienceSection({
                 onChange={(e) =>
                   onChange(exp._key, "responsibilities", e.target.value)
                 }
+                // Formats the text when the user clicks away
+                onBlur={(e) => {
+                  const formatted = toSentenceCase(e.target.value);
+                  onChange(exp._key, "responsibilities", formatted);
+                }}
                 required={required}
                 placeholder="Describe key responsibilities and achievements..."
               />
@@ -140,21 +155,16 @@ export default function PreviousExperienceSection({
       })}
 
       <div
-  style={{
-    marginTop: experiences.length === 0 ? "12px" : "0",
-    marginLeft: experiences.length === 0 ? "28px" : "0",
-  }}
->
-  <button
-    type="button"
-    className="btn btn-primary"
-    onClick={onAdd}
-  >
-    <i className="fa-solid fa-plus me-2" />
-    Add Experience
-  </button>
-</div>
-
+        style={{
+          marginTop: experiences.length === 0 ? "12px" : "0",
+          marginLeft: experiences.length === 0 ? "28px" : "0",
+        }}
+      >
+        <button type="button" className="btn btn-primary" onClick={onAdd}>
+          <i className="fa-solid fa-plus me-2" />
+          Add Experience
+        </button>
+      </div>
     </div>
   );
 }

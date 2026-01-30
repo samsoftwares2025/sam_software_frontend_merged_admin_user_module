@@ -18,7 +18,7 @@ function AddCompanyRulePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("organization");
  
-
+  const [priorityOrder, setPriorityOrder] = useState("");
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
@@ -157,6 +157,7 @@ function AddCompanyRulePage() {
 
     try {
       const formData = new FormData();
+      formData.append("priority_order", priorityOrder);
       formData.append("title", title.trim());
       formData.append("short_description", shortDescription.trim());
       formData.append("description", description.trim());
@@ -234,6 +235,22 @@ function AddCompanyRulePage() {
 
           <div className="card">
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
+               {/* PRIORITY ORDER */}
+              <div className="designation-page-form-row">
+                <label>Priority Order</label>
+                <input
+                  className="designation-page-form-input"
+                  type="number"
+                  min="1"
+                  value={priorityOrder}
+                  onChange={(e) => setPriorityOrder(e.target.value)}
+                  placeholder="e.g. 1 (Highest Importance)"
+                  disabled={saving}
+                />
+                <small style={{ color: "#666", fontSize: "11px" }}>
+                  Lower numbers appear first in the policy list.
+                </small>
+              </div>
               {/* TITLE */}
               <div className="designation-page-form-row">
                 <label>Rule Title</label>

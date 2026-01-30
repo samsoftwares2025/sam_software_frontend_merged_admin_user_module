@@ -1,6 +1,8 @@
 import "../../../assets/styles/admin.css";
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
 import { selectStyles } from "../../../utils/selectStyles";
+import { toSentenceCase } from "../../../utils/textFormatters";
+
 import {
   getAllCountries,
   getStatesByCountry,
@@ -170,6 +172,10 @@ export default function PersonalInfoSection({
             name="name"
             value={personalInfo.name || ""}
             onChange={handleChange}
+            onBlur={(e) => {
+              const formattedName = toSentenceCase(e.target.value);
+              setPersonalInfo((prev) => ({ ...prev, name: formattedName }));
+            }}
             required
           />
         </div>
@@ -179,6 +185,7 @@ export default function PersonalInfoSection({
           <input
             type="date"
             className="form-input"
+             style={{ textTransform: "uppercase" }} 
             name="date_of_birth"
             value={
               personalInfo.date_of_birth
@@ -234,7 +241,7 @@ export default function PersonalInfoSection({
                 const res = await checkUserFieldExists(
                   "personal_email",
                   email,
-                  employeeId
+                  employeeId,
                 );
                 const msg = res.success ? "" : "already exists!";
                 setErrors((p) => ({ ...p, personal_email: msg }));
@@ -272,7 +279,7 @@ export default function PersonalInfoSection({
                 const res = await checkUserFieldExists(
                   "phone",
                   phone,
-                  employeeId
+                  employeeId,
                 );
                 const msg = res.success ? "" : "already exists!";
                 setErrors((p) => ({ ...p, phone: msg }));
@@ -292,6 +299,13 @@ export default function PersonalInfoSection({
             name="qualification"
             value={personalInfo.qualification || ""}
             onChange={handleChange}
+            onBlur={(e) => {
+              const formattedValue = toSentenceCase(e.target.value);
+              setPersonalInfo((prev) => ({
+                ...prev,
+                qualification: formattedValue,
+              }));
+            }}
             required
           />
         </div>
@@ -305,6 +319,10 @@ export default function PersonalInfoSection({
           name="address"
           value={personalInfo.address || ""}
           onChange={handleChange}
+          onBlur={(e) => {
+            const formattedAddress = toSentenceCase(e.target.value);
+            setPersonalInfo((prev) => ({ ...prev, address: formattedAddress }));
+          }}
           required
         />
       </div>
@@ -343,10 +361,15 @@ export default function PersonalInfoSection({
                 type="text"
                 className="form-input"
                 placeholder="Enter country manually"
+                name="country" // Added name for clarity
                 value={personalInfo.country || ""}
                 onChange={(e) =>
                   setPersonalInfo((p) => ({ ...p, country: e.target.value }))
                 }
+                onBlur={(e) => {
+                  const formattedCountry = toSentenceCase(e.target.value);
+                  setPersonalInfo((p) => ({ ...p, country: formattedCountry }));
+                }}
               />
               <button
                 type="button"
@@ -411,6 +434,12 @@ export default function PersonalInfoSection({
                 onChange={(e) =>
                   setPersonalInfo((p) => ({ ...p, state: e.target.value }))
                 }
+                onBlur={(e) =>
+                  setPersonalInfo((p) => ({
+                    ...p,
+                    state: toSentenceCase(e.target.value),
+                  }))
+                }
               />
               <button
                 type="button"
@@ -468,6 +497,12 @@ export default function PersonalInfoSection({
                 value={personalInfo.city || ""}
                 onChange={(e) =>
                   setPersonalInfo((p) => ({ ...p, city: e.target.value }))
+                }
+                onBlur={(e) =>
+                  setPersonalInfo((p) => ({
+                    ...p,
+                    city: toSentenceCase(e.target.value),
+                  }))
                 }
               />
               <button

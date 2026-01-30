@@ -28,9 +28,9 @@ export const createEmployementType = async (name) => {
 };
 
 /**
- * getEmployementTypes
+ * list EmployementTypes
  */
-export const getEmployementTypes = async () => {
+export const listEmployementTypes = async () => {
   const userId = getUserId();
 
   const { data } = await http.post(
@@ -41,6 +41,23 @@ export const getEmployementTypes = async () => {
   return data;
 };
 
+/**
+ * GET EMPLOYMENT TYPE By Id
+ * Fetches full details for a single policy
+ */
+export const getEmploymentTypeById = async (id) => {
+  const userId = getUserId(); // Ensure this helper is imported in your API file
+
+  const { data } = await http.post(
+    "/hr/get-employment-type/", 
+    { 
+      user_id: userId,
+      employment_type_id: id 
+    }
+  );
+
+  return data;
+};
 
 /**
  * getEmployementTypes for non permitted users

@@ -4,9 +4,9 @@ import DocumentsSection from "./DocumentsSection";
 import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal";
 import "../../../assets/styles/admin.css";
 
-import { getEmployementTypes } from "../../../api/admin/employement_type";
-import { getDepartments } from "../../../api/admin/departments";
-import { getDesignations } from "../../../api/admin/designations";
+import { listEmployementTypes } from "../../../api/admin/employement_type";
+import { listDepartments } from "../../../api/admin/departments";
+import { listDesignations } from "../../../api/admin/designations";
 import { deleteEmployeedata } from "../../../api/admin/employees";
 
 export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
@@ -75,21 +75,21 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const etRes = await getEmployementTypes();
+        const etRes = await listEmployementTypes();
         setEmploymentTypes(
           Array.isArray(etRes?.employment_types)
             ? etRes.employment_types
             : etRes || []
         );
 
-        const deptRes = await getDepartments();
+        const deptRes = await listDepartments();
         const deptList = Array.isArray(deptRes)
           ? deptRes
           : deptRes?.departments || [];
 
         setDepartments(deptList.map((d) => ({ value: d.id, label: d.name })));
 
-        const desigRes = await getDesignations();
+        const desigRes = await listDesignations();
         const desigList = Array.isArray(desigRes)
           ? desigRes
           : desigRes?.designations || [];

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../../../assets/styles/admin.css";
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
+import { toSentenceCase } from "../../../utils/textFormatters";
 
 export default function EmergencyContactSection({
   initialValues = {},
@@ -20,10 +21,7 @@ export default function EmergencyContactSection({
       emergency_contact_email: formErrors.emergency_contact_email,
       emergency_contact_number: formErrors.emergency_contact_number,
     }));
-  }, [
-    formErrors.emergency_contact_email,
-    formErrors.emergency_contact_number,
-  ]);
+  }, [formErrors.emergency_contact_email, formErrors.emergency_contact_number]);
 
   return (
     <div className="form-section">
@@ -33,7 +31,6 @@ export default function EmergencyContactSection({
       </h2>
 
       <div className="form-grid">
-
         {/* CONTACT NAME */}
         <div className="form-group">
           <label className="form-label required">Contact Name</label>
@@ -41,6 +38,9 @@ export default function EmergencyContactSection({
             type="text"
             className="form-input"
             name="emergency_contact_name"
+            onBlur={(e) => {
+              e.target.value = toSentenceCase(e.target.value);
+            }}
             required
             defaultValue={initialValues.emergency_contact_name || ""}
           />
@@ -53,6 +53,9 @@ export default function EmergencyContactSection({
             type="text"
             className="form-input"
             name="emergency_contact_relationship"
+            onBlur={(e) => {
+              e.target.value = toSentenceCase(e.target.value);
+            }}
             required
             defaultValue={initialValues.emergency_contact_relationship || ""}
           />
@@ -82,11 +85,9 @@ export default function EmergencyContactSection({
             }`}
             name="emergency_contact_number"
             defaultValue={initialValues.emergency_contact_number || ""}
-
             onInput={(e) => {
               e.target.value = e.target.value.replace(/[^0-9]/g, "");
             }}
-
             onChange={async (e) => {
               const number = e.target.value.trim();
 
@@ -95,7 +96,7 @@ export default function EmergencyContactSection({
                   const res = await checkUserFieldExists(
                     "emergency_contact_number",
                     number,
-                    employeeId
+                    employeeId,
                   );
 
                   const msg = res.success ? "" : "already exists!";
@@ -153,7 +154,6 @@ export default function EmergencyContactSection({
             }`}
             name="emergency_contact_email"
             defaultValue={initialValues.emergency_contact_email || ""}
-
             onChange={async (e) => {
               const email = e.target.value.trim();
 
@@ -162,7 +162,7 @@ export default function EmergencyContactSection({
                   const res = await checkUserFieldExists(
                     "emergency_contact_email",
                     email,
-                    employeeId
+                    employeeId,
                   );
 
                   const msg = res.success ? "" : "already exists!";

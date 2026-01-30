@@ -12,7 +12,7 @@ import ErrorModal from "../../components/common/ErrorModal";
 import "../../assets/styles/admin.css";
 
 import {
-  getPolicies as apiGetPolicies,
+  listPolicies as apilistPolicies,
   deletePolicy as apiDeletePolicy,
 } from "../../api/admin/policies";
 
@@ -74,7 +74,7 @@ function PoliciesPage() {
     setError(null);
 
     try {
-      const resp = await apiGetPolicies();
+      const resp = await apilistPolicies();
 
       let list = [];
 
@@ -249,6 +249,7 @@ function PoliciesPage() {
                 <thead>
                   <tr>
                     <th style={{ width: "5%" }}>Order No</th>
+                    <th style={{ width: "15%" }}>Priority Order</th>
                     <th style={{ width: "15%" }}>Title</th>
                     <th style={{ width: "15%" }}>Short Description</th>
                     <th style={{ width: "30%" }}>Description</th>
@@ -268,6 +269,7 @@ function PoliciesPage() {
                     return (
                       <tr key={row.id}>
                         <td style={{ textAlign: "center" }}>{index + 1}</td>
+                        <td className="wrap">{row.priority_order}</td>
                         <td className="wrap">{row.title}</td>
                         <td className="wrap">{row.short_description || "-"}</td>
                         <td className="wrap">{row.description || "-"}</td>

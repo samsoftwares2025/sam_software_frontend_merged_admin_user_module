@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
@@ -160,6 +161,7 @@ function UpdateTicketTypePage() {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    onBlur={(e) => setTitle(toSentenceCase(e.target.value))}
                     placeholder="Enter ticket type title"
                     disabled={saving}
                   />
@@ -172,6 +174,7 @@ function UpdateTicketTypePage() {
                     style={{ height: "150px", resize: "none" }}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    onBlur={(e) => setDescription(toSentenceCase(e.target.value))}
                     placeholder="Enter description"
                     disabled={saving}
                   />

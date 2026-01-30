@@ -5,13 +5,15 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
 
+// Updated imports
 import {
-  getDepartments as apiGetDepartments,
+  getDepartmentById,
   updateDepartment,
 } from "../../api/admin/departments";
 
@@ -23,23 +25,18 @@ function UpdateDepartmentPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("organization");
 
-  // Loading state (fetch + saving)
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Global error modal
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  // Success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Form values
   const [name, setName] = useState("");
   const [originalName, setOriginalName] = useState("");
 
   /* ===============================
-     LOAD DEPARTMENT
+     LOAD DEPARTMENT (Optimized)
   ================================ */
   useEffect(() => {
     if (!deptId) {
@@ -52,17 +49,13 @@ function UpdateDepartmentPage() {
     let mounted = true;
     setLoading(true);
 
-    apiGetDepartments()
+    // Using the specific ID fetcher instead of listDepartments
+    getDepartmentById(deptId)
       .then((resp) => {
         if (!mounted) return;
 
-        let list = [];
-        if (resp && Array.isArray(resp.departments)) list = resp.departments;
-        else if (Array.isArray(resp)) list = resp;
-        else if (Array.isArray(resp.results)) list = resp.results;
-        else if (Array.isArray(resp.data)) list = resp.data;
-
-        const found = list.find((d) => String(d.id) === String(deptId));
+        // Backend usually returns the object inside 'department', 'data', or directly
+        const found = resp?.department || resp?.data || resp;
 
         if (!found) {
           setErrorMessage("Department not found.");
@@ -91,7 +84,6 @@ function UpdateDepartmentPage() {
   ================================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const trimmed = (name || "").trim();
 
     if (!trimmed) {
@@ -100,52 +92,35 @@ function UpdateDepartmentPage() {
       return;
     }
 
-    // Nothing changed → navigate back
     if (trimmed === (originalName || "").trim()) {
       navigate("/admin/departments", { replace: true });
       return;
     }
 
     setSaving(true);
-
     try {
       const resp = await updateDepartment(deptId, trimmed);
 
-      // Backend error (duplicate, validation, etc.)
       if (resp?.success === false) {
         setErrorMessage(resp.message || "Failed to update department.");
         setShowErrorModal(true);
         setSaving(false);
         return;
       }
-
-      // SUCCESS – show modal
       setShowSuccessModal(true);
     } catch (err) {
-      console.error("Update failed:", err);
-
       const data = err?.response?.data;
-      const message =
-        data?.message ||
-        data?.detail ||
-        "Failed to update department.";
-
-      setErrorMessage(message);
+      setErrorMessage(data?.message || data?.detail || "Failed to update department.");
       setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
   };
 
-  /* ===============================
-     RENDER
-  ================================ */
   return (
     <>
-      {/* Loader overlay */}
       {(loading || saving) && <LoaderOverlay />}
 
-      {/* Error Modal */}
       {showErrorModal && (
         <ErrorModal
           message={errorMessage}
@@ -153,7 +128,6 @@ function UpdateDepartmentPage() {
         />
       )}
 
-      {/* Success Modal */}
       {showSuccessModal && (
         <SuccessModal
           message="Department updated successfully."
@@ -191,23 +165,17 @@ function UpdateDepartmentPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onBlur={() => setName(toSentenceCase(name))}
                     placeholder="Department name"
                   />
                 </div>
 
-                <div style={{ fontSize: 13, color: "#666", marginTop: 4 }}>
-                  Original: <strong>{originalName}</strong>
-                </div>
+               
 
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={saving}
-                  >
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
                     {saving ? "Saving..." : "Save Changes"}
                   </button>
-
                   <button
                     type="button"
                     className="btn btn-ghost"
@@ -220,11 +188,6 @@ function UpdateDepartmentPage() {
             )}
           </div>
         </main>
-
-        <div
-          className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`}
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
       </div>
     </>
   );

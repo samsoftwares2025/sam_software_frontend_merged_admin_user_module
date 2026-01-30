@@ -2,13 +2,17 @@
 export const toSentenceCase = (text = "") => {
   if (!text) return "";
 
-  let result = text.trim().toLowerCase();
+  // 1. Clean up whitespace
+  let result = text.trim();
 
-  // Add space after punctuation if missing
+  // 2. Add space after punctuation (.!?) if a letter follows immediately
   result = result.replace(/([.!?])(?=\w)/g, "$1 ");
 
-  // Capitalize first letter & after punctuation
-  result = result.replace(/(^\w|[.!?]\s*\w)/g, (char) => char.toUpperCase());
+  // 3. Capitalize the first letter of the string AND after [.!?]
+  // We use a regex that finds the start (^) OR punctuation followed by space
+  result = result.replace(/(^\s*\w|[.!?]\s+\w)/g, (match) => {
+    return match.toUpperCase();
+  });
 
   return result;
 };

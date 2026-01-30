@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../../../assets/styles/admin.css";
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
+import { toSentenceCase } from "../../../utils/textFormatters";
 
 export default function CompensationSection({
   initialValues = {},
@@ -26,7 +27,6 @@ export default function CompensationSection({
       </h2>
 
       <div className="form-grid-3">
-
         {/* Annual CTC */}
         <div className="form-group">
           <label className="form-label required">Annual CTC</label>
@@ -58,7 +58,6 @@ export default function CompensationSection({
             type="number"
             className="form-input"
             name="variable_pay"
-            
             defaultValue={initialValues.variable_pay || ""}
           />
         </div>
@@ -72,13 +71,18 @@ export default function CompensationSection({
             name="bank_name"
             defaultValue={initialValues.bank_name || ""}
             required
+            onBlur={(e) => {
+              e.target.value = toSentenceCase(e.target.value);
+            }}
           />
         </div>
 
         {/* ------------------------------  
             ACCOUNT NUMBER DUPLICATE CHECK  
         ------------------------------ */}
-        <div className={`form-group ${errors.account_number ? "has-error" : ""}`}>
+        <div
+          className={`form-group ${errors.account_number ? "has-error" : ""}`}
+        >
           <div className="label-row">
             <label className="form-label required">
               Account Number{" "}
@@ -94,11 +98,9 @@ export default function CompensationSection({
             name="account_number"
             required
             defaultValue={initialValues.account_number || ""}
-
             onInput={(e) => {
               e.target.value = e.target.value.replace(/[^0-9]/g, "");
             }}
-
             onChange={async (e) => {
               const acc = e.target.value.trim();
 
@@ -107,7 +109,7 @@ export default function CompensationSection({
                   const res = await checkUserFieldExists(
                     "account_number",
                     acc,
-                    employeeId
+                    employeeId,
                   );
 
                   const msg = res.success ? "" : "already exists!";
@@ -119,7 +121,6 @@ export default function CompensationSection({
                     ...prev,
                     account_number: msg,
                   }));
-
                 } catch (err) {
                   console.error("Account number duplicate check failed:", err);
                 }
@@ -145,7 +146,6 @@ export default function CompensationSection({
             required
           />
         </div>
-
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getAllCountries } from "../../../api/admin/locationApi";
 import Select from "react-select";
+import { toSentenceCase } from "../../../utils/textFormatters";
 
 export default function DocumentsSection({
   documents,
@@ -140,6 +141,13 @@ export default function DocumentsSection({
                       onChange={(e) =>
                         onChange(index, "country", e.target.value)
                       }
+                      onBlur={(e) => {
+                        onChange(
+                          index,
+                          "country",
+                          toSentenceCase(e.target.value),
+                        );
+                      }}
                     />
                     <button
                       type="button"
@@ -157,6 +165,7 @@ export default function DocumentsSection({
                 <label className="form-label">Issue Date</label>
                 <input
                   type="date"
+                  style={{ textTransform: "uppercase" }}
                   className="form-input"
                   value={doc.issue_date}
                   onChange={(e) =>
@@ -170,6 +179,7 @@ export default function DocumentsSection({
                 <label className="form-label">Expiry Date</label>
                 <input
                   type="date"
+                  style={{ textTransform: "uppercase" }}
                   className="form-input"
                   value={doc.expiry_date}
                   onChange={(e) =>

@@ -7,6 +7,7 @@ import Header from "../../components/common/Header";
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import "../../assets/styles/admin.css";
 
@@ -234,6 +235,7 @@ function AddRolePage() {
                   type="text"
                   value={roleName}
                   onChange={(e) => setRoleName(e.target.value)}
+                  onBlur={() => setRoleName(toSentenceCase(roleName))}
                   placeholder="Enter role name"
                 />
               </div>

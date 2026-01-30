@@ -8,11 +8,12 @@ import Header from "../../components/common/Header";
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import "../../assets/styles/admin.css";
 
 import { createDesignation } from "../../api/admin/designations";
-import { getDepartments } from "../../api/admin/departments";
+import { listDepartments } from "../../api/admin/departments";
 
 function AddDesignationPage() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ function AddDesignationPage() {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await getDepartments();
+        const res = await listDepartments();
         const deptArray = Array.isArray(res)
           ? res
           : res?.departments || [];
@@ -176,6 +177,7 @@ function AddDesignationPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setName(toSentenceCase(name))}
                   placeholder="e.g. Manager"
                   disabled={saving}
                 />

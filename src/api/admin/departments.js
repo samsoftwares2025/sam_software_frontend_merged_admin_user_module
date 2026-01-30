@@ -28,9 +28,9 @@ export const createDepartment = async (name) => {
 };
 
 /**
- * getDepartments
+ * List Departments
  */
-export const getDepartments = async () => {
+export const listDepartments = async () => {
 
   const userId = getUserId();
 
@@ -42,6 +42,23 @@ export const getDepartments = async () => {
   return data;
 };
 
+/**
+ * get Department ById
+ * Fetches full details for a single department
+ */
+export const getDepartmentById = async (id) => {
+  const userId = getUserId(); 
+
+  const { data } = await http.post(
+    "/companies/get-department/", 
+    { 
+      user_id: userId,
+      department_id: id 
+    }
+  );
+
+  return data;
+};
 
 /**
  * getDepartments while emp management

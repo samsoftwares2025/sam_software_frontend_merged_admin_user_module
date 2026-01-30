@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import { createTicketType } from "../../api/admin/ticket_type"; // <-- UPDATED
 import { useAuth } from "../../context/AuthContext";
@@ -114,6 +115,7 @@ function AddTicketTypePage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  onBlur={(e) => setTitle(toSentenceCase(e.target.value))}
                   placeholder="Enter ticket type title"
                   disabled={saving}
                 />
@@ -127,6 +129,7 @@ function AddTicketTypePage() {
                   style={{ height: "90px", resize: "none" }}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onBlur={(e) => setDescription(toSentenceCase(e.target.value))}
                   placeholder="Enter description"
                   disabled={saving}
                 />

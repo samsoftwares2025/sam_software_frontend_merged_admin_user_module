@@ -13,7 +13,7 @@ import ErrorModal from "../../components/common/ErrorModal";
 import "../../assets/styles/admin.css";
 
 import {
-  getDesignations as apiGetDesignations,
+  listDesignations as listDesignations,
   deleteDesignation as apiDeleteDesignation,
 } from "../../api/admin/designations";
 
@@ -43,7 +43,7 @@ function DesignationsPage() {
     setLoading(true);
 
     try {
-      const resp = await apiGetDesignations();
+      const resp = await listDesignations();
 
       let list = [];
 

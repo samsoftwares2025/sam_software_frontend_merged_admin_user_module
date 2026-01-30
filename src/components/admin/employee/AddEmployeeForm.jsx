@@ -14,9 +14,9 @@ import EmergencyContactSection from "./EmergencyContactSection";
 import PreviousExperienceSection from "./PreviousExperienceSection";
 import "../../../assets/styles/admin.css";
 
-import { getEmployementTypes } from "../../../api/admin/employement_type";
-import { getDepartments } from "../../../api/admin/departments";
-import { getDesignations } from "../../../api/admin/designations";
+import { listEmployementTypes } from "../../../api/admin/employement_type";
+import { listDepartments } from "../../../api/admin/departments";
+import { listDesignations } from "../../../api/admin/designations";
 
 /* ================= ERROR MODAL ================= */
 const ErrorModal = ({ onClose }) => (
@@ -96,9 +96,9 @@ const AddEmployeeForm = forwardRef(({ onSubmit }, ref) => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        await getEmployementTypes();
-        await getDepartments();
-        await getDesignations();
+        await listEmployementTypes();
+        await listDepartments();
+        await listDesignations();
       } catch (err) {
         console.error("Failed to load dropdown data", err);
       }

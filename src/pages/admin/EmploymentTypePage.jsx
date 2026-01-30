@@ -12,7 +12,7 @@ import ErrorModal from "../../components/common/ErrorModal";
 import "../../assets/styles/admin.css";
 
 import {
-  getEmployementTypes as apiGetEmploymentTypes,
+  listEmployementTypes ,
   deleteEmployementType as apiDeleteEmploymentType,
 } from "../../api/admin/employement_type";
 
@@ -43,7 +43,7 @@ function EmploymentTypesPage() {
     setError(null);
 
     try {
-      const resp = await apiGetEmploymentTypes();
+      const resp = await listEmployementTypes();
 
       let list = [];
       if (Array.isArray(resp?.employment_types)) list = resp.employment_types;

@@ -4,15 +4,16 @@ import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
-
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import "../../assets/styles/admin.css";
 
+// Import the new specific helper
 import {
-  getEmployementTypes as apiGetEmployementTypes,
+  getEmploymentTypeById, 
   updateEmployementType,
 } from "../../api/admin/employement_type";
 
@@ -21,25 +22,20 @@ function UpdateEmployementTypePage() {
   const params = new URLSearchParams(window.location.search);
   const empTypeId = params.get("id");
 
-  // Sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("organization");
 
-  // Form state
   const [name, setName] = useState("");
   const [originalName, setOriginalName] = useState("");
 
-  // Loading states
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Modals
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  /* ================= LOAD EMPLOYMENT TYPE ================= */
+  /* ================= LOAD EMPLOYMENT TYPE (Using getById) ================= */
   useEffect(() => {
     if (!empTypeId) {
       setErrorMessage("No Employment Type ID provided.");
@@ -51,20 +47,12 @@ function UpdateEmployementTypePage() {
     let mounted = true;
     setLoading(true);
 
-    apiGetEmployementTypes()
+    getEmploymentTypeById(empTypeId)
       .then((resp) => {
         if (!mounted) return;
 
-        let list = [];
-
-        if (Array.isArray(resp)) list = resp;
-        else if (Array.isArray(resp?.employment_types)) list = resp.employment_types;
-        else if (Array.isArray(resp?.results)) list = resp.results;
-        else if (Array.isArray(resp?.data)) list = resp.data;
-
-        const found = list.find(
-          (item) => String(item.id) === String(empTypeId)
-        );
+        // Backend typically returns data inside an object key or directly
+        const found = resp?.employment_type || resp?.data || resp;
 
         if (!found) {
           setErrorMessage("Employment Type not found.");
@@ -74,7 +62,8 @@ function UpdateEmployementTypePage() {
           setOriginalName(found.name || "");
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("LOAD ERROR:", err);
         setErrorMessage("Failed to load Employment Type details.");
         setShowErrorModal(true);
       })
@@ -98,6 +87,7 @@ function UpdateEmployementTypePage() {
       return;
     }
 
+    // If no changes were made, just go back
     if (trimmed === originalName.trim()) {
       navigate("/admin/employment-type");
       return;
@@ -106,7 +96,13 @@ function UpdateEmployementTypePage() {
     setSaving(true);
 
     try {
-      await updateEmployementType(empTypeId, trimmed);
+      const resp = await updateEmployementType(empTypeId, trimmed);
+      
+      if (resp?.success === false) {
+        setErrorMessage(resp.message || "Failed to update Employment Type.");
+        setShowErrorModal(true);
+        return;
+      }
 
       setShowSuccessModal(true);
     } catch (err) {
@@ -122,12 +118,10 @@ function UpdateEmployementTypePage() {
     }
   };
 
-  /* ================= RENDER ================= */
   return (
     <>
       {(loading || saving) && <LoaderOverlay />}
 
-      {/* SUCCESS MODAL */}
       {showSuccessModal && (
         <SuccessModal
           message="Employment Type updated successfully."
@@ -135,7 +129,6 @@ function UpdateEmployementTypePage() {
         />
       )}
 
-      {/* ERROR MODAL */}
       {showErrorModal && (
         <ErrorModal
           message={errorMessage}
@@ -173,24 +166,15 @@ function UpdateEmployementTypePage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onBlur={() => setName(toSentenceCase(name))}
                     placeholder="e.g. Full Time"
                     autoFocus
                     disabled={saving}
                   />
                 </div>
 
-                <div
-                  style={{
-                    marginTop: "1rem",
-                    display: "flex",
-                    gap: "0.75rem",
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={saving}
-                  >
+                <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem" }}>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
                     {saving ? "Saving..." : "Save Changes"}
                   </button>
 

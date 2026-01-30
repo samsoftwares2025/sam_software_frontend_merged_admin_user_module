@@ -10,7 +10,7 @@ import {
   getEmployeeMasterData,
   filterEmployeeMasterData,
 } from "../../api/admin/employees";
-import { getDepartments } from "../../api/admin/departments";
+import { listDepartments } from "../../api/admin/departments";
 
 const AssignRole = () => {
   /* ================= ROUTER ================= */
@@ -68,7 +68,7 @@ const AssignRole = () => {
   useEffect(() => {
     const loadDepartments = async () => {
       try {
-        const res = await getDepartments();
+        const res = await listDepartments();
         setDepartments(res?.departments || []);
       } catch (err) {
         console.error("FAILED TO LOAD DEPARTMENTS", err);

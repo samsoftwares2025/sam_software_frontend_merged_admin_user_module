@@ -30,14 +30,33 @@ export const createDesignation = async ({ name, department_id }) => {
 };
 
 /**
- * getDesignations
+ * list Designations
  */
-export const getDesignations = async () => {
+export const listDesignations = async () => {
   const userId = getUserId();
 
   const { data } = await http.post(
     "/companies/list-designations/",
     { user_id: userId }
+  );
+
+  return data;
+};
+
+
+/**
+ * get Designation By Id
+ * Fetches full details for a single designation
+ */
+export const getDesignationById = async (id) => {
+  const userId = getUserId(); 
+
+  const { data } = await http.post(
+    "/companies/get-designation/", 
+    { 
+      user_id: userId,
+      designation_id: id 
+    }
   );
 
   return data;

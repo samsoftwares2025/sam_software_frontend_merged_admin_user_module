@@ -12,7 +12,7 @@ import ErrorModal from "../../components/common/ErrorModal";
 import "../../assets/styles/admin.css";
 
 import {
-  getCompanyRules as apiGetCompanyRules,
+  listCompanyRules ,
   deleteCompanyRule as apiDeleteCompanyRule,
 } from "../../api/admin/company_rules";
 
@@ -74,7 +74,7 @@ function CompanyRulesPage() {
     setError(null);
 
     try {
-      const resp = await apiGetCompanyRules();
+      const resp = await listCompanyRules();
 
       let list = [];
 
@@ -95,7 +95,7 @@ function CompanyRulesPage() {
           respData?.detail ||
           (status
             ? `Unable to load company rules (status ${status})`
-            : "Unable to load company rules.")
+            : "Unable to load company rules."),
       );
     } finally {
       setLoading(false);
@@ -246,6 +246,7 @@ function CompanyRulesPage() {
                 <thead>
                   <tr>
                     <th>Order</th>
+                    <th>Priority Order</th>
                     <th>Title</th>
                     <th>Short Description</th>
                     <th>Description</th>
@@ -259,11 +260,13 @@ function CompanyRulesPage() {
                 <tbody>
                   {filteredRules.map((row, index) => {
                     const file = row.image;
-                    const isImage = file && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+                    const isImage =
+                      file && /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
 
                     return (
                       <tr key={row.id}>
                         <td style={{ textAlign: "center" }}>{index + 1}</td>
+                        <td className="wrap">{row.priority_order}</td>
                         <td className="wrap">{row.title}</td>
                         <td className="wrap">{row.short_description || "-"}</td>
                         <td className="wrap">{row.description || "-"}</td>
@@ -285,7 +288,10 @@ function CompanyRulesPage() {
                               <button
                                 className="icon-btn"
                                 onClick={() =>
-                                  downloadFile(file, row.title || "company-rule")
+                                  downloadFile(
+                                    file,
+                                    row.title || "company-rule",
+                                  )
                                 }
                               >
                                 <i className="fa-solid fa-download" />
@@ -335,7 +341,10 @@ function CompanyRulesPage() {
 
                   {visibleCount === 0 && (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: "center", padding: 20 }}>
+                      <td
+                        colSpan={8}
+                        style={{ textAlign: "center", padding: 20 }}
+                      >
                         {loading ? "Loading rules..." : "No rules found."}
                       </td>
                     </tr>
@@ -366,7 +375,14 @@ function CompanyRulesPage() {
               }}
             />
 
-            <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                marginTop: 12,
+                justifyContent: "flex-end",
+              }}
+            >
               <button
                 className="icon-btn"
                 onClick={() => downloadFile(previewImage, "company-rule")}

@@ -31,9 +31,9 @@ export const createCompanyRule = async (formData) => {
 };
 
 /**
- * getCompanyRules
+ * listCompanyRules
  */
-export const getCompanyRules = async () => {
+export const listCompanyRules = async () => {
   const userId = getUserId();
 
   const { data } = await http.post(
@@ -44,6 +44,25 @@ export const getCompanyRules = async () => {
   return data;
 };
 
+
+
+/**
+ * get company rule ById
+ * Fetches full details for a single company rule
+ */
+export const getRuleById = async (ruleId) => {
+  const userId = getUserId();
+
+  const { data } = await http.post(
+    "/hr/get-rule/", // Ensure this endpoint exists on your backend
+    { 
+      user_id: userId,
+      rule_id: ruleId 
+    }
+  );
+
+  return data;
+};
 /**
  * updateCompanyRule
  * (multipart/form-data)

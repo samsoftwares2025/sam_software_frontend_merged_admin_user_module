@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../../../assets/styles/admin.css";
 import Select from "react-select";
 import { selectStyles } from "../../../utils/selectStyles";
+import { toSentenceCase } from "../../../utils/textFormatters";
 
 import { checkUserFieldExists } from "../../../api/admin/checkUserField";
 import EditableSelect from "./EditableSelect";
@@ -399,6 +400,7 @@ export default function EmploymentSection({
           <input
             type="date"
             className="form-input"
+             style={{ textTransform: "uppercase" }} 
             name="confirmation_date"
             defaultValue={
               initialValues.confirmation_date
@@ -413,6 +415,7 @@ export default function EmploymentSection({
           <label className="form-label required">Joining Date</label>
           <input
             type="date"
+             style={{ textTransform: "uppercase" }} 
             className="form-input"
             name="joining_date"
             defaultValue={
@@ -431,7 +434,11 @@ export default function EmploymentSection({
             type="text"
             className="form-input"
             name="work_location"
+            // Use value for controlled input so the UI updates on Blur
             defaultValue={initialValues.work_location || ""}
+            onBlur={(e) => {
+              e.target.value = toSentenceCase(e.target.value);
+            }}
             required
           />
         </div>

@@ -9,6 +9,7 @@ import "../../assets/styles/admin.css";
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import { createDepartment } from "../../api/admin/departments";
 import { useAuth } from "../../context/AuthContext";
@@ -16,7 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 function AddDepartmentPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("organization");
-
+ 
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -125,6 +126,7 @@ function AddDepartmentPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Marketing"
                   disabled={saving}
+                  onBlur={() => setName(toSentenceCase(name))}
                 />
               </div>
 

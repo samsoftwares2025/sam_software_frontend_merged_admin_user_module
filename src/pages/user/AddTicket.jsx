@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
@@ -171,6 +172,7 @@ const AddTicket = () => {
                     className="form-input"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    onBlur={(e) => setSubject(toSentenceCase(e.target.value))}
                     disabled={loading}
                   />
                 </div>
@@ -182,6 +184,7 @@ const AddTicket = () => {
                     rows="5"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
+                    onBlur={(e) => setContent(toSentenceCase(e.target.value))}
                     disabled={loading}
                   />
                 </div>

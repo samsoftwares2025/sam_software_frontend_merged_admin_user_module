@@ -34,9 +34,9 @@ export const createPolicy = async (formData) => {
 
 
 /**
- * getPolicies
+ * listPolicies
  */
-export const getPolicies = async () => {
+export const listPolicies = async () => {
 
   const userId = getUserId();
 
@@ -48,6 +48,24 @@ export const getPolicies = async () => {
   return data;
 };
 
+
+/**
+ * getPolicyById
+ * Fetches full details for a single policy
+ */
+export const getPolicyById = async (policyId) => {
+  const userId = getUserId();
+
+  const { data } = await http.post(
+    "/hr/get-policy/", // Ensure this endpoint exists on your backend
+    { 
+      user_id: userId,
+      policy_id: policyId 
+    }
+  );
+
+  return data;
+};
 /**
  * updatePolicy
  */

@@ -7,10 +7,11 @@ import Header from "../../components/common/Header";
 import LoaderOverlay from "../../components/common/LoaderOverlay";
 import SuccessModal from "../../components/common/SuccessModal";
 import ErrorModal from "../../components/common/ErrorModal";
+import { toSentenceCase } from "../../utils/textFormatters";
 
 import "../../assets/styles/admin.css";
 import {
-  getPolicies as apiGetPolicies,
+  getPolicyById ,
   updatePolicy,
 } from "../../api/admin/policies";
 
@@ -33,6 +34,7 @@ function UpdatePolicyPage() {
   const [successMessage, setSuccessMessage] = useState("");
 
   // form fields
+  const [priorityOrder, setPriorityOrder] = useState("");
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
@@ -44,52 +46,47 @@ function UpdatePolicyPage() {
   /* ===============================
         LOAD POLICY
   ================================ */
-  useEffect(() => {
-    if (!policyId) {
-      setErrorMessage("No policy ID provided.");
-      setShowErrorModal(true);
-      setLoading(false);
-      return;
-    }
+  /* ===============================
+        LOAD POLICY
+================================ */
+useEffect(() => {
+  if (!policyId) return;
 
-    let mounted = true;
-    setLoading(true);
+  let mounted = true;
+  setLoading(true);
 
-    apiGetPolicies()
-      .then((resp) => {
-        if (!mounted) return;
+  // Use the new, specific function
+  getPolicyById(policyId)
+    .then((resp) => {
+      if (!mounted) return;
 
-        let list = [];
+      // The backend usually returns the object directly or inside a key
+      const found = resp?.policy || resp?.data || resp;
 
-        if (resp?.policies) list = resp.policies;
-        else if (Array.isArray(resp)) list = resp;
-        else if (Array.isArray(resp?.results)) list = resp.results;
-        else if (Array.isArray(resp?.data)) list = resp.data;
-
-        const found = list.find((p) => String(p.id) === String(policyId));
-
-        if (!found) {
-          setErrorMessage("Policy not found.");
-          setShowErrorModal(true);
-          return;
-        }
-
-        setTitle(found.title || "");
-        setShortDescription(found.short_description || "");
-        setDescription(found.description || "");
-        setExistingFileUrl(found.image || null);
-      })
-      .catch(() => {
-        setErrorMessage("Failed to load policy.");
+      if (!found) {
+        setErrorMessage("Policy details not found.");
         setShowErrorModal(true);
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
+        return;
+      }
 
-    return () => (mounted = false);
-  }, [policyId]);
+      // Prefill the states with the full data
+      setPriorityOrder(found.priority_order || ""); 
+      setTitle(found.title || "");
+      setShortDescription(found.short_description || "");
+      setDescription(found.description || "");
+      setExistingFileUrl(found.image || null);
+    })
+    .catch((err) => {
+      console.error("LOAD ERROR:", err);
+      setErrorMessage("Failed to load policy details.");
+      setShowErrorModal(true);
+    })
+    .finally(() => {
+      if (mounted) setLoading(false);
+    });
 
+  return () => (mounted = false);
+}, [policyId]);
   /* ===============================
         FILE HANDLER
   ================================ */
@@ -115,6 +112,7 @@ function UpdatePolicyPage() {
 
     try {
       const formData = new FormData();
+      formData.append("priority_order", priorityOrder);
       formData.append("title", title.trim());
       formData.append("short_description", shortDescription.trim());
       formData.append("description", description.trim());
@@ -146,7 +144,6 @@ function UpdatePolicyPage() {
   ================================ */
   return (
     <div className="container">
-
       {/* Loader Overlay */}
       {processing && <LoaderOverlay />}
 
@@ -189,6 +186,18 @@ function UpdatePolicyPage() {
             <div>Loading policy...</div>
           ) : (
             <form onSubmit={handleSubmit} style={{ padding: "1.25rem" }}>
+              {/* PRIORITY ORDER */}
+              <div className="designation-page-form-row">
+                <label>Priority Order</label>
+                <input
+                  className="designation-page-form-input"
+                  type="number"
+                  min="1"
+                  value={priorityOrder}
+                  onChange={(e) => setPriorityOrder(e.target.value)}
+                  disabled={processing}
+                />
+              </div>
               {/* TITLE */}
               <div className="designation-page-form-row">
                 <label>Policy Title</label>
@@ -197,6 +206,7 @@ function UpdatePolicyPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  onBlur={() => setTitle(toSentenceCase(title))}
                   disabled={processing}
                 />
               </div>
@@ -209,6 +219,9 @@ function UpdatePolicyPage() {
                   rows={3}
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
+                  onBlur={() =>
+                    setShortDescription(toSentenceCase(shortDescription))
+                  }
                   disabled={processing}
                 />
               </div>
@@ -221,6 +234,7 @@ function UpdatePolicyPage() {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onBlur={() => setDescription(toSentenceCase(description))}
                   disabled={processing}
                 />
               </div>
@@ -276,7 +290,11 @@ function UpdatePolicyPage() {
 
               {/* ACTION BUTTONS */}
               <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={processing}
+                >
                   {processing ? "Saving..." : "Save Changes"}
                 </button>
 
