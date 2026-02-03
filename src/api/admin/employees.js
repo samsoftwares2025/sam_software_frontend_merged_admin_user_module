@@ -111,7 +111,6 @@ export const getEmployeeDocuments = async ({ page = 1, page_size = 20 }) => {
 };
 
 
-
 export const filterEmployeeDocuments = async (payload) => {
   const userId = localStorage.getItem("user_id");
 
@@ -124,16 +123,13 @@ export const filterEmployeeDocuments = async (payload) => {
       department_id: payload?.department_id || "",
       employment_type_id: payload?.employment_type_id ?? "",
       country: payload?.country || "",
+      document_type: payload?.document_type || "",
       page: payload?.page || 1,
     }
   );
 
   return data;
 };
-
-
-
-
 
 
 
