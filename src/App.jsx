@@ -43,6 +43,10 @@ import PoliciesPage from "./pages/admin/PoliciesPage";
 import AddPolicyPage from "./pages/admin/AddPolicyPage";
 import UpdatePolicyPage from "./pages/admin/UpdatePolicyPage";
 import CompanyRulesPage from "./pages/admin/CompanyRulesPage";
+import CompanyDocumentsPage from "./pages/admin/CompanyDocumentsPage";
+import AddCompanyDocumentPage from "./pages/admin/AddCompanyDocumentPage";
+import ViewCompanyDocumentPage from "./pages/admin/ViewCompanyDocumentPage";
+import UpdateCompanyDocumentPage from "./pages/admin/UpdateCompanyDocumentPage";
 import AddCompanyRulePage from "./pages/admin/AddCompanyRulePage";
 import UpdateCompanyRulePage from "./pages/admin/UpdateCompanyRulePage";
 import RolesPermissions from "./pages/admin/RolesAndPermission";
@@ -69,7 +73,6 @@ import MyTickets from "./pages/user/Supportpage";
 import AddTicket from "./pages/user/AddTicket";
 import AssignedTickets from "./pages/admin/Userassighnticket";
 
-
 import "./App.css";
 
 /* 🔹 Loader Initializer (connects http.js ↔ Loader) */
@@ -93,14 +96,19 @@ function App() {
         <LoaderInitializer>
           <BrowserRouter>
             <Routes>
-
               {/* PUBLIC ROUTES */}
               <Route path="*" element={<NotFound />} />
               <Route path="/" element={<Coming_soon />} />
               <Route path="/hr/software" element={<Home />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/company/registration" element={<CompanyRegistrationPage />} />
-              <Route path="/admin/forget-password" element={<ForgotPasswordPage />} />
+              <Route
+                path="/company/registration"
+                element={<CompanyRegistrationPage />}
+              />
+              <Route
+                path="/admin/forget-password"
+                element={<ForgotPasswordPage />}
+              />
 
               {/* ADMIN DASHBOARD */}
               <Route
@@ -148,7 +156,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+
               <Route
                 path="/admin/add-employee-documents"
                 element={
@@ -197,7 +205,11 @@ function App() {
               <Route
                 path="/admin/update-my-profile/:id"
                 element={
-                  <ProtectedRoute noPermissionCheck module="employee" action="update">
+                  <ProtectedRoute
+                    noPermissionCheck
+                    module="employee"
+                    action="update"
+                  >
                     <UpdateMyProfileDataPage />
                   </ProtectedRoute>
                 }
@@ -360,7 +372,40 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              {/* company documents*/}
 
+              <Route
+                path="/admin/company-documents"
+                element={
+                  <ProtectedRoute module="company rules">
+                    <CompanyDocumentsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/add-company-document"
+                element={
+                  <ProtectedRoute module="company rules">
+                    <AddCompanyDocumentPage />
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/admin/view-company-document"
+                element={
+                  <ProtectedRoute module="company rules">
+                    <ViewCompanyDocumentPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/update-company-document"
+                element={
+                  <ProtectedRoute module="company rules">
+                    <UpdateCompanyDocumentPage />
+                  </ProtectedRoute>
+                }
+              />
               {/* ROLES & PERMISSIONS MODULE */}
               <Route
                 path="/admin/roles-permissions"
@@ -477,12 +522,16 @@ function App() {
               <Route path="/user/myprofile" element={<Myprofile />} />
               <Route path="/profile/documents" element={<MyDocument />} />
               <Route path="/profile/history" element={<Myhistory />} />
-              <Route path="/profile/reset-password" element={<ResetPassword />} />
+              <Route
+                path="/profile/reset-password"
+                element={<ResetPassword />}
+              />
               <Route path="/user/support" element={<MyTickets />} />
               <Route path="/user/support/add" element={<AddTicket />} />
-              <Route path="/admin/support/assigned" element={<AssignedTickets />} />
-
-
+              <Route
+                path="/admin/support/assigned"
+                element={<AssignedTickets />}
+              />
             </Routes>
           </BrowserRouter>
         </LoaderInitializer>

@@ -187,41 +187,20 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   ]);
 
   const reminderModules = filterAllowed([
-    {
-      permission: "employee documents",
-      label: "Employee Documents",
-      to: "/admin/reminders/employee-documents",
-    },
+ 
     {
       permission: "employee document expiry",
       label: "Employee Document Expiry",
       to: "/admin/reminders/employee-expiry",
     },
-    {
-      permission: "company documents",
-      label: "Company Documents",
-      to: "/admin/reminders/company-documents",
-    },
+   
     {
       permission: "company document expiry",
       label: "Company Document Expiry",
       to: "/admin/reminders/company-expiry",
     },
-    {
-      permission: "reminder notifications",
-      label: "Notifications",
-      to: "/admin/reminders/notifications",
-    },
-    {
-      permission: "reminder reports",
-      label: "Reports",
-      to: "/admin/reminders/reports",
-    },
-    {
-      permission: "reminder settings",
-      label: "Settings",
-      to: "/admin/reminders/settings",
-    },
+
+  
   ]);
 
   const clientModules = filterAllowed([
@@ -273,6 +252,11 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
       permission: "company rules",
       label: "Company Rules",
       to: "/admin/company-rules",
+    },
+        {
+      permission: "company documents",
+      label: "Company Documents",
+      to: "/admin/company-documents",
     },
   ]);
 

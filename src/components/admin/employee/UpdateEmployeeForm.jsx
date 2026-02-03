@@ -61,7 +61,7 @@ const initialErrorState = {
 export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   const formRef = useRef(null);
   const [photoFile, setPhotoFile] = useState(null);
-
+  const [deletedImageIds, setDeletedImageIds] = useState([]);
   const [formErrors, setFormErrors] = useState(initialErrorState);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -79,7 +79,6 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   const [selectedParentId, setSelectedParentId] = useState("");
   const [selectedIsActive, setSelectedIsActive] = useState("");
   const [selectedIsDepartmentHead, setSelectedIsDepartmentHead] = useState("");
-
 
   const [documents, setDocuments] = useState([]);
   const [experiences, setExperiences] = useState([]);
@@ -120,8 +119,9 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     setSelectedRoleId(initialValues?.user_role_id || "");
     setSelectedParentId(initialValues?.parent_id || "");
     setSelectedIsActive(initialValues?.is_active === true ? "True" : "False");
-    setSelectedIsDepartmentHead(initialValues?.is_department_head === true ? "True" : "False");
-
+    setSelectedIsDepartmentHead(
+      initialValues?.is_department_head === true ? "True" : "False",
+    );
 
     /* ------------------- DOCUMENTS ------------------- */
     if (Array.isArray(initialValues?.documents)) {
@@ -141,7 +141,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
             image_id: img.image_id,
             existing: true,
           })),
-        }))
+        })),
       );
     } else {
       setDocuments([{ number: "", files: [], previews: [] }]);
@@ -158,7 +158,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
           start_date: toDateInput(exp.start_date),
           end_date: toDateInput(exp.end_date),
           responsibilities: exp.responsibilities || "",
-        }))
+        })),
       );
     } else {
       setExperiences([
@@ -184,7 +184,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
 
   const handleDocumentChange = (idx, field, value) => {
     setDocuments((prev) =>
-      prev.map((doc, i) => (i === idx ? { ...doc, [field]: value } : doc))
+      prev.map((doc, i) => (i === idx ? { ...doc, [field]: value } : doc)),
     );
   };
 
@@ -201,8 +201,8 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
                 ...arr.map((f) => ({ url: URL.createObjectURL(f) })),
               ],
             }
-          : doc
-      )
+          : doc,
+      ),
     );
   };
 
@@ -212,7 +212,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
 
       if (doc?.id) {
         setDeletedDocumentIds((ids) =>
-          ids.includes(doc.id) ? ids : [...ids, doc.id]
+          ids.includes(doc.id) ? ids : [...ids, doc.id],
         );
       }
 
@@ -222,15 +222,42 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
 
   const handleRemoveDocumentFile = (docIdx, fileIdx) => {
     setDocuments((prev) =>
-      prev.map((doc, i) =>
-        i === docIdx
-          ? {
-              ...doc,
-              files: doc.files.filter((_, fi) => fi !== fileIdx),
-              previews: doc.previews.filter((_, fi) => fi !== fileIdx),
-            }
-          : doc
-      )
+      prev.map((doc, i) => {
+        if (i !== docIdx) return doc;
+
+        const itemToRemove = doc.previews[fileIdx];
+        let updatedFiles = [...doc.files];
+
+        if (itemToRemove.existing) {
+          // 1. Track EXISTING image ID for the backend deletion
+          // Use a specific state for images (e.g., deletedImageIds) 
+          // to avoid mixing with deletedDocumentIds
+          setDeletedImageIds((prevIds) =>
+            itemToRemove.image_id
+              ? [...new Set([...prevIds, itemToRemove.image_id])]
+              : prevIds
+          );
+        } else {
+          // 2. Logic for NEWLY uploaded Files:
+          // We must find the correct index in the doc.files array
+          const newFileIndex = doc.previews
+            .slice(0, fileIdx)
+            .filter((p) => !p.existing).length;
+
+          updatedFiles = doc.files.filter((_, fi) => fi !== newFileIndex);
+
+          // Cleanup the blob URL from browser memory
+          if (itemToRemove.url?.startsWith("blob:")) {
+            URL.revokeObjectURL(itemToRemove.url);
+          }
+        }
+
+        return {
+          ...doc,
+          files: updatedFiles,
+          previews: doc.previews.filter((_, fi) => fi !== fileIdx),
+        };
+      })
     );
   };
 
@@ -254,7 +281,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
 
   const handleExperienceChange = (key, field, value) => {
     setExperiences((prev) =>
-      prev.map((exp) => (exp._key === key ? { ...exp, [field]: value } : exp))
+      prev.map((exp) => (exp._key === key ? { ...exp, [field]: value } : exp)),
     );
   };
 
@@ -266,7 +293,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
         setDeletedExperienceIds((ids) =>
           ids.includes(removed.experience_id)
             ? ids
-            : [...ids, removed.experience_id]
+            : [...ids, removed.experience_id],
         );
       }
 
@@ -277,7 +304,7 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
   /* ===========================================================
      SUBMIT HANDLER
   ============================================================ */
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     // ❌ BLOCK IF ANY DUPLICATE ERRORS
@@ -288,12 +315,14 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     }
 
     const formData = new FormData(e.target);
-    // append profile image if uploaded
- const fileInput = formRef.current.querySelector('input[name="image"]');
-  if (fileInput?.files?.[0]) {
-    formData.append("image", fileInput.files[0]);
-  }
 
+    // Append profile image if uploaded
+    const fileInput = formRef.current.querySelector('input[name="image"]');
+    if (fileInput?.files?.[0]) {
+      formData.append("image", fileInput.files[0]);
+    }
+
+    // Helper to ensure clean appends
     formData.append("parent_id", selectedParentId || "");
     formData.append("employment_type_id", selectedEmploymentType);
     formData.append("department_id", selectedDepartment || "");
@@ -304,9 +333,9 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
     formData.append("work_location", formData.get("work_location") || "");
     formData.append("confirmation_date", formData.get("confirmation_date") || "");
 
-    /* ----- DOCS ----- */
+    /* ----- DOCUMENTS (Metadata) ----- */
     const mappedDocs = documents.map((doc, idx) => ({
-      document_id: doc.id,
+      document_id: doc.id || null,
       document_type: doc.type,
       document_number: doc.number,
       country: doc.country,
@@ -315,27 +344,45 @@ export default function UpdateEmployeeForm({ initialValues = {}, onSubmit }) {
       status: doc.status,
       note: doc.notes,
       image_field: `document_files_${idx}`,
+      // We pass existing images here so the BE knows what to keep
+      existing_images: (doc.previews || [])
+        .filter(p => p.existing)
+        .map(p => p.image_id)
     }));
 
     formData.append("documents", JSON.stringify(mappedDocs));
 
-    documents.forEach((doc, idx) =>
-      doc.files.forEach((f) => formData.append(`document_files_${idx}`, f))
-    );
+    /* ----- DOCUMENT FILES (New Uploads) ----- */
+    documents.forEach((doc, idx) => {
+      doc.files.forEach((f) => formData.append(`document_files_${idx}`, f));
+    });
 
     /* ----- EXPERIENCE ----- */
-    const cleaned = experiences.map(({ _key, ...rest }) => rest);
-    formData.append("experience", JSON.stringify(cleaned));
+    const cleanedExperience = experiences.map(({ _key, ...rest }) => rest);
+    formData.append("experience", JSON.stringify(cleanedExperience));
 
+    /* ----- DELETIONS (IDs to be purged from DB) ----- */
+    
+    // 1. Delete Entire Experience Records
     deletedExperienceIds.forEach((id) =>
       formData.append("deleted_experience_ids", id)
     );
+
+    // 2. Delete Entire Document Records (Passport/Visa block)
     deletedDocumentIds.forEach((id) =>
       formData.append("deleted_document_ids", id)
     );
 
+    // 3. Delete Specific Images (The "X" on a photo)
+    // Make sure you have: const [deletedImageIds, setDeletedImageIds] = useState([]);
+    const uniqueDeletedImageIds = [...new Set(deletedImageIds)]; 
+    uniqueDeletedImageIds.forEach((id) => {
+      formData.append("deleted_image_ids", id);
+    });
+
+    /* ----- EXECUTE SUBMIT ----- */
     const res = await onSubmit(formData);
-    console.log("RES:", res); // ← CHECK THIS
+    
     if (res?.success) {
       setShowSuccessModal(true);
     }

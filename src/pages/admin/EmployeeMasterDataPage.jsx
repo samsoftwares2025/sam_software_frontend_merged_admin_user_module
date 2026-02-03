@@ -242,9 +242,11 @@ function EmployeeMasterDataPage() {
             </p>
           </div>
 
-          <button className="excel-btn" onClick={handleExportExcel}>
-            <i className="fa-solid fa-file-excel"></i> Export Excel
-          </button>
+         {employees.length > 0 && (
+  <button className="excel-btn" onClick={handleExportExcel}>
+    <i className="fa-solid fa-file-excel"></i> Export Excel
+  </button>
+)}
         </div>
 
         {/* FILTERS */}

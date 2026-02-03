@@ -32,7 +32,13 @@ export const loginUser = async (email, password) => {
   localStorage.setItem("accessToken", accessToken);
   localStorage.setItem("userId", String(userId));
   localStorage.setItem("userName", data.name || data.user?.name || "");
-
+const companyId = data.company_id || data.user?.company_id || data.company?.id;
+if (companyId) {
+    localStorage.setItem("company_id", String(companyId));
+} else {
+    // If the backend doesn't send it, don't leave an old one behind
+    localStorage.removeItem("company_id");
+}
   /* ================= STORE CLIENT ADMIN ================= */
   localStorage.setItem(
     "is_client_admin",

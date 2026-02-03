@@ -29,12 +29,12 @@ function UpdateEmployeeDocumentsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  
+
   const handleRequestDeleteDocument = ({ index, documentId }) => {
     setDeleteTarget({ index, documentId });
     setShowDeleteModal(true);
   };
-  
+
   /* ===== MODALS ===== */
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -128,12 +128,11 @@ function UpdateEmployeeDocumentsPage() {
         )}
 
         {!loading && !error && initialValues && (
-         <UpdateEmployeDocumentForm
-  initialValues={initialValues}
-  onSubmit={handleFormSubmit}
-  onRequestDelete={handleRequestDeleteDocument}
-/>
-
+          <UpdateEmployeDocumentForm
+            initialValues={initialValues}
+            onSubmit={handleFormSubmit}
+            onRequestDelete={handleRequestDeleteDocument}
+          />
         )}
       </main>
 
