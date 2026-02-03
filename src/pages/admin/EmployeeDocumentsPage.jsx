@@ -55,7 +55,7 @@ function EmployeeDocumentsPage() {
   };
   // master data
   const [departments, setDepartments] = useState([]);
-  const [statuses, setStatuses] = useState([]);
+  const [statuses] = useState(["Active", "Inactive"]);
 
   // ui state
   const [loading, setLoading] = useState(true);
@@ -113,29 +113,23 @@ function EmployeeDocumentsPage() {
     loadDocuments(1);
   }, []);
 
-  const loadDocuments = (pageNo) => {
-    setLoading(true);
-    setError(null);
+ const loadDocuments = (pageNo) => {
+  setLoading(true);
+  setError(null);
 
-    getEmployeeDocuments({ page: pageNo, page_size: pageSize })
-      .then((resp) => {
-        setEmployees(resp?.users || []);
+  getEmployeeDocuments({ page: pageNo, page_size: pageSize })
+    .then((resp) => {
+      setEmployees(resp?.users || []);
+      setTotalCount(resp?.total_count || 0);
+      setTotalPages(resp?.total_pages || 1);
 
-        setTotalCount(resp?.total_count || 0);
-        setTotalPages(resp?.total_pages || 1);
-
-        const allStatuses = resp?.users_documents
-          ?.flatMap((e) => e.documents || [])
-          ?.map((d) => d.status)
-          .filter(Boolean);
-
-        setStatuses([...new Set(allStatuses)]);
-      })
-
-      .catch(() => setError("Unable to load employee documents."))
-      .finally(() => setLoading(false));
-  };
-
+      /* DELETE OR COMMENT OUT THE LINES BELOW */
+      // const allStatuses = resp?.users_documents...
+      // setStatuses([...new Set(allStatuses)]);
+    })
+    .catch(() => setError("Unable to load employee documents."))
+    .finally(() => setLoading(false));
+};
   /* ===============================
      FILTERING
   ================================ */
