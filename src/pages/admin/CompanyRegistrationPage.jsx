@@ -66,6 +66,9 @@ const CompanyRegistration = () => {
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   // REMOVED: const [personalInfo, setPersonalInfo] = useState({...});
   // We'll use form state directly for all location data
@@ -188,16 +191,35 @@ const industryOptions = industries.map((item) => ({
         msg = "Invalid phone number for selected country";
       }
     }
+// Password validation FIRST
+if (name === "password" && value) {
+  const hasUppercase = /[A-Z]/.test(value);
+  const hasLowercase = /[a-z]/.test(value);
+  const hasDigit = /[0-9]/.test(value);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(value);
 
-    // Password validation
-    if (name === "password" && value.length < 8) {
-      msg = "Password must be minimum 8 characters";
-    }
+  if (
+    value.length < 8 ||
+    !hasUppercase ||
+    !hasLowercase ||
+    !hasDigit ||
+    !hasSpecial
+  ) {
+    msg =
+      "Password must contain 8+ chars, uppercase, lowercase, number & special character";
+  }
+}
 
-    // Confirm password validation
-    if (name === "confirm_password" && value !== form.password) {
-      msg = "Passwords do not match";
-    }
+// Confirm password ONLY if password is valid
+if (
+  name === "confirm_password" &&
+  value &&
+  form.password &&
+  value !== form.password
+) {
+  msg = "Passwords do not match";
+}
+
 
     // GST validation
     if (name === "gst_vat_number" && value && !isValidGST(value)) {
@@ -1171,48 +1193,79 @@ useEffect(() => {
                 {errors.admin_phone && <span className="error-text">{errors.admin_phone}</span>}
               </div>
             </div>
+<div className="form-row">
+  {/* CREATE PASSWORD */}
+  <div className="input-group">
+    <label htmlFor="password">Create Password</label>
 
-            <div className="form-row">
-              <div className="input-group">
-                <label htmlFor="password">Create Password</label>
-                <div className="input-wrapper">
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Minimum 8 characters"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                    className={errors.password ? "input-error" : ""}
-                  />
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                {errors.password && <span className="error-text">{errors.password}</span>}
-              </div>
-              
-              <div className="input-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <div className="input-wrapper">
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirm_password"
-                    placeholder="Re-enter password"
-                    value={form.confirm_password}
-                    onChange={handleChange}
-                    required
-                    className={errors.confirm_password ? "input-error" : ""}
-                  />
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                {errors.confirm_password && <span className="error-text">{errors.confirm_password}</span>}
-              </div>
-            </div>
+    <div className="input-wrapper password-wrapper">
+      <input
+        type={showPassword ? "text" : "password"}
+        id="password"
+        name="password"
+        placeholder="Minimum 8 characters"
+        value={form.password}
+        onChange={handleChange}
+        required
+        className={errors.password ? "input-error" : ""}
+      />
+
+      <span
+        className="password-toggle"
+        onClick={() => setShowPassword((p) => !p)}
+        role="button"
+        aria-label="Toggle password visibility"
+      >
+        <i
+          className={`fa-solid ${
+            showPassword ? "fa-eye-slash" : "fa-eye"
+          }`}
+        />
+      </span>
+    </div>
+
+    {errors.password && (
+      <span className="error-text">{errors.password}</span>
+    )}
+  </div>
+
+  {/* CONFIRM PASSWORD */}
+  <div className="input-group">
+    <label htmlFor="confirmPassword">Confirm Password</label>
+
+    <div className="input-wrapper password-wrapper">
+      <input
+        type={showConfirmPassword ? "text" : "password"}
+        id="confirmPassword"
+        name="confirm_password"
+        placeholder="Re-enter password"
+        value={form.confirm_password}
+        onChange={handleChange}
+        required
+        className={errors.confirm_password ? "input-error" : ""}
+      />
+
+      <span
+        className="password-toggle"
+        onClick={() => setShowConfirmPassword((p) => !p)}
+        role="button"
+        aria-label="Toggle confirm password visibility"
+      >
+        <i
+          className={`fa-solid ${
+            showConfirmPassword ? "fa-eye-slash" : "fa-eye"
+          }`}
+        />
+      </span>
+    </div>
+
+    {errors.confirm_password && (
+      <span className="error-text">{errors.confirm_password}</span>
+    )}
+  </div>
+</div>
+
+            
 
             <div className="options">
               <label className="remember-me">

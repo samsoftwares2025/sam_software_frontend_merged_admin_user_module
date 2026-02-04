@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect} from "react";
 import { logoutUser } from "../../api/auth";
 import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { refreshUserPermissions } from "../../api/auth";
@@ -28,6 +28,17 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
     if (isClientAdmin) return true;
     return permissions?.[module.trim().toLowerCase()]?.view === true;
   };
+
+  
+  // ✅ AUTO-OPEN PROFILE WHEN ON PROFILE PAGES
+  useEffect(() => {
+    if (
+      location.pathname.startsWith("/profile") ||
+      location.pathname.startsWith("/user/myprofile")
+    ) {
+      setOpenSection("profile");
+    }
+  }, [location.pathname, setOpenSection]);
 
   const [showNoPermission, setShowNoPermission] = useState(false);
 
@@ -259,65 +270,74 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
             </ul>
           </li>
         )}
+<li className={navHasSubmenu("profile")}>
+  <button
+    className="nav-toggle"
+    aria-expanded={openSection === "profile"}
+    onClick={() => handleSectionToggle("profile")}
+  >
+    <span className="nav-icon">
+      <i className="fa-solid fa-user" />
+    </span>
+    <span className="nav-text">My Profile</span>
+    <span className="nav-caret">▸</span>
+  </button>
 
-        {/* ================= MY PROFILE (Always visible) ================= */}
-        <li className={navHasSubmenu("profile")}>
-          <button
-            className="nav-toggle"
-            aria-expanded={openSection === "profile"}
-            onClick={() => handleSectionToggle("profile")}
-          >
-            <span className="nav-icon">
-              <i className="fa-solid fa-user" />
-            </span>
-            <span className="nav-text">My Profile</span>
-            <span className="nav-caret">▸</span>
-          </button>
+  <ul className="submenu" aria-hidden={submenuHidden("profile")}>
+    <li>
+      <Link
+        to="/user/myprofile"
+        className={`submenu-link ${isActive("/user/myprofile") ? "active" : ""}`}
+      >
+        Personal Details
+      </Link>
+    </li>
 
-          <ul className="submenu" aria-hidden={submenuHidden("profile")}>
-            <li>
-              <Link
-                to="/user/myprofile"
-                className={`submenu-link ${isActive("/user/myprofile") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                Personal Details
-              </Link>
-            </li>
+    <li>
+      <Link
+        to="/profile/documents"
+        className={`submenu-link ${isActive("/profile/documents") ? "active" : ""}`}
+      >
+        My Documents
+      </Link>
+    </li>
 
-            <li>
-              <Link
-                to="/profile/documents"
-                className={`submenu-link ${isActive("/profile/documents") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                My Documents
-              </Link>
-            </li>
+    <li>
+      <Link
+        to="/profile/history"
+        className={`submenu-link ${isActive("/profile/history") ? "active" : ""}`}
+      >
+        My History
+      </Link>
+    </li>
 
-            <li>
-              <Link
-                to="/profile/history"
-                className={`submenu-link ${isActive("/profile/history") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                My History
-              </Link>
-            </li>
+    <li>
+      <Link
+        to="/profile/reset-password"
+        className={`submenu-link ${isActive("/profile/reset-password") ? "active" : ""}`}
+      >
+        Reset Password
+      </Link>
+    </li>
+  </ul>
+</li>
 
-            <li>
-              <Link
-                to="/profile/reset-password"
-                className={`submenu-link ${isActive("/profile/reset-password") ? "active" : ""}`}
-                onClick={handleLinkClick}
-              >
-                Reset Password
-              </Link>
-            </li>
-          </ul>
-        </li>
- 
 
+{/* ================= COMPANY RULES ================= */}
+<li className="nav-item">
+  <Link
+    to="/profile/company-rules"
+    className={`nav-link ${
+      isActive("/profile/company-rules") ? "active" : ""
+    }`}
+    onClick={handleLinkClick}
+  >
+    <span className="nav-icon">
+      <i className="fa-solid fa-scale-balanced" />
+    </span>
+    <span className="nav-text">Company Rules</span>
+  </Link>
+</li>
 
  
         {/* ================= USER HELP & SUPPORT ================= */}

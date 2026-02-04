@@ -12,6 +12,11 @@ import {
 } from "../../api/admin/supportadmin";
 
 /* ================= FORMAT STATUS ================= */
+/* ================= STRIP HTML ================= */
+const stripHtml = (html = "") =>
+  html.replace(/<[^>]*>?/gm, "");
+
+
 const formatStatus = (status) => {
   if (!status) return "Pending";
   switch (status.toLowerCase()) {
@@ -303,7 +308,8 @@ const SupportAdminMyTicketsPage = () => {
                                 : "-"}
                             </td>
                             <td>{t.subject}</td>
-                            <td>{t.content}</td>
+                            <td>{stripHtml(t.content)}</td>
+
                             <td>
                               <span className={`status-pill ${statusClass}`}>
                                 ● {statusLabel}

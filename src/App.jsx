@@ -5,10 +5,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { LoaderProvider, useLoader } from "./context/LoaderContext";
 import { registerLoader } from "./api/loaderRegistry";
-
 /* PUBLIC PAGES */
 import Coming_soon from "./pages/home/Coming_soon";
 import Home from "./pages/home/Home";
+import LandingLayout from "./layouts/LandingLayout";
+
+
+
+
 import NotFound from "./pages/auth/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -68,6 +72,7 @@ import ResetPassword from "./pages/user/ResetPassword";
 import MyTickets from "./pages/user/Supportpage";
 import AddTicket from "./pages/user/AddTicket";
 import AssignedTickets from "./pages/admin/Userassighnticket";
+import MyCompanyRules from "./pages/user/Companyrulesview";
 
 
 import "./App.css";
@@ -97,7 +102,14 @@ function App() {
               {/* PUBLIC ROUTES */}
               <Route path="*" element={<NotFound />} />
               <Route path="/" element={<Coming_soon />} />
-              <Route path="/hr/software" element={<Home />} />
+             
+               
+             
+<Route element={<LandingLayout />}>
+  <Route path="/hr/software" element={<Home />} />
+</Route>
+
+
               <Route path="/login" element={<LoginPage />} />
               <Route path="/company/registration" element={<CompanyRegistrationPage />} />
               <Route path="/admin/forget-password" element={<ForgotPasswordPage />} />
@@ -481,6 +493,15 @@ function App() {
               <Route path="/user/support" element={<MyTickets />} />
               <Route path="/user/support/add" element={<AddTicket />} />
               <Route path="/admin/support/assigned" element={<AssignedTickets />} />
+              <Route
+  path="/profile/company-rules"
+  element={
+    <ProtectedRoute noPermissionCheck>
+      <MyCompanyRules />
+    </ProtectedRoute>
+  }
+/>
+
 
 
             </Routes>

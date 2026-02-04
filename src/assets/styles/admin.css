@@ -3483,3 +3483,14 @@ table.data-table th.wrap {
   padding: 0;
   line-height: 1;
 }
+
+@layer landing {
+  body:has(.landing-page-wrapper) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  html:has(.landing-page-wrapper) {
+    overflow-y: auto !important;
+  }
+}
