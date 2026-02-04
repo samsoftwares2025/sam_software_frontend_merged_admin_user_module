@@ -12,6 +12,16 @@ import {
   filterEmployeeDocuments,
 } from "../../api/admin/employees";
 
+// Helper to format dates
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 function EmployeeDocumentsPage() {
   const navigate = useNavigate();
 
@@ -20,7 +30,6 @@ function EmployeeDocumentsPage() {
   ================================ */
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("employees");
-  const [isFilterActive, setIsFilterActive] = useState(false);
 
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -51,7 +60,7 @@ function EmployeeDocumentsPage() {
   const [deleting, setDeleting] = useState(false);
 
   /* ===============================
-      INITIAL LOAD: DEPARTMENTS
+      INITIAL LOAD
   ================================ */
   useEffect(() => {
     getDepartments_employee_mgmnt()
@@ -60,19 +69,23 @@ function EmployeeDocumentsPage() {
   }, []);
 
   /* ===============================
-      THE MASTER DATA FETCHING EFFECT
+      MASTER DATA FETCHING
   ================================ */
-  // This single effect handles BOTH initial load, filtering, and pagination.
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
 
+      const userData = JSON.parse(localStorage.getItem("user") || "{}");
+      const currentUserId = userData.id;
+
       try {
         let resp;
-        if (isFilterActive) {
-          // If filtering is on, use the filter API
+        const hasActiveFilters = searchTerm || filterDepartment || filterStatus || filterDocType;
+
+        if (hasActiveFilters) {
           resp = await filterEmployeeDocuments({
+            user_id: currentUserId,
             search: searchTerm,
             status: filterStatus,
             department_id: filterDepartment,
@@ -81,7 +94,6 @@ function EmployeeDocumentsPage() {
             page_size: pageSize,
           });
         } else {
-          // Otherwise use the default list API
           resp = await getEmployeeDocuments({ 
             page: page, 
             page_size: pageSize 
@@ -93,22 +105,22 @@ function EmployeeDocumentsPage() {
         setTotalPages(resp?.total_pages || 1);
       } catch (err) {
         setError("Unable to load document records.");
+        console.error("Fetch Error:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-    // Dependencies include filters AND the page state
-  }, [searchTerm, filterDepartment, filterStatus, filterDocType, isFilterActive, page]);
+  }, [searchTerm, filterDepartment, filterStatus, filterDocType, page]);
 
   /* ===============================
-      EVENT HANDLERS
+      EVENT HANDLERS & HELPERS
   ================================ */
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
     setPage(newPage); 
-    // Changing 'page' triggers the useEffect above automatically.
+    window.scrollTo(0, 0); 
   };
 
   const handleClearFilters = () => {
@@ -116,9 +128,7 @@ function EmployeeDocumentsPage() {
     setFilterDepartment("");
     setFilterStatus("");
     setFilterDocType("");
-    setIsFilterActive(false);
     setPage(1); 
-    // This will trigger the "else" branch of the useEffect above.
   };
 
   const confirmDelete = async () => {
@@ -128,12 +138,41 @@ function EmployeeDocumentsPage() {
       await deleteEmployeeAllDocs(employeeToDelete.user_id);
       setShowDeleteModal(false);
       setEmployeeToDelete(null);
-      setPage(1); // Refresh to page 1
+      setPage(1); 
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete documents.");
     } finally {
       setDeleting(false);
     }
+  };
+
+  // Logic for Row Color based on Expiry Date
+  const getRowStyle = (expiryDateString) => {
+    if (!expiryDateString) return {}; // No date, default style
+
+    const today = new Date();
+    // Reset time to midnight for accurate day comparison
+    today.setHours(0, 0, 0, 0);
+    
+    const expiryDate = new Date(expiryDateString);
+    expiryDate.setHours(0, 0, 0, 0);
+
+    // Calculate difference in time (ms)
+    const diffTime = expiryDate - today;
+    // Calculate difference in days
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // 1. If Expired (Date is in the past)
+    if (diffTime < 0) {
+      return { color: "#dc2626", fontWeight: "600" }; // Red
+    }
+    
+    // 2. If Expiring in 7 days or less (and not expired)
+    if (diffDays <= 7) {
+      return { color: "#d97706", fontWeight: "600" }; // Warning Orange/Dark Yellow
+    }
+
+    return {}; // Default style
   };
 
   const getStatusStyle = (status) => {
@@ -144,6 +183,9 @@ function EmployeeDocumentsPage() {
 
   const startRow = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const endRow = Math.min(page * pageSize, totalCount);
+
+  // Show extra columns only if document filter is active
+  const showDateColumns = filterDocType !== "";
 
   return (
     <div className="container">
@@ -172,8 +214,7 @@ function EmployeeDocumentsPage() {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setIsFilterActive(true);
-                  setPage(1); // Reset to page 1 on search
+                  setPage(1); 
                 }}
               />
             </div>
@@ -183,8 +224,7 @@ function EmployeeDocumentsPage() {
               value={filterDepartment}
               onChange={(e) => {
                 setFilterDepartment(e.target.value);
-                setIsFilterActive(true);
-                setPage(1); // Reset to page 1
+                setPage(1);
               }}
             >
               <option value="">All Departments</option>
@@ -198,8 +238,7 @@ function EmployeeDocumentsPage() {
               value={filterDocType}
               onChange={(e) => {
                 setFilterDocType(e.target.value);
-                setIsFilterActive(true);
-                setPage(1); // Reset to page 1
+                setPage(1);
               }}
             >
               <option value="">All Document Types</option>
@@ -213,8 +252,7 @@ function EmployeeDocumentsPage() {
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
-                setIsFilterActive(true);
-                setPage(1); // Reset to page 1
+                setPage(1);
               }}
             >
               <option value="">All Status</option>
@@ -261,59 +299,86 @@ function EmployeeDocumentsPage() {
                       <th>Name</th>
                       <th>Department</th>
                       <th>Designation</th>
+                      
+                      {/* CONDITIONAL HEADERS */}
+                      {showDateColumns && <th>Document Type</th>}
+                      {showDateColumns && <th>Issue Date</th>}
+                      {showDateColumns && <th>Expiry Date</th>}
+
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {employees.map((emp, index) => (
-                      <tr key={emp.user_id}>
-                        <td>{(page - 1) * pageSize + index + 1}</td>
-                        <td>{emp.employee_id}</td>
-                        <td>{emp.name}</td>
-                        <td>{emp.department}</td>
-                        <td>{emp.designation}</td>
-                        <td>
-                          <span style={getStatusStyle(emp.status)}>{emp.status}</span>
-                        </td>
-                        <td>
-                          <div className="table-actions">
-                            <ProtectedAction
-                              module="employee"
-                              action="view"
-                              to={`/admin/employee-documents-view/${emp.user_id}`}
-                              className="icon-btn view"
-                            >
-                              <i className="fa-solid fa-eye" />
-                            </ProtectedAction>
+                    {employees.map((emp, index) => {
+                      // Calculate row style based on expiry date
+                      const rowStyle = showDateColumns ? getRowStyle(emp.expiry_date) : {};
 
-                            <ProtectedAction
-                              module="employee"
-                              action="update"
-                              to={`/admin/update-employee-documents/${emp.user_id}`}
-                              className="icon-btn edit"
-                            >
-                              <i className="fa-solid fa-pen" />
-                            </ProtectedAction>
+                      return (
+                        <tr key={emp.user_id} style={rowStyle}>
+                            <td>{(page - 1) * pageSize + index + 1}</td>
+                            <td>{emp.employee_id}</td>
+                            <td>{emp.name}</td>
+                            <td>{emp.department}</td>
+                            <td>{emp.designation}</td>
 
-                            <ProtectedAction
-                              module="employee"
-                              action="delete"
-                              onAllowed={() => {
-                                setEmployeeToDelete(emp);
-                                setShowDeleteModal(true);
-                              }}
-                              className="icon-btn delete"
-                            >
-                              <i className="fa-solid fa-trash" />
-                            </ProtectedAction>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                            {/* CONDITIONAL DATA CELLS */}
+                            {showDateColumns && (
+                                <td>{emp.document_type || "-"}</td>
+                            )}
+                            {showDateColumns && (
+                                <td>{formatDate(emp.issue_date)}</td>
+                            )}
+                            {showDateColumns && (
+                                <td>{formatDate(emp.expiry_date)}</td>
+                            )}
+
+                            <td>
+                            {/* Note: We keep status color logic independent of row color logic unless row color overrides it */}
+                            <span style={getStatusStyle(emp.status)}>{emp.status}</span>
+                            </td>
+                            <td>
+                            <div className="table-actions">
+                                <ProtectedAction
+                                module="employee"
+                                action="view"
+                                to={`/admin/employee-documents-view/${emp.user_id}`}
+                                className="icon-btn view"
+                                >
+                                <i className="fa-solid fa-eye" />
+                                </ProtectedAction>
+
+                                <ProtectedAction
+                                module="employee"
+                                action="update"
+                                to={`/admin/update-employee-documents/${emp.user_id}`}
+                                className="icon-btn edit"
+                                >
+                                <i className="fa-solid fa-pen" />
+                                </ProtectedAction>
+
+                                <ProtectedAction
+                                module="employee"
+                                action="delete"
+                                onAllowed={() => {
+                                    setEmployeeToDelete(emp);
+                                    setShowDeleteModal(true);
+                                }}
+                                className="icon-btn delete"
+                                >
+                                <i className="fa-solid fa-trash" />
+                                </ProtectedAction>
+                            </div>
+                            </td>
+                        </tr>
+                      );
+                    })}
                     {employees.length === 0 && (
                       <tr>
-                        <td colSpan={7} style={{ textAlign: "center", padding: "2rem" }}>No records found.</td>
+                        {/* Adjust colspan to match total column count */}
+                        <td colSpan={showDateColumns ? 10 : 7} style={{ textAlign: "center", padding: "2rem" }}>
+                            No records found.
+                        </td>
                       </tr>
                     )}
                   </tbody>
