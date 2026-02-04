@@ -551,76 +551,6 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
     <span className="nav-caret">▸</span>
   </button>
 
-<<<<<<< HEAD
-        {/* ================= MY PROFILE (Always visible) ================= */}
-        {/* ================= MY PROFILE (Hide for Client Admin) ================= */}
-        {!isClientAdmin && (
-          <li className={navHasSubmenu("profile")}>
-            <button
-              className="nav-toggle"
-              aria-expanded={openSection === "profile"}
-              onClick={() => handleSectionToggle("profile")}
-            >
-              <span className="nav-icon">
-                <i className="fa-solid fa-user" />
-              </span>
-              <span className="nav-text">My Profile</span>
-              <span className="nav-caret">▸</span>
-            </button>
-
-            <ul className="submenu" aria-hidden={submenuHidden("profile")}>
-              <li>
-                <Link
-                  to="/user/myprofile"
-                  className={`submenu-link ${
-                    isActive("/user/myprofile") ? "active" : ""
-                  }`}
-                  onClick={handleLinkClick}
-                >
-                  Personal Details
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/profile/documents"
-                  className={`submenu-link ${
-                    isActive("/profile/documents") ? "active" : ""
-                  }`}
-                  onClick={handleLinkClick}
-                >
-                  My Documents
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/profile/history"
-                  className={`submenu-link ${
-                    isActive("/profile/history") ? "active" : ""
-                  }`}
-                  onClick={handleLinkClick}
-                >
-                  My History
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/profile/reset-password"
-                  className={`submenu-link ${
-                    isActive("/profile/reset-password") ? "active" : ""
-                  }`}
-                  onClick={handleLinkClick}
-                >
-                  Reset Password
-                </Link>
-              </li>
-            </ul>
-          </li>
-        )}
-
-=======
   <ul className="submenu" aria-hidden={submenuHidden("profile")}>
     <li>
       <Link
@@ -678,7 +608,6 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
 </li>
 
  
->>>>>>> origin/users
         {/* ================= USER HELP & SUPPORT ================= */}
         {!isClientAdmin && (
           <li className="nav-item">
