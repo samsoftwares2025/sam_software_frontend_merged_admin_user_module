@@ -3447,6 +3447,7 @@ table.data-table th.wrap {
   line-height: 1;
 }
 
+<<<<<<< HEAD
 
 
 /* ================= FILTERS – MOBILE FIX ================= */
@@ -3809,3 +3810,15 @@ table.data-table th.wrap {
 .submenu-link {
   padding-left: 48px; /* aligns under text, not icon */
 }
+=======
+@layer landing {
+  body:has(.landing-page-wrapper) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  html:has(.landing-page-wrapper) {
+    overflow-y: auto !important;
+  }
+}
+>>>>>>> origin/users

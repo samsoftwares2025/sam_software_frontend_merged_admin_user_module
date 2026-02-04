@@ -42,7 +42,7 @@ if (Array.isArray(form.industry)) {
   fd.append("personal_email", form.contact_email || "");
   fd.append("phone", form.admin_phone || "");
 
-    fd.append("payment_status", "Pending");
+    fd.append("payment_status", "");
 
 
   /* SECURITY */
