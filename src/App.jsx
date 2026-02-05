@@ -66,6 +66,9 @@ import TicketTypesPage from "./pages/admin/TicketTypesPage";
 import UpdateTicketTypePage from "./pages/admin/UpdateTicketTypePage";
 import AddTicketAdminPage from "./pages/admin/AddTicketAdminPage";
 import SupportAdminMyTicketsPage from "./pages/admin/SupportAdminMyTicketsPage";
+import AddShiftPage from "./pages/admin/shift/AddShiftPage";
+import ShiftsPage from "./pages/admin/shift/ShiftsPage";
+import UpdateShiftPage from "./pages/admin/shift/UpdateShiftPage";
 
 /* USER MODULE */
 import Dashboard from "./pages/user/Dashboard";
@@ -529,6 +532,31 @@ function App() {
                 }
               />
 
+
+              <Route
+                path="/admin/add-shift"
+                element={
+                  <ProtectedRoute module="shift" action="add">
+                  < AddShiftPage/>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/shifts"
+                element={
+                  <ProtectedRoute module="shift" action="view">
+                  < ShiftsPage/>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/update-shift"
+                element={
+                  <ProtectedRoute module="shift" action="update">
+                  < UpdateShiftPage/>
+                  </ProtectedRoute>
+                }
+              />
               {/* USER MODULE */}
               <Route path="/user/dashboard" element={<Dashboard />} />
               <Route path="/user/myprofile" element={<Myprofile />} />

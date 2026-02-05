@@ -159,7 +159,7 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
     {
       permission: "shifts",
       label: "Shifts",
-      to: "/admin/attendance/shifts",
+      to: "/admin/shifts",
     },
   ]);
 

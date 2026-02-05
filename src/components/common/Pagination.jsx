@@ -6,7 +6,7 @@ const Pagination = ({
   pageSize, 
   onPageChange,
   onPageSizeChange, // <--- New Prop function
-  pageSizeOptions = [5,10, 20, 50, 100] // <--- Default options
+  pageSizeOptions = [1,2,5,10, 20, 50, 100] // <--- Default options
 }) => {
   // If no items, don't render anything
   if (totalCount === 0) return null;
