@@ -54,12 +54,12 @@ export const filterSupportTickets = async (filters = {}) => {
 
   const payload = {
     user_id: userId,
-    page: filters.page || 1,
-    page_size: filters.page_size || 20,
-    status: filters.status || "",
-    search: filters.search || "",
-    assigned_to: filters.assigned_to || "",
-    submitted_by: filters.submitted_by || "",
+    page: filters.page ?? 1,
+    page_size: filters.page_size ?? 20,
+    status: filters.status ?? "",
+    search: filters.search ?? "",
+    assigned_to: filters.assigned_to ?? "",
+    submitted_by: filters.submitted_by ?? "",
   };
 
   const { data } = await http.post(
@@ -70,6 +70,7 @@ export const filterSupportTickets = async (filters = {}) => {
 
   return data;
 };
+
 
 /**
  * ===============================

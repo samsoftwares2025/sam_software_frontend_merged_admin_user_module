@@ -90,10 +90,10 @@ export default function DocumentsSection({
                   required
                 >
                   <option value="">Select Document Type</option>
-                  <option value="visa">Visa</option>
-                  <option value="license">License</option>
-                  <option value="passport">Passport</option>
-                  <option value="id">National ID</option>
+                  <option value="Visa">Visa</option>
+                  <option value="License">License</option>
+                  <option value="Passport">Passport</option>
+                  <option value="National Id">National ID</option>
                   <option value="other">Other</option>
                 </select>
               </div>

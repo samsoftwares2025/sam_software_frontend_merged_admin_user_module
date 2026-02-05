@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
+import Pagination from "../../components/common/Pagination";
 import "../../assets/styles/admin.css";
 import ProtectedAction from "../../components/admin/ProtectedAction";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import { getDepartments_employee_mgmnt } from "../../api/admin/departments";
+import { getAllCountries } from "../../api/admin/locationApi";
+import { selectStyles } from "../../utils/selectStyles";
+
 import {
   getEmployeeDocuments,
   deleteEmployeeAllDocs,
   filterEmployeeDocuments,
 } from "../../api/admin/employees";
 
-// Helper to format dates
 const formatDate = (dateString) => {
   if (!dateString) return "-";
   return new Date(dateString).toLocaleDateString("en-GB", {
@@ -25,102 +29,119 @@ const formatDate = (dateString) => {
 function EmployeeDocumentsPage() {
   const navigate = useNavigate();
 
-  /* ===============================
-      STATE MANAGEMENT
-  ================================ */
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSection, setOpenSection] = useState("employees");
-
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [countryList, setCountryList] = useState([]);
   const [statuses] = useState(["Active", "Inactive"]);
   const [docTypes] = useState([
-    { label: "Visa", value: "visa" },
-    { label: "License", value: "license" },
-    { label: "Passport", value: "passport" },
-    { label: "National ID", value: "id" },
+    { label: "Visa", value: "Visa" },
+    { label: "License", value: "License" },
+    { label: "Passport", value: "Passport" },
+    { label: "National ID", value: "National Id" },
     { label: "Other", value: "other" },
   ]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("");
+  const [filterCountry, setFilterCountry] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterDocType, setFilterDocType] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
 
+  // Pagination State
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20); 
   const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  /* ===============================
-      INITIAL LOAD
-  ================================ */
+  // Load static lists once
   useEffect(() => {
     getDepartments_employee_mgmnt()
       .then((resp) => setDepartments(resp?.departments || []))
       .catch(() => console.error("Failed to load departments"));
+
+    getAllCountries()
+      .then((resp) => {
+        const countriesArray = Array.isArray(resp) ? resp : resp?.countries || [];
+        const formatted = countriesArray.map((c) => ({
+          label: c.country_name,
+          value: c.country_name,
+        }));
+        setCountryList(formatted);
+      })
+      .catch((err) => console.error("Failed to load countries", err));
   }, []);
 
-  /* ===============================
-      MASTER DATA FETCHING
-  ================================ */
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+  // Main Data Fetcher
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-      const userData = JSON.parse(localStorage.getItem("user") || "{}");
-      const currentUserId = userData.id;
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const currentUserId = userData.id;
+    const NATIONAL_ID_TYPE_KEY = "id";
 
-      try {
-        let resp;
-        const hasActiveFilters = searchTerm || filterDepartment || filterStatus || filterDocType;
+    try {
+      let resp;
+      const hasActiveFilters = 
+        searchTerm || filterDepartment || filterStatus || 
+        filterDocType || filterCountry || sortOrder;
 
-        if (hasActiveFilters) {
-          resp = await filterEmployeeDocuments({
-            user_id: currentUserId,
-            search: searchTerm,
-            status: filterStatus,
-            department_id: filterDepartment,
-            document_type: filterDocType,
-            page: page,
-            page_size: pageSize,
-          });
-        } else {
-          resp = await getEmployeeDocuments({ 
-            page: page, 
-            page_size: pageSize 
-          });
-        }
+      // Ensure we always pass the current pageSize to avoid backend defaults
+      const payload = {
+        page: page,
+        page_size: pageSize, 
+        national_id_type: NATIONAL_ID_TYPE_KEY,
+      };
 
-        setEmployees(resp?.users || []);
-        setTotalCount(resp?.total_count || 0);
-        setTotalPages(resp?.total_pages || 1);
-      } catch (err) {
-        setError("Unable to load document records.");
-        console.error("Fetch Error:", err);
-      } finally {
-        setLoading(false);
+      if (hasActiveFilters) {
+        resp = await filterEmployeeDocuments({
+          page_size: pageSize, 
+          
+          user_id: currentUserId,
+          search: searchTerm,
+          status: filterStatus,
+          department_id: filterDepartment,
+          document_type: filterDocType,
+          country: filterCountry,
+          sort_by: sortOrder,
+        });
+      } else {
+        resp = await getEmployeeDocuments(payload);
       }
-    };
 
+      setEmployees(resp?.users || []);
+      setTotalCount(resp?.total_count || 0);
+    } catch (err) {
+      setError("Unable to load document records.");
+      console.error("Fetch Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, filterDepartment, filterStatus, filterDocType, filterCountry, sortOrder, page, pageSize]);
+
+  useEffect(() => {
     fetchData();
-  }, [searchTerm, filterDepartment, filterStatus, filterDocType, page]);
+  }, [fetchData]);
 
-  /* ===============================
-      EVENT HANDLERS & HELPERS
-  ================================ */
+  /* HANDLERS */
   const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    setPage(newPage); 
-    window.scrollTo(0, 0); 
+    setPage(newPage);
+    window.scrollTo(0, 0);
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setPage(1); // Crucial: Reset to page 1 when size changes
   };
 
   const handleClearFilters = () => {
@@ -128,7 +149,17 @@ function EmployeeDocumentsPage() {
     setFilterDepartment("");
     setFilterStatus("");
     setFilterDocType("");
-    setPage(1); 
+    setFilterCountry("");
+    setSortOrder("");
+    setPage(1);
+    // Note: We do NOT reset pageSize here so the user's preference is kept
+  };
+
+  const toggleSort = () => {
+    if (sortOrder === "") setSortOrder("asc");
+    else if (sortOrder === "asc") setSortOrder("desc");
+    else setSortOrder("");
+    setPage(1);
   };
 
   const confirmDelete = async () => {
@@ -138,7 +169,8 @@ function EmployeeDocumentsPage() {
       await deleteEmployeeAllDocs(employeeToDelete.user_id);
       setShowDeleteModal(false);
       setEmployeeToDelete(null);
-      setPage(1); 
+      setPage(1);
+      fetchData();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete documents.");
     } finally {
@@ -146,45 +178,23 @@ function EmployeeDocumentsPage() {
     }
   };
 
-  // Logic for Row Color based on Expiry Date
   const getRowStyle = (expiryDateString) => {
-    if (!expiryDateString) return {}; // No date, default style
-
+    if (!expiryDateString) return {};
     const today = new Date();
-    // Reset time to midnight for accurate day comparison
     today.setHours(0, 0, 0, 0);
-    
     const expiryDate = new Date(expiryDateString);
     expiryDate.setHours(0, 0, 0, 0);
-
-    // Calculate difference in time (ms)
-    const diffTime = expiryDate - today;
-    // Calculate difference in days
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    // 1. If Expired (Date is in the past)
-    if (diffTime < 0) {
-      return { color: "#dc2626", fontWeight: "600" }; // Red
-    }
-    
-    // 2. If Expiring in 7 days or less (and not expired)
-    if (diffDays <= 7) {
-      return { color: "#d97706", fontWeight: "600" }; // Warning Orange/Dark Yellow
-    }
-
-    return {}; // Default style
+    const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+    if (expiryDate < today) return { color: "#d32f2f", fontWeight: "600" };
+    if (diffDays <= 7) return { color: "#ed6c02", fontWeight: "600" };
+    return {};
   };
 
-  const getStatusStyle = (status) => {
-    return status === "Active" 
-      ? { color: "var(--success)", fontWeight: 600 } 
-      : { color: "#dc2626", fontWeight: 600 };
-  };
+  const getStatusStyle = (status) => ({
+    color: status === "Active" ? "var(--success)" : "#dc2626",
+    fontWeight: 600
+  });
 
-  const startRow = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const endRow = Math.min(page * pageSize, totalCount);
-
-  // Show extra columns only if document filter is active
   const showDateColumns = filterDocType !== "";
 
   return (
@@ -212,61 +222,49 @@ function EmployeeDocumentsPage() {
               <input
                 placeholder="Search employees..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1); 
-                }}
+                onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               />
             </div>
 
-            <select
-              className="filter-select"
-              value={filterDepartment}
-              onChange={(e) => {
-                setFilterDepartment(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">All Departments</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
+            <div style={{ width: "220px", maxWidth: "100%" }}>
+              <Select
+                options={countryList}
+                value={countryList.find((c) => c.value === filterCountry) || null}
+                onChange={(opt) => { setFilterCountry(opt ? opt.value : ""); setPage(1); }}
+                styles={selectStyles}
+                placeholder="Nationality..."
+                isClearable
+                isSearchable
+              />
+            </div>
 
-            <select
-              className="filter-select"
-              value={filterDocType}
-              onChange={(e) => {
-                setFilterDocType(e.target.value);
-                setPage(1);
-              }}
-            >
+            <div style={{ width: "220px" }}>
+              <select
+                className="filter-select"
+                value={filterDepartment}
+                onChange={(e) => { setFilterDepartment(e.target.value); setPage(1); }}
+                style={{ width: "100%", textOverflow: "ellipsis" }}
+              >
+                <option value="">All Departments</option>
+                {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+
+            <select className="filter-select" value={filterDocType} onChange={(e) => { setFilterDocType(e.target.value); setPage(1); }}>
               <option value="">All Document Types</option>
-              {docTypes.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
+              {docTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
 
-            <select
-              className="filter-select"
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setPage(1);
-              }}
-            >
+            <select className="filter-select" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
               <option value="">All Status</option>
-              {statuses.map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
+              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
           <div className="filters-right">
             <button className="btn btn-ghost" onClick={handleClearFilters}>Clear Filters</button>
             <ProtectedAction
-              module="employee"
-              action="add"
+              module="employee" action="add"
               onAllowed={() => navigate("/admin/add-employee-documents")}
               className="btn btn-primary"
             >
@@ -278,10 +276,7 @@ function EmployeeDocumentsPage() {
         {/* DATA TABLE */}
         <div className="table-container">
           <div className="table-header-bar">
-            <h4>
-              Employee Document Records{" "}
-              <span className="badge-pill">Total: {totalCount}</span>
-            </h4>
+            <h4>Employee Document Records <span className="badge-pill">Total: {totalCount}</span></h4>
           </div>
 
           {loading ? (
@@ -294,118 +289,69 @@ function EmployeeDocumentsPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Order No</th>
+                      <th>S.No</th>
                       <th>Employee ID</th>
-                      <th>Name</th>
+                      <th>National ID No</th>
+                      <th onClick={toggleSort} style={{ cursor: "pointer", userSelect: "none", minWidth: "120px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          Name
+                          {sortOrder === "asc" && <i className="fa-solid fa-arrow-down-a-z" style={{color: "var(--primary)"}}></i>}
+                          {sortOrder === "desc" && <i className="fa-solid fa-arrow-down-z-a" style={{color: "var(--primary)"}}></i>}
+                          {sortOrder === "" && <i className="fa-solid fa-sort" style={{ color: "#ccc" }}></i>}
+                        </div>
+                      </th>
+                      <th>Nationality</th>
                       <th>Department</th>
                       <th>Designation</th>
-                      
-                      {/* CONDITIONAL HEADERS */}
                       {showDateColumns && <th>Document Type</th>}
                       {showDateColumns && <th>Issue Date</th>}
                       {showDateColumns && <th>Expiry Date</th>}
-
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {employees.map((emp, index) => {
-                      // Calculate row style based on expiry date
-                      const rowStyle = showDateColumns ? getRowStyle(emp.expiry_date) : {};
-
-                      return (
-                        <tr key={emp.user_id} style={rowStyle}>
-                            <td>{(page - 1) * pageSize + index + 1}</td>
-                            <td>{emp.employee_id}</td>
-                            <td>{emp.name}</td>
-                            <td>{emp.department}</td>
-                            <td>{emp.designation}</td>
-
-                            {/* CONDITIONAL DATA CELLS */}
-                            {showDateColumns && (
-                                <td>{emp.document_type || "-"}</td>
-                            )}
-                            {showDateColumns && (
-                                <td>{formatDate(emp.issue_date)}</td>
-                            )}
-                            {showDateColumns && (
-                                <td>{formatDate(emp.expiry_date)}</td>
-                            )}
-
-                            <td>
-                            {/* Note: We keep status color logic independent of row color logic unless row color overrides it */}
-                            <span style={getStatusStyle(emp.status)}>{emp.status}</span>
-                            </td>
-                            <td>
-                            <div className="table-actions">
-                                <ProtectedAction
-                                module="employee"
-                                action="view"
-                                to={`/admin/employee-documents-view/${emp.user_id}`}
-                                className="icon-btn view"
-                                >
-                                <i className="fa-solid fa-eye" />
-                                </ProtectedAction>
-
-                                <ProtectedAction
-                                module="employee"
-                                action="update"
-                                to={`/admin/update-employee-documents/${emp.user_id}`}
-                                className="icon-btn edit"
-                                >
-                                <i className="fa-solid fa-pen" />
-                                </ProtectedAction>
-
-                                <ProtectedAction
-                                module="employee"
-                                action="delete"
-                                onAllowed={() => {
-                                    setEmployeeToDelete(emp);
-                                    setShowDeleteModal(true);
-                                }}
-                                className="icon-btn delete"
-                                >
-                                <i className="fa-solid fa-trash" />
-                                </ProtectedAction>
-                            </div>
-                            </td>
-                        </tr>
-                      );
-                    })}
-                    {employees.length === 0 && (
-                      <tr>
-                        {/* Adjust colspan to match total column count */}
-                        <td colSpan={showDateColumns ? 10 : 7} style={{ textAlign: "center", padding: "2rem" }}>
-                            No records found.
+                    {employees.map((emp, index) => (
+                      <tr key={emp.user_id} style={showDateColumns ? getRowStyle(emp.expiry_date) : {}}>
+                        <td>{(page - 1) * pageSize + index + 1}</td>
+                        <td>{emp.employee_id}</td>
+                        <td>{emp.national_id || "-"}</td>
+                        <td>{emp.name}</td>
+                        <td>{emp.nationality || "-"}</td>
+                        <td>{emp.department}</td>
+                        <td>{emp.designation}</td>
+                        {showDateColumns && <td>{emp.document_type || "-"}</td>}
+                        {showDateColumns && <td>{formatDate(emp.issue_date)}</td>}
+                        {showDateColumns && <td>{formatDate(emp.expiry_date)}</td>}
+                        <td><span style={getStatusStyle(emp.status)}>{emp.status}</span></td>
+                        <td>
+                          <div className="table-actions">
+                            <ProtectedAction module="employee" action="view" to={`/admin/employee-documents-view/${emp.user_id}?type=${filterDocType}`} className="icon-btn view">
+                              <i className="fa-solid fa-eye" />
+                            </ProtectedAction>
+                            <ProtectedAction module="employee" action="update" to={`/admin/update-employee-documents/${emp.user_id}`} className="icon-btn edit">
+                              <i className="fa-solid fa-pen" />
+                            </ProtectedAction>
+                            <ProtectedAction module="employee" action="delete" onAllowed={() => { setEmployeeToDelete(emp); setShowDeleteModal(true); }} className="icon-btn delete">
+                              <i className="fa-solid fa-trash" />
+                            </ProtectedAction>
+                          </div>
                         </td>
                       </tr>
+                    ))}
+                    {employees.length === 0 && (
+                      <tr><td colSpan={showDateColumns ? 12 : 9} style={{ textAlign: "center", padding: "2rem" }}>No records found.</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
-
-              {/* PAGINATION */}
-              <div className="table-footer">
-                <div id="tableInfo">Showing {startRow} to {endRow} of {totalCount} employees</div>
-                <div className="pagination">
-                  <button disabled={page === 1} onClick={() => handlePageChange(page - 1)}>
-                    <i className="fa-solid fa-angle-left"></i>
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button 
-                      key={p} 
-                      className={p === page ? "active-page" : ""} 
-                      onClick={() => handlePageChange(p)}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button disabled={page === totalPages} onClick={() => handlePageChange(page + 1)}>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </button>
-                </div>
-              </div>
+              <Pagination
+                currentPage={page}
+                totalCount={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
             </>
           )}
         </div>
@@ -420,7 +366,6 @@ function EmployeeDocumentsPage() {
           />
         )}
       </main>
-
       <div className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`} onClick={() => setIsSidebarOpen(false)} />
     </div>
   );

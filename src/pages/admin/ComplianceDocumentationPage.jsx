@@ -3,6 +3,7 @@ import Sidebar from "../../components/common/Sidebar";
 import Header from "../../components/common/Header";
 import "../../assets/styles/admin.css";
 import ProtectedAction from "../../components/admin/ProtectedAction";
+import Pagination from "../../components/common/Pagination";
 
 import {
   getSupportTickets,
@@ -40,38 +41,36 @@ function ComplianceDocumentationPage() {
 
   /* ================= PAGINATION ================= */
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(20);
+
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   /* ================= DOWNLOAD FILE ================= */
-const downloadFile = async (fileUrl, fileName = "attachment") => {
-  try {
-    const res = await fetch(fileUrl, {
-      credentials: "include",
-    });
+  const downloadFile = async (fileUrl, fileName = "attachment") => {
+    try {
+      const res = await fetch(fileUrl, {
+        credentials: "include",
+      });
 
-    if (!res.ok) throw new Error("Download failed");
+      if (!res.ok) throw new Error("Download failed");
 
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName; // default name
-    document.body.appendChild(a);
-    a.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName; // default name
+      document.body.appendChild(a);
+      a.click();
 
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    alert("Unable to download file");
-    console.error(err);
-  }
-};
-
-
-
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Unable to download file");
+      console.error(err);
+    }
+  };
 
   /* ================= EMPLOYEE DROPDOWN OPTIONS ================= */
   const employeeOptions = employees.map((e) => ({
@@ -104,23 +103,7 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
     setError(null);
 
     try {
-      let res;
-
-      // IF NO FILTER → USE NORMAL LIST API
-      if (!isFilterApplied()) {
-        const list = await getSupportTickets();
-        const resp = await getSupportTickets();
-
-        setTickets(resp.list);
-        setTotalCount(resp.pagination.total_records);
-        setTotalPages(resp.pagination.total_pages);
-
-        setLoading(false);
-        return;
-      }
-
-      // IF FILTERS EXIST → USE FILTER API
-      res = await filterSupportTickets({
+      const res = await filterSupportTickets({
         search: searchTerm,
         status,
         submitted_by: submittedBy,
@@ -129,23 +112,20 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
         page_size: pageSize,
       });
 
-      const normalized = Array.isArray(res?.support_tickets)
-        ? res.support_tickets.map((t) => ({
-            ...t,
-            submitted_by: t.submitted_by
-              ? { id: t.submitted_by, name: t.submitted_by_name }
-              : null,
-            assigned_to: t.assigned_to
-              ? { id: t.assigned_to, name: t.assigned_to_name }
-              : null,
-          }))
-        : [];
+      const normalized = res.support_tickets.map((t) => ({
+        ...t,
+        submitted_by: t.submitted_by
+          ? { id: t.submitted_by, name: t.submitted_by_name }
+          : null,
+        assigned_to: t.assigned_to
+          ? { id: t.assigned_to, name: t.assigned_to_name }
+          : null,
+      }));
 
       setTickets(normalized);
-      setTotalPages(res.pagination.total_pages);
       setTotalCount(res.pagination.total_records);
-    } catch (err) {
-      console.error(err);
+      setTotalPages(res.pagination.total_pages);
+    } catch {
       setError("Failed to load compliance tickets.");
     }
 
@@ -159,7 +139,7 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
 
   useEffect(() => {
     fetchTickets();
-  }, [searchTerm, status, submittedBy, assignedTo, page]);
+  }, [searchTerm, status, submittedBy, assignedTo, page, pageSize]);
 
   /* ================= HELPERS ================= */
   const handleClearFilters = () => {
@@ -172,9 +152,13 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
   };
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
+    setPage(newPage);
   };
 
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setPage(1);
+  };
   const startRow = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const endRow = Math.min(page * pageSize, totalCount);
 
@@ -230,8 +214,7 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
             </select>
 
             {/* SUBMITTED BY - SEARCHABLE */}
-           <div className="filter-item">
-
+            <div className="filter-item">
               <Select
                 options={employeeOptions}
                 placeholder="Submitted By"
@@ -250,8 +233,7 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
             </div>
 
             {/* ASSIGNED TO - SEARCHABLE */}
-           <div className="filter-item">
-
+            <div className="filter-item">
               <Select
                 options={employeeOptions}
                 placeholder="Assigned To"
@@ -385,7 +367,6 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
                               >
                                 <i className="fa-solid fa-pen" />
                               </ProtectedAction>
-                              
                             </div>
                           </td>
                         </tr>
@@ -404,40 +385,13 @@ const downloadFile = async (fileUrl, fileName = "attachment") => {
               </div>
 
               {/* ================= PAGINATION FOOTER ================= */}
-              <div className="table-footer">
-                <div id="tableInfo">
-                  Showing {startRow} to {endRow} of {totalCount} tickets
-                </div>
-
-                <div className="pagination">
-                  <button
-                    disabled={page === 1}
-                    onClick={() => handlePageChange(page - 1)}
-                  >
-                    <i className="fa-solid fa-angle-left"></i>
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        className={p === page ? "active-page" : ""}
-                        onClick={() => handlePageChange(p)}
-                        disabled={p === page}
-                      >
-                        {p}
-                      </button>
-                    ),
-                  )}
-
-                  <button
-                    disabled={page === totalPages}
-                    onClick={() => handlePageChange(page + 1)}
-                  >
-                    <i className="fa-solid fa-angle-right"></i>
-                  </button>
-                </div>
-              </div>
+              <Pagination
+                currentPage={page}
+                totalCount={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
             </>
           )}
         </div>

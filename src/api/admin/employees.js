@@ -27,22 +27,32 @@ export const getEmployeeMasterData = async (payload = {}) => {
 
 
 // src/api/admin/employees.js
-export const filterEmployeeMasterData = async (payload) => {
+export const filterEmployeeMasterData = async (payload = {}) => {
   const userId = localStorage.getItem("userId");
+
+  const {
+    search = "",
+    department = "",
+    is_active = "",
+    page = 1,
+    page_size = 20,
+  } = payload;
 
   const { data } = await http.post(
     "/hr/filter-employee-master-data/",
     {
       user_id: userId,
-      search: payload?.search || "",
-      department_name: payload?.department || "",
-      is_active: payload?.is_active || "",   
-      page: payload?.page || 1,
+      search,
+      department_name: department,
+      page,
+      page_size,
+      ...(is_active !== "" && { is_active }),
     }
   );
 
   return data;
 };
+
 
 
 /**
@@ -63,24 +73,35 @@ export const getEmployeeHistoryData = async ({ page = 1, page_size = 20 }) => {
   return data;
 };
 
-
-export const filterEmployeeHistoryData = async (payload) => {
+export const filterEmployeeHistoryData = async (payload = {}) => {
   const userId = localStorage.getItem("userId");
+
+  const {
+    search = "",
+    is_active = "",
+    department_id = "",
+    employment_type_id = "",
+    page = 1,
+    page_size = 20,
+  } = payload;
+
+  const requestBody = {
+    user_id: userId,
+    search,
+    department_id,
+    employment_type_id,
+    page,
+    page_size,
+  };
+
+  // Only include is_active when explicitly set
+  if (is_active !== "") {
+    requestBody.is_active = is_active;
+  }
 
   const { data } = await http.post(
     "/hr/filter-employee-master-data/",
-    {
-      user_id: userId,
-      search: payload?.search || "",
-      is_active:
-        payload?.is_active === undefined || payload?.is_active === ""
-          ? ""
-          : payload.is_active,
-      department_id: payload?.department_id || "",
-      employment_type_id: payload?.employment_type_id || "",
-      page: payload?.page || 1,
-      page_size: payload?.page_size || 20,
-    }
+    requestBody
   );
 
   return data;
@@ -110,7 +131,6 @@ export const getEmployeeDocuments = async ({ page = 1, page_size = 20 }) => {
   return data;
 };
 
-
 export const filterEmployeeDocuments = async (payload) => {
   const userId = localStorage.getItem("user_id");
 
@@ -125,12 +145,15 @@ export const filterEmployeeDocuments = async (payload) => {
       country: payload?.country || "",
       document_type: payload?.document_type || "",
       page: payload?.page || 1,
+      page_size: payload?.page_size || 20, 
+
+      sort_by: payload?.sort_by || "",
+      national_id_type: payload?.national_id_type || "",
     }
   );
 
   return data;
 };
-
 
 
 
