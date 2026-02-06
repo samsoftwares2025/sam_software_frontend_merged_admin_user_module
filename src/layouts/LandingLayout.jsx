@@ -5,7 +5,7 @@ import Navbar from "../components/home/Navbar";
 import Footer from "../components/home/Footer";
 import LandingWrapper from "../components/home/LandingWrapper";
 
-import "../assets/styles/landingpage.css";
+import "../assets/styles/LandingPage.css";
 
 const LandingLayout = () => {
   useEffect(() => {
