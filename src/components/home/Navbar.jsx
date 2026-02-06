@@ -66,7 +66,6 @@ const Navbar = () => {
           <a href="#contact">Contact</a>
 
           {/* CTA */}
-          <button className="nav-cta">Request Demo</button>
         </nav>
 
         {/* MOBILE TOGGLE */}
@@ -106,7 +105,6 @@ const Navbar = () => {
         <a href="#pricing" onClick={closeAll}>Pricing</a>
         <a href="#contact" onClick={closeAll}>Contact</a>
 
-        <button className="nav-cta mobile-cta">Request Demo</button>
       </nav>
     </header>
   );

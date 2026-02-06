@@ -119,19 +119,6 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
     return items.filter((item) => canView(item.permission));
   };
 
-  const recruitmentModules = filterAllowed([
-    {
-      permission: "vacancy listing",
-      label: "Vacancy Listing",
-      to: "/admin/recruitment/vacancies",
-    },
-    {
-      permission: "view applications",
-      label: "View Applications",
-      to: "/admin/recruitment/applications",
-    },
-  ]);
-
   const employeeModules = filterAllowed([
     {
       permission: "employee",
@@ -238,37 +225,12 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   ]);
 
   const organizationModules = filterAllowed([
-    {
-      permission: "department",
-      label: "Departments",
-      to: "/admin/departments",
-    },
-    {
-      permission: "designation",
-      label: "Designations",
-      to: "/admin/designations",
-    },
-    {
-      permission: "employment type",
-      label: "Employment Type",
-      to: "/admin/employment-type",
-    },
-    {
-      permission: "roles & permissions",
-      label: "Roles & Permissions",
-      to: "/admin/roles-permissions",
-    },
+    { permission: "department", label: "Departments", to: "/admin/departments" },
+    { permission: "designation", label: "Designations", to: "/admin/designations" },
+    { permission: "employment type", label: "Employment Type", to: "/admin/employment-type" },
+    { permission: "roles & permissions", label: "Roles & Permissions", to: "/admin/roles-permissions" },
     { permission: "policies", label: "Policies", to: "/admin/policies" },
-    {
-      permission: "company rules",
-      label: "Company Rules",
-      to: "/admin/company-rules",
-    },
-        {
-      permission: "company documents",
-      label: "Company Documents",
-      to: "/admin/company-documents",
-    },
+    { permission: "company rules", label: "Company Rules", to: "/admin/company-rules" },
   ]);
 
   const ticketModules = filterAllowed([
@@ -281,7 +243,7 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   ]);
 
   return (
-    <aside
+   <aside
       className={`sidebar ${isMobileOpen ? "mobile-open mobile-visible" : ""}`}
       id="sidebar"
     >
@@ -327,59 +289,6 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
           )}
         </li>
 
-        {/* ================= ORGANIZATION ================= */}
-        {organizationModules.length > 0 && (
-          <li className={navHasSubmenu("organization")}>
-            <button
-              className="nav-toggle"
-              aria-expanded={openSection === "organization"}
-              onClick={() => handleSectionToggle("organization")}
-            >
-              <span className="nav-icon">
-                <i className="fa-solid fa-building" />
-              </span>
-              <span className="nav-text">Organization</span>
-              <span className="nav-caret">▸</span>
-            </button>
-
-            <ul className="submenu" aria-hidden={submenuHidden("organization")}>
-              {organizationModules.map((item, index) => (
-                <li key={index}>
-                  <ProtectedLink required={item.permission} to={item.to}>
-                    {item.label}
-                  </ProtectedLink>
-                </li>
-              ))}
-            </ul>
-          </li>
-        )}
-
-        {/* ================= Recruitment ================= */}
-        {recruitmentModules.length > 0 && (
-          <li className={navHasSubmenu("recruitment")}>
-            <button
-              className="nav-toggle"
-              aria-expanded={openSection === "recruitment"}
-              onClick={() => handleSectionToggle("recruitment")}
-            >
-              <span className="nav-icon">
-                <i className="fa-solid fa-user-tie" />
-              </span>
-              <span className="nav-text">Recruitment</span>
-              <span className="nav-caret">▸</span>
-            </button>
-
-            <ul className="submenu" aria-hidden={submenuHidden("recruitment")}>
-              {recruitmentModules.map((item, index) => (
-                <li key={index}>
-                  <ProtectedLink required={item.permission} to={item.to}>
-                    {item.label}
-                  </ProtectedLink>
-                </li>
-              ))}
-            </ul>
-          </li>
-        )}
         {/* ================= EMPLOYEES ================= */}
         {employeeModules.length > 0 && (
           <li className={navHasSubmenu("employees")}>
@@ -406,102 +315,24 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
             </ul>
           </li>
         )}
-        {/* ================= Attendance ================= */}
-        {attendanceModules.length > 0 && (
-          <li className={navHasSubmenu("attendance")}>
+
+        {/* ================= ORGANIZATION ================= */}
+        {organizationModules.length > 0 && (
+          <li className={navHasSubmenu("organization")}>
             <button
               className="nav-toggle"
-              aria-expanded={openSection === "attendance"}
-              onClick={() => handleSectionToggle("attendance")}
+              aria-expanded={openSection === "organization"}
+              onClick={() => handleSectionToggle("organization")}
             >
               <span className="nav-icon">
-                <i className="fa-solid fa-clock" />
+                <i className="fa-solid fa-building" />
               </span>
-              <span className="nav-text">Attendance</span>
+              <span className="nav-text">Organization</span>
               <span className="nav-caret">▸</span>
             </button>
 
-            <ul className="submenu" aria-hidden={submenuHidden("attendance")}>
-              {attendanceModules.map((item, index) => (
-                <li key={index}>
-                  <ProtectedLink required={item.permission} to={item.to}>
-                    {item.label}
-                  </ProtectedLink>
-                </li>
-              ))}
-            </ul>
-          </li>
-        )}
-        {/* ================= Payroll ================= */}
-        {payrollModules.length > 0 && (
-          <li className={navHasSubmenu("payroll")}>
-            <button
-              className="nav-toggle"
-              aria-expanded={openSection === "payroll"}
-              onClick={() => handleSectionToggle("payroll")}
-            >
-              <span className="nav-icon">
-                <i className="fa-solid fa-money-bill-wave" />
-              </span>
-              <span className="nav-text">Payroll</span>
-              <span className="nav-caret">▸</span>
-            </button>
-
-            <ul className="submenu" aria-hidden={submenuHidden("payroll")}>
-              {payrollModules.map((item, index) => (
-                <li key={index}>
-                  <ProtectedLink required={item.permission} to={item.to}>
-                    {item.label}
-                  </ProtectedLink>
-                </li>
-              ))}
-            </ul>
-          </li>
-        )}
-        {/* ================= Reminders ================= */}
-        {reminderModules.length > 0 && (
-          <li className={navHasSubmenu("reminders")}>
-            <button
-              className="nav-toggle"
-              aria-expanded={openSection === "reminders"}
-              onClick={() => handleSectionToggle("reminders")}
-            >
-              <span className="nav-icon">
-                <i className="fa-solid fa-bell" />
-              </span>
-              <span className="nav-text">Reminders</span>
-              <span className="nav-caret">▸</span>
-            </button>
-
-            <ul className="submenu" aria-hidden={submenuHidden("reminders")}>
-              {reminderModules.map((item, index) => (
-                <li key={index}>
-                  <ProtectedLink required={item.permission} to={item.to}>
-                    {item.label}
-                  </ProtectedLink>
-                </li>
-              ))}
-            </ul>
-          </li>
-        )}
-        {/* ================= Client Management ================= */}
-        {clientModules.length > 0 && (
-          <li className={navHasSubmenu("clients")}>
-            <button
-              className="nav-toggle"
-              aria-expanded={openSection === "clients"}
-              onClick={() => handleSectionToggle("clients")}
-            >
-              <span className="nav-icon">
-               <i className="fa-solid fa-handshake" />
-
-              </span>
-              <span className="nav-text">Clients</span>
-              <span className="nav-caret">▸</span>
-            </button>
-
-            <ul className="submenu" aria-hidden={submenuHidden("clients")}>
-              {clientModules.map((item, index) => (
+            <ul className="submenu" aria-hidden={submenuHidden("organization")}>
+              {organizationModules.map((item, index) => (
                 <li key={index}>
                   <ProtectedLink required={item.permission} to={item.to}>
                     {item.label}
@@ -590,39 +421,59 @@ function Sidebar({ isMobileOpen, onClose, openSection, setOpenSection }) {
   </ul>
 </li>
 
+{/* ================= USER COMPANY POLICIES ================= */}
+  <li className="nav-item">
+    <Link
+      to="/user/company-policies"
+      className={`nav-link ${
+        isActive("/user/company-policies") ? "active" : ""
+      }`}
+      onClick={handleLinkClick}
+    >
+      <span className="nav-icon">
+        <i className="fa-solid fa-file-shield" />
+      </span>
+      Company Policies
+    </Link>
+  </li>
 
-{/* ================= COMPANY RULES ================= */}
-<li className="nav-item">
-  <Link
-    to="/profile/company-rules"
-    className={`nav-link ${
-      isActive("/profile/company-rules") ? "active" : ""
-    }`}
-    onClick={handleLinkClick}
-  >
-    <span className="nav-icon">
-      <i className="fa-solid fa-scale-balanced" />
-    </span>
-    <span className="nav-text">Company Rules</span>
-  </Link>
-</li>
+
+{/* ================= USER COMPANY RULES ================= */}
+  <li className="nav-item">
+    <Link
+      to="/user/company-rules"
+      className={`nav-link ${
+        isActive("/user/company-rules") ? "active" : ""
+      }`}
+      onClick={handleLinkClick}
+    >
+      <span className="nav-icon">
+        <i className="fa-solid fa-scale-balanced" />
+      </span>
+      Company Rules
+    </Link>
+  </li>
+
+
 
  
         {/* ================= USER HELP & SUPPORT ================= */}
-        {!isClientAdmin && (
-          <li className="nav-item">
-            <Link
-              to="/user/support"
-              className={`nav-link ${isActive("/user/support") ? "active" : ""}`}
-              onClick={handleLinkClick}
-            >
-              <span className="nav-icon">
-                <i className="fa-solid fa-circle-question" />
-              </span>
-              Help & Support
-            </Link>
-          </li>
-        )}
+{!isClientAdmin && (
+  <li className="nav-item">
+    <Link
+      to="/user/support"
+      className={`nav-link ${isActive("/user/support") ? "active" : ""}`}
+      onClick={handleLinkClick}
+    >
+      <span className="nav-icon">
+        <i className="fa-solid fa-circle-question" />
+      </span>
+      Help & Support
+    </Link>
+  </li>
+)}
+
+
 
         {isClientAdmin && (
           <li className={navHasSubmenu("support")}>
