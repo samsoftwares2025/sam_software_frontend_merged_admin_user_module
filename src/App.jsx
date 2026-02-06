@@ -10,9 +10,6 @@ import Coming_soon from "./pages/home/Coming_soon";
 import Home from "./pages/home/Home";
 import LandingLayout from "./layouts/LandingLayout";
 
-
-
-
 import NotFound from "./pages/auth/NotFound";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -22,50 +19,50 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 /* ADMIN PAGES */
 import DashboardPage from "./pages/admin/DashboardPage";
-import DepartmentsPage from "./pages/admin/DepartmentsPage";
-import DesignationPage from "./pages/admin/DesignationPage";
-import AddDesignationPage from "./pages/admin/AddDesignationPage";
-import UpdateDesignationPage from "./pages/admin/UpdateDesignationPage";
-import AddDepartmentPage from "./pages/admin/AddDepartmentPage";
-import UpdateDepartmentPage from "./pages/admin/UpdateDepartmentPage";
-import EmploymentTypePage from "./pages/admin/EmploymentTypePage";
-import AddEmploymentTypePage from "./pages/admin/AddEmploymentTypePage";
-import UpdateEmploymentTypePage from "./pages/admin/UpdateEmploymentTypePage";
-import CompanyRegistrationPage from "./pages/admin/CompanyRegistrationPage";
-import AddEmployeePage from "./pages/admin/AddEmployee";
-import EmployeeMasterDataPage from "./pages/admin/EmployeeMasterDataPage";
-import EmploymentHistoryPage from "./pages/admin/EmploymentHistoryPage";
-import EmployeeDocumentsPage from "./pages/admin/EmployeeDocumentsPage";
-import AddEmployeeDocumentsPage from "./pages/admin/AddEmployeeDocumentsPage";
-import UpdateEmployeDocumentPage from "./pages/admin/UpdateEmployeDocumentPage";
+import DepartmentsPage from "./pages/admin/departments/DepartmentsPage";
+import DesignationPage from "./pages/admin/designation/DesignationPage";
+import AddDesignationPage from "./pages/admin/designation/AddDesignationPage";
+import UpdateDesignationPage from "./pages/admin/designation/UpdateDesignationPage";
+import AddDepartmentPage from "./pages/admin/departments/AddDepartmentPage";
+import UpdateDepartmentPage from "./pages/admin/departments/UpdateDepartmentPage";
+import EmploymentTypePage from "./pages/admin/employmenttype/EmploymentTypePage";
+import AddEmploymentTypePage from "./pages/admin/employmenttype/AddEmploymentTypePage";
+import UpdateEmploymentTypePage from "./pages/admin/employmenttype/UpdateEmploymentTypePage";
+import CompanyRegistrationPage from "./pages/auth/CompanyRegistrationPage";
+import AddEmployeePage from "./pages/admin/employee/AddEmployee";
+import EmployeeMasterDataPage from "./pages/admin/employee/EmployeeMasterDataPage";
+import EmploymentHistoryPage from "./pages/admin/employee/EmploymentHistoryPage";
+import EmployeeDocumentsPage from "./pages/admin/employee/EmployeeDocumentsPage";
+import AddEmployeeDocumentsPage from "./pages/admin/employee/AddEmployeeDocumentsPage";
+import UpdateEmployeDocumentPage from "./pages/admin/employee/UpdateEmployeDocumentPage";
 import EmployeeDocumentsView from "./components/admin/EmployeeDocumentsView";
 import MyProfile from "./pages/admin/MyProfile";
-import EmployeeProfile from "./pages/admin/EmployeeProfile";
-import UpdateEmployeePage from "./pages/admin/UpdateEmployeePage";
+import EmployeeProfile from "./pages/admin/employee/EmployeeProfile";
+import UpdateEmployeePage from "./pages/admin/employee/UpdateEmployeePage";
 import UpdateMyProfileDataPage from "./pages/admin/UpdateMyProfileDataPage";
-import PoliciesPage from "./pages/admin/PoliciesPage";
-import AddPolicyPage from "./pages/admin/AddPolicyPage";
-import UpdatePolicyPage from "./pages/admin/UpdatePolicyPage";
-import CompanyRulesPage from "./pages/admin/CompanyRulesPage";
-import CompanyDocumentsPage from "./pages/admin/CompanyDocumentsPage";
-import AddCompanyDocumentPage from "./pages/admin/AddCompanyDocumentPage";
-import ViewCompanyDocumentPage from "./pages/admin/ViewCompanyDocumentPage";
-import UpdateCompanyDocumentPage from "./pages/admin/UpdateCompanyDocumentPage";
-import AddCompanyRulePage from "./pages/admin/AddCompanyRulePage";
-import UpdateCompanyRulePage from "./pages/admin/UpdateCompanyRulePage";
-import RolesPermissions from "./pages/admin/RolesAndPermission";
-import AddRolePage from "./pages/admin/AddRolePage";
-import UpdateRolePage from "./pages/admin/UpdateRolePage";
-import AssignRole from "./pages/admin/AssignRole";
+import PoliciesPage from "./pages/admin/policy/PoliciesPage";
+import AddPolicyPage from "./pages/admin/policy/AddPolicyPage";
+import UpdatePolicyPage from "./pages/admin/policy/UpdatePolicyPage";
+import CompanyRulesPage from "./pages/admin/companyrules/CompanyRulesPage";
+import CompanyDocumentsPage from "./pages/admin/companydocuments/CompanyDocumentsPage";
+import AddCompanyDocumentPage from "./pages/admin/companydocuments/AddCompanyDocumentPage";
+import ViewCompanyDocumentPage from "./pages/admin/companydocuments/ViewCompanyDocumentPage";
+import UpdateCompanyDocumentPage from "./pages/admin/companydocuments/UpdateCompanyDocumentPage";
+import AddCompanyRulePage from "./pages/admin/companyrules/AddCompanyRulePage";
+import UpdateCompanyRulePage from "./pages/admin/companyrules/UpdateCompanyRulePage";
+import RolesPermissions from "./pages/admin/rolesandpermission/RolesAndPermission";
+import AddRolePage from "./pages/admin/rolesandpermission/AddRolePage";
+import UpdateRolePage from "./pages/admin/rolesandpermission/UpdateRolePage";
+import AssignRole from "./pages/admin/rolesandpermission/AssignRole";
 import PersonalEmploymentHistoryPage from "./pages/admin/PersonalEmploymentHistoryPage";
-import ComplianceDocumentationPage from "./pages/admin/ComplianceDocumentationPage";
-import ComplianceTicketDetails from "./pages/admin/ComplianceTicketDetails";
-import UpdateComplianceTicketDetails from "./pages/admin/UpdateComplianceTicketDetails";
-import AddTicketTypePage from "./pages/admin/AddTicketTypePage";
-import TicketTypesPage from "./pages/admin/TicketTypesPage";
-import UpdateTicketTypePage from "./pages/admin/UpdateTicketTypePage";
-import AddTicketAdminPage from "./pages/admin/AddTicketAdminPage";
-import SupportAdminMyTicketsPage from "./pages/admin/SupportAdminMyTicketsPage";
+import ComplianceDocumentationPage from "./pages/admin/tickets/ComplianceDocumentationPage";
+import ComplianceTicketDetails from "./pages/admin/tickets/ComplianceTicketDetails";
+import UpdateComplianceTicketDetails from "./pages/admin/tickets/UpdateComplianceTicketDetails";
+import AddTicketTypePage from "./pages/admin/tickets/AddTicketTypePage";
+import TicketTypesPage from "./pages/admin/tickets/TicketTypesPage";
+import UpdateTicketTypePage from "./pages/admin/tickets/UpdateTicketTypePage";
+import AddTicketAdminPage from "./pages/admin/tickets/AddTicketAdminPage";
+import SupportAdminMyTicketsPage from "./pages/admin/tickets/SupportAdminMyTicketsPage";
 import AddShiftPage from "./pages/admin/shift/AddShiftPage";
 import ShiftsPage from "./pages/admin/shift/ShiftsPage";
 import UpdateShiftPage from "./pages/admin/shift/UpdateShiftPage";
@@ -78,7 +75,7 @@ import Myhistory from "./pages/user/Myhistory";
 import ResetPassword from "./pages/user/ResetPassword";
 import MyTickets from "./pages/user/Supportpage";
 import AddTicket from "./pages/user/AddTicket";
-import AssignedTickets from "./pages/admin/Userassighnticket";
+import AssignedTickets from "./pages/admin/tickets/Userassighnticket";
 import MyCompanyRules from "./pages/user/Companyrulesview";
 
 import "./App.css";
@@ -107,13 +104,10 @@ function App() {
               {/* PUBLIC ROUTES */}
               <Route path="*" element={<NotFound />} />
               <Route path="/" element={<Coming_soon />} />
-             
-               
-             
-<Route element={<LandingLayout />}>
-  <Route path="/hr/software" element={<Home />} />
-</Route>
 
+              <Route element={<LandingLayout />}>
+                <Route path="/hr/software" element={<Home />} />
+              </Route>
 
               <Route path="/login" element={<LoginPage />} />
               <Route
@@ -405,7 +399,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-               <Route
+              <Route
                 path="/admin/view-company-document"
                 element={
                   <ProtectedRoute module="company rules">
@@ -532,12 +526,11 @@ function App() {
                 }
               />
 
-
               <Route
                 path="/admin/add-shift"
                 element={
                   <ProtectedRoute module="shift" action="add">
-                  < AddShiftPage/>
+                    <AddShiftPage />
                   </ProtectedRoute>
                 }
               />
@@ -545,7 +538,7 @@ function App() {
                 path="/admin/shifts"
                 element={
                   <ProtectedRoute module="shift" action="view">
-                  < ShiftsPage/>
+                    <ShiftsPage />
                   </ProtectedRoute>
                 }
               />
@@ -553,7 +546,7 @@ function App() {
                 path="/admin/update-shift"
                 element={
                   <ProtectedRoute module="shift" action="update">
-                  < UpdateShiftPage/>
+                    <UpdateShiftPage />
                   </ProtectedRoute>
                 }
               />
@@ -568,18 +561,18 @@ function App() {
               />
               <Route path="/user/support" element={<MyTickets />} />
               <Route path="/user/support/add" element={<AddTicket />} />
-              <Route path="/admin/support/assigned" element={<AssignedTickets />} />
               <Route
-  path="/profile/company-rules"
-  element={
-    <ProtectedRoute noPermissionCheck>
-      <MyCompanyRules />
-    </ProtectedRoute>
-  }
-/>
-
-
-
+                path="/admin/support/assigned"
+                element={<AssignedTickets />}
+              />
+              <Route
+                path="/profile/company-rules"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <MyCompanyRules />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </BrowserRouter>
         </LoaderInitializer>
