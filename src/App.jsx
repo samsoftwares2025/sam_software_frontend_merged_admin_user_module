@@ -77,6 +77,8 @@ import MyTickets from "./pages/user/Supportpage";
 import AddTicket from "./pages/user/AddTicket";
 import AssignedTickets from "./pages/admin/Userassighnticket";
 import MyCompanyRules from "./pages/user/Companyrulesview";
+import MyCompanyPolicies from "./pages/user/Companypolicyview";
+
 
 import "./App.css";
 
@@ -542,7 +544,7 @@ function App() {
               <Route path="/user/support/add" element={<AddTicket />} />
               <Route path="/admin/support/assigned" element={<AssignedTickets />} />
               <Route
-  path="/profile/company-rules"
+  path="/user/company-rules"
   element={
     <ProtectedRoute noPermissionCheck>
       <MyCompanyRules />
@@ -550,6 +552,14 @@ function App() {
   }
 />
 
+<Route
+  path="/user/company-policies"
+  element={
+    <ProtectedRoute noPermissionCheck>
+      <MyCompanyPolicies />
+    </ProtectedRoute>
+  }
+/>
 
 
             </Routes>

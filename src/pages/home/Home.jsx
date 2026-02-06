@@ -47,39 +47,39 @@ const Home = () => {
     <div className="about-grid">
       {/* CONTENT */}
       <div className="about-content">
-        <span className="about-eyebrow">About Us</span>
-        <h2>
-          Building modern software <br /> for growing organizations
-        </h2>
+  <span className="about-eyebrow">About Us</span>
+  <h2>
+    We build simple software <br /> that helps businesses grow
+  </h2>
 
-        <p>
-          Sam Software is a technology startup focused on delivering
-          enterprise-grade HR and compliance platforms. We help
-          organizations simplify workforce management, stay compliant,
-          and scale confidently in a fast-changing digital world.
-        </p>
+  <p>
+    Sam Software is a growing technology company that creates smart
+    software and accounting solutions for modern businesses. We focus
+    on making daily work easier, faster, and more organized.
+  </p>
 
-        <p>
-          Our solutions are designed with security, scalability and user
-          experience at the core — enabling leadership teams to make
-          informed decisions while empowering employees at every level.
-        </p>
+  <p>
+    Our goal is simple — reduce complexity, save time, and give
+    businesses tools they can actually enjoy using. We design our
+    products to be secure, scalable, and easy for everyone.
+  </p>
 
-        <div className="about-stats">
-          <div className="stat" data-count="10+">
-            <strong data-count="10+">10+</strong>
-            <span>Enterprise Modules</span>
-          </div>
-          <div className="stat" data-count="99.9%">
-            <strong data-count="99.9%">99.9%</strong>
-            <span>Platform Reliability</span>
-          </div>
-          <div className="stat" data-count="24/7">
-            <strong data-count="24/7">24/7</strong>
-            <span>Secure Operations</span>
-          </div>
-        </div>
-      </div>
+  <div className="about-stats">
+    <div className="stat">
+      <strong>10+</strong>
+      <span>Business Modules</span>
+    </div>
+    <div className="stat">
+      <strong>99.9%</strong>
+      <span>System Uptime</span>
+    </div>
+    <div className="stat">
+      <strong>24/7</strong>
+      <span>Support & Security</span>
+    </div>
+  </div>
+</div>
+
 
       {/* IMAGE WITH FLOATING ELEMENTS */}
       <div className="about-image">
@@ -96,67 +96,80 @@ const Home = () => {
   </div>
 </section>
 
-      {/* ================= INDUSTRY SOLUTIONS ================= */}
-      <section className="industry-section" id="industries">
-        <div className="industry-container">
-          <header className="industry-header">
-            <h2>
-              Software solutions tailored for industries <br />
-              driving digital transformation
-            </h2>
-          </header>
+{/* ================= OUR SOLUTIONS ================= */}
+<section className="industry-section" id="solutions">
+  <div className="industry-container">
+    <header className="industry-header">
+      <h2>
+        Simple solutions <br />
+        built for everyday business needs
+      </h2>
+    </header>
 
-          <div className="industry-grid">
-            <article className="industry-card">
-              <img
-                src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1600"
-                alt="Enterprise HR"
-              />
-              <div className="industry-overlay">
-                <span className="industry-tag">Enterprise HR</span>
-                <h3>Scalable HR platforms for modern organizations</h3>
-                <span className="industry-cta">Explore solution →</span>
-              </div>
-            </article>
-
-            <article className="industry-card">
-              <img
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600"
-                alt="Compliance Software"
-              />
-              <div className="industry-overlay">
-                <span className="industry-tag">Compliance</span>
-                <h3>Adaptive compliance systems for evolving regulations</h3>
-                <span className="industry-cta">Explore solution →</span>
-              </div>
-            </article>
-
-            <article className="industry-card">
-              <img
-                src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1600"
-                alt="Payroll & Finance"
-              />
-              <div className="industry-overlay">
-                <span className="industry-tag">Payroll & Finance</span>
-                <h3>Accurate payroll and financial automation platforms</h3>
-                <span className="industry-cta">Explore solution →</span>
-              </div>
-            </article>
-
-            <article className="industry-card">
-              <img
-                src="https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=1600"
-                alt="Analytics Platforms"
-              />
-              <div className="industry-overlay">
-                <span className="industry-tag">Analytics</span>
-                <h3>Data-driven platforms delivering business insights</h3>
-                <span className="industry-cta">Explore solution →</span>
-              </div>
-            </article>
-          </div>
+    <div className="industry-grid">
+      <article className="industry-card">
+        <img
+          src="https://images.pexels.com/photos/4342125/pexels-photo-4342125.jpeg"
+          alt="HR Management"
+        />
+        <div className="industry-overlay">
+          <span className="industry-tag">HR Management</span>
+          <h3>
+            Simple tools to manage employees, attendance, payroll, and everyday
+            HR tasks without any hassle.
+          </h3>
+          <span className="industry-cta">Learn more →</span>
         </div>
-      </section>
+      </article>
+
+      <article className="industry-card">
+        <img
+          src="https://images.pexels.com/photos/326503/pexels-photo-326503.jpeg"
+          alt="Website Design & Templates"
+        />
+        <div className="industry-overlay">
+          <span className="industry-tag">Website Design</span>
+          <h3>
+            Clean, modern website designs and ready-made templates that work
+            smoothly on all devices.
+          </h3>
+          <span className="industry-cta">Learn more →</span>
+        </div>
+      </article>
+
+      <article className="industry-card">
+        <img
+          src="https://images.pexels.com/photos/7988752/pexels-photo-7988752.jpeg"
+          alt="Custom Software Solutions"
+        />
+        <div className="industry-overlay">
+          <span className="industry-tag">Software Solutions</span>
+          <h3>
+            We build software that fits your business needs — easy to use,
+            scalable, and dependable.
+          </h3>
+          <span className="industry-cta">Learn more →</span>
+        </div>
+      </article>
+
+      <article className="industry-card">
+        <img
+          src="https://images.pexels.com/photos/221174/pexels-photo-221174.png"
+          alt="Accounting & Finance Solutions"
+        />
+        <div className="industry-overlay">
+          <span className="industry-tag">Accounting & Finance</span>
+          <h3>
+            User-friendly accounting tools to manage billing, expenses, reports,
+            and financial records with confidence.
+          </h3>
+          <span className="industry-cta">Learn more →</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
 
 <section className="why-section" id="why-samsoftware">
   <div className="why-container">
