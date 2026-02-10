@@ -66,6 +66,14 @@ import SupportAdminMyTicketsPage from "./pages/admin/tickets/SupportAdminMyTicke
 import AddShiftPage from "./pages/admin/shift/AddShiftPage";
 import ShiftsPage from "./pages/admin/shift/ShiftsPage";
 import UpdateShiftPage from "./pages/admin/shift/UpdateShiftPage";
+import AddJobPage from "./pages/admin/recruitment/AddVaccancyPage";
+import JobVacanciesPage from "./pages/admin/recruitment/JobVacanciesPage";
+import UpdateVaccancyPage from "./pages/admin/recruitment/UpdateVaccancyPage";
+import ViewVacancyPage from "./pages/admin/recruitment/ViewVacancyPage";
+import PublicJobListPage from "./pages/admin/recruitment/PublicJobListPage";
+import PublicJobDetailPage from "./pages/admin/recruitment/PublicJobDetailPage";
+import PublicApplyPage from "./pages/admin/recruitment/PublicApplyPage";
+import JobApplicationsPage from "./pages/admin/recruitment/JobApplicationsPage";
 
 /* USER MODULE */
 import Dashboard from "./pages/user/Dashboard";
@@ -78,7 +86,6 @@ import AddTicket from "./pages/user/AddTicket";
 import AssignedTickets from "./pages/admin/tickets/Userassighnticket";
 import MyCompanyRules from "./pages/user/Companyrulesview";
 import MyCompanyPolicies from "./pages/user/Companypolicyview";
-
 
 import "./App.css";
 
@@ -106,7 +113,10 @@ function App() {
               {/* PUBLIC ROUTES */}
               <Route path="*" element={<NotFound />} />
               <Route path="/" element={<Coming_soon />} />
-
+                {/* --- Public Careers Portal Routes --- */}
+              <Route path="/:company_slug/jobs" element={<PublicJobListPage />} />
+              <Route path="/:company_slug/jobs/:job_slug" element={<PublicJobDetailPage />} />
+              <Route path="/:company_slug/jobs/:job_slug/apply" element={<PublicApplyPage />} />
               <Route element={<LandingLayout />}>
                 <Route path="/hr/software" element={<Home />} />
               </Route>
@@ -552,6 +562,47 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/recruitment/add-job"
+                element={
+                  <ProtectedRoute module="recruitment" action="add">
+                    <AddJobPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recruitment/vacancies"
+                element={
+                  <ProtectedRoute module="recruitment" action="view">
+                    <JobVacanciesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recruitment/vacancy-update"
+                element={
+                  <ProtectedRoute module="recruitment" action="update">
+                    <UpdateVaccancyPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recruitment/vacancy-view"
+                element={
+                  <ProtectedRoute module="recruitment" action="view">
+                    <ViewVacancyPage />
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/recruitment/job-applications"
+                element={
+                  <ProtectedRoute module="recruitment" action="view">
+                    <JobApplicationsPage />
+                  </ProtectedRoute>
+                }
+              />
+            
               {/* USER MODULE */}
               <Route path="/user/dashboard" element={<Dashboard />} />
               <Route path="/user/myprofile" element={<Myprofile />} />
@@ -564,24 +615,22 @@ function App() {
               <Route path="/user/support" element={<MyTickets />} />
               <Route path="/user/support/add" element={<AddTicket />} />
               <Route
-  path="/user/company-rules"
-  element={
-    <ProtectedRoute noPermissionCheck>
-      <MyCompanyRules />
-    </ProtectedRoute>
-  }
-/>
+                path="/user/company-rules"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <MyCompanyRules />
+                  </ProtectedRoute>
+                }
+              />
 
-<Route
-  path="/user/company-policies"
-  element={
-    <ProtectedRoute noPermissionCheck>
-      <MyCompanyPolicies />
-    </ProtectedRoute>
-  }
-/>
-
-
+              <Route
+                path="/user/company-policies"
+                element={
+                  <ProtectedRoute noPermissionCheck>
+                    <MyCompanyPolicies />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </BrowserRouter>
         </LoaderInitializer>

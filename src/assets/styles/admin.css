@@ -3819,3 +3819,95 @@ table.data-table th.wrap {
     overflow-y: auto !important;
   }
 }
+
+
+
+
+
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 20px;
+  inset: 0;
+  transition: 0.3s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+input:checked + .slider {
+  background-color: #28a745;
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+.date-filter-group {
+  display: flex;
+  gap: 12px;
+  /* Desktop behavior: stay in one line */
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.date-input-container {
+  position: relative;
+  /* Desktop width: split available space or fixed */
+  width: 160px; 
+}
+
+.filter-date-input {
+  width: 100%;
+  height: 45px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  color: #475569;
+  background-color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  /* Change group to allow stacking */
+  .date-filter-group {
+    flex-wrap: wrap; 
+    width: 100%;
+    gap: 12px; /* Vertical space between the two stacked dates */
+  }
+
+  .date-input-container {
+    /* Make each container behave like your Select components on mobile */
+    width: 100%; 
+    flex: 1 1 100%;
+  }
+
+  .filter-date-input {
+    font-size: 14px; /* Keep consistent with other mobile inputs */
+  }
+}
