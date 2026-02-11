@@ -3866,48 +3866,27 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(18px);
 }
+
 .date-filter-group {
   display: flex;
   gap: 12px;
   /* Desktop behavior: stay in one line */
   flex-wrap: nowrap;
-  align-items: center;
 }
 
-.date-input-container {
-  position: relative;
-  /* Desktop width: split available space or fixed */
-  width: 160px; 
-}
 
-.filter-date-input {
-  width: 100%;
-  height: 45px;
-  padding: 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  outline: none;
-  font-size: 14px;
-  color: #475569;
-  background-color: white;
-  cursor: pointer;
-}
+
+
 
 @media (max-width: 768px) {
-  /* Change group to allow stacking */
   .date-filter-group {
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
     width: 100%;
-    gap: 12px; /* Vertical space between the two stacked dates */
+    gap: 12px;
   }
 
   .date-input-container {
-    /* Make each container behave like your Select components on mobile */
-    width: 100%; 
-    flex: 1 1 100%;
-  }
-
-  .filter-date-input {
-    font-size: 14px; /* Keep consistent with other mobile inputs */
+    width: 100%;
+   
   }
 }

@@ -6,16 +6,13 @@ import Header from "../../../components/common/Header";
 import LoaderOverlay from "../../../components/common/LoaderOverlay";
 import Pagination from "../../../components/common/Pagination";
 import ErrorModal from "../../../components/common/ErrorModal";
-import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal"; // ✅ Import the modal
+import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal";
 import {
   listJobApplications,
   updateJobApplication,
   listActiveVacancies,
   deleteJobApplications,
 } from "../../../api/admin/recruitment/job";
-
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://admin.samsoftwares.com";
 
 const selectStyles = {
   control: (base) => ({
@@ -29,25 +26,20 @@ const selectStyles = {
 };
 
 function JobApplicationsPage() {
+  const [openSection, setOpenSection] = useState("recruitment");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [apps, setApps] = useState([]);
   const [jobOptions, setJobOptions] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [filterJob, setFilterJob] = useState(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [filterStatus, setFilterStatus] = useState(null);
-
-  // Selection State
   const [selectedIds, setSelectedIds] = useState([]);
-
-  // Modal States ✅
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [idsToDelete, setIdsToDelete] = useState([]);
   const [deleting, setDeleting] = useState(false);
-
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [pagination, setPagination] = useState({});
@@ -124,7 +116,6 @@ function JobApplicationsPage() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, filterJob, filterStatus, fromDate, toDate, pageSize]);
 
-  // Selection Logic
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -139,7 +130,6 @@ function JobApplicationsPage() {
     }
   };
 
-  // ✅ New Delete Logic using Modal
   const openDeleteModal = (ids) => {
     setIdsToDelete(ids);
     setShowDeleteModal(true);
@@ -157,7 +147,6 @@ function JobApplicationsPage() {
         setShowErrorModal(true);
       }
     } catch (err) {
-      console.error("Delete failed", err);
       setErrorMessage("An error occurred during deletion.");
       setShowErrorModal(true);
     } finally {
@@ -238,6 +227,19 @@ function JobApplicationsPage() {
         }
         .job-link { text-decoration: none; color: #2563eb; font-weight: 600; }
         .job-link:hover { text-decoration: underline; }
+
+        /* --- Updated Filter Styles --- */
+        .date-filter-group {
+          display: flex;
+          gap: 12px;
+          flex-wrap: nowrap; /* Side by side on Desktop */
+          align-items: center;
+        }
+
+        .date-filter-item {
+          width: 180px; /* Default desktop width */
+        }
+
         .filter-date-input {
           height: 45px;
           padding: 0 12px;
@@ -246,8 +248,10 @@ function JobApplicationsPage() {
           outline: none;
           font-size: 14px;
           color: #475569;
-          width: 160px;
+          width: 100%; /* Fill the container */
+          box-sizing: border-box;
         }
+
         .bulk-actions-bar {
           background: #fff1f2;
           border: 1px solid #fecaca;
@@ -259,25 +263,50 @@ function JobApplicationsPage() {
           align-items: center;
           animation: slideDown 0.3s ease-out;
         }
+
+        @media (max-width: 768px) {
+          .date-filter-group {
+            flex-wrap: wrap; /* Allow stacking */
+            width: 100%;
+          }
+
+          .date-filter-item {
+            width: 100%; /* FULL WIDTH ON MOBILE */
+          }
+
+          .filter-date-input {
+            width: 100%; /* Force full width */
+          }
+          
+          .filters-left {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
+          
+          .filters-left > div {
+            width: 100% !important; /* Forces search and Selects to be full width too */
+          }
+        }
+
         @keyframes slideDown {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
-      <Sidebar openSection="recruitment" />
+      <Sidebar  isMobileOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          openSection={openSection}
+          setOpenSection={setOpenSection}/>
       <main className="main">
-        <Header />
+        <Header onMenuClick={() => setIsSidebarOpen((p) => !p)} />
         {loading && <LoaderOverlay />}
-
         {showErrorModal && (
           <ErrorModal
             message={errorMessage}
             onClose={() => setShowErrorModal(false)}
           />
         )}
-
-        {/* ✅ Delete Confirmation Modal */}
         {showDeleteModal && (
           <DeleteConfirmModal
             title="Delete Application(s)"
@@ -309,7 +338,7 @@ function JobApplicationsPage() {
             <button
               className="btn"
               style={{ background: "#ef4444", color: "white", border: "none" }}
-              onClick={() => openDeleteModal(selectedIds)} // ✅ Changed to open modal
+              onClick={() => openDeleteModal(selectedIds)}
             >
               <i
                 className="fa-solid fa-trash-can"
@@ -331,7 +360,6 @@ function JobApplicationsPage() {
               flex: 1,
             }}
           >
-            {/* Search Input */}
             <div
               className="search-input"
               style={{ minWidth: "220px", margin: 0 }}
@@ -347,7 +375,6 @@ function JobApplicationsPage() {
               />
             </div>
 
-            {/* Vacancy Select */}
             <div style={{ width: "220px", maxWidth: "100%" }}>
               <Select
                 options={jobOptions}
@@ -363,7 +390,6 @@ function JobApplicationsPage() {
               />
             </div>
 
-            {/* Status Select */}
             <div style={{ width: "180px", maxWidth: "100%" }}>
               <Select
                 options={[
@@ -383,10 +409,9 @@ function JobApplicationsPage() {
               />
             </div>
 
-            {/* Responsive Date Group */}
+            {/* --- Date Group --- */}
             <div className="date-filter-group">
-              {/* From Date Input */}
-              <div className="date-input-container">
+              <div className="date-filter-item">
                 <input
                   type={fromDate ? "date" : "text"}
                   placeholder="From Date"
@@ -401,8 +426,7 @@ function JobApplicationsPage() {
                 />
               </div>
 
-              {/* To Date Input */}
-              <div className="date-input-container">
+              <div className="date-filter-item">
                 <input
                   type={toDate ? "date" : "text"}
                   placeholder="To Date"
@@ -419,7 +443,6 @@ function JobApplicationsPage() {
             </div>
           </div>
 
-          {/* Clear Filters Button */}
           <div className="filters-right">
             <button className="btn btn-ghost" onClick={clearFilters}>
               <i className="fa-solid fa-filter-circle-xmark" /> Clear Filters
@@ -454,11 +477,10 @@ function JobApplicationsPage() {
               <tbody>
                 {apps.length > 0 ? (
                   apps.map((app) => {
-                    const fileUrl = app.cv_url
-                      ? `${BASE_URL}${app.cv_url}`
-                      : null;
+                    const fileUrl = app.cv_url || null;
                     const style = getStatusStyle(app.status);
                     const isImage = fileUrl && isImageFile(fileUrl);
+
                     return (
                       <tr key={app.id}>
                         <td>
@@ -536,7 +558,6 @@ function JobApplicationsPage() {
                             >
                               <button
                                 className="icon-btn"
-                                title="View"
                                 onClick={() =>
                                   isImage
                                     ? setPreviewImage(fileUrl)
@@ -547,7 +568,6 @@ function JobApplicationsPage() {
                               </button>
                               <button
                                 className="icon-btn"
-                                title="Download"
                                 onClick={() =>
                                   downloadFile(
                                     fileUrl,
@@ -566,8 +586,7 @@ function JobApplicationsPage() {
                           <button
                             className="icon-btn"
                             style={{ color: "#ef4444" }}
-                            title="Delete"
-                            onClick={() => openDeleteModal([app.id])} // ✅ Changed to open modal
+                            onClick={() => openDeleteModal([app.id])}
                           >
                             <i className="fa-solid fa-trash" />
                           </button>
@@ -598,7 +617,7 @@ function JobApplicationsPage() {
           />
         </div>
 
-        {/* IMAGE PREVIEW MODAL */}
+        {/* --- Image Preview Modal --- */}
         {previewImage && (
           <div className="modal-overlay" onClick={() => setPreviewImage(null)}>
             <div className="modal-card" onClick={(e) => e.stopPropagation()}>
